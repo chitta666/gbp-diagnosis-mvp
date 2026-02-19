@@ -1,0 +1,11 @@
+{
+  "name": "gbp-cf-mvp",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev public --compatibility-date=2025-01-01 --local",
+    "deploy": "wrangler pages deploy public"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

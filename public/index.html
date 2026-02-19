@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GBP 改善診断 (MVP)</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="h1">GBP 改善診断 (MVP)</h1>
+
+    <div class="row">
+      <input id="urlInput" class="input" placeholder="URL または 店名+住所" />
+      <button id="btn" class="btn btn--primary" type="button">診断する</button>
+    </div>
+
+    <div id="msg" class="muted"></div>
+
+    <div id="card" class="card hidden">
+      <div class="kpi">
+        <div>
+          <div class="kpi__label">スコア</div>
+          <div id="score" class="kpi__value">-</div>
+        </div>
+        <div class="muted">/ 100</div>
+      </div>
+
+      <div class="section">
+        <h2 class="section__title">改善ToDo</h2>
+        <ul id="todos" class="list"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section__title">減点内訳</h2>
+        <ul id="breakdown" class="list"></ul>
+        <div id="penalty" class="muted" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="section">
+        <h2 class="section__title">詳細</h2>
+        <div id="summary"></div>
+      </div>
+
+      <div class="section">
+        <h2 class="section__title">履歴</h2>
+        <div class="row" style="justify-content:space-between;">
+          <button id="clearHistory" type="button" class="btn">履歴を全削除</button>
+          <div class="muted" style="font-size:12px;">※履歴クリックで再表示（APIは叩かない）</div>
+        </div>
+        <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+
+      <details class="section">
+        <summary style="cursor:pointer;">デバッグJSON（開く）</summary>
+        <pre id="debug" class="pre"></pre>
+      </details>
+    </div>
+  </div>
+
+<script>
+  // ===== DOM =====
+  const btn = document.getElementById("btn");
+  const input = document.getElementById("urlInput");
+  const msg = document.getElementById("msg");
+  const card = document.getElementById("card");
+  const scoreEl = document.getElementById("score");
+  const todosEl = document.getElementById("todos");
+  const breakdownEl = document.getElementById("breakdown");
+  const penaltyEl = document.getElementById("penalty");
+  const summaryEl = document.getElementById("summary");
+  const debugEl = document.getElementById("debug");
+  const historyEl = document.getElementById("history");
+  const clearHistoryBtn = document.getElementById("clearHistory");
+
+  // ===== labels =====
+  const missingLabel = {
+    phone: "電話番号が未設定",
+    website: "Webサイトが未設定",
+    photos: "写真が少ない（5枚以上推奨）",
+  };
+  const ruleLabel = {
+    phone: "電話番号",
+    website: "Webサイト",
+    photos: "写真",
+  };
+
+  // ===== helpers =====
+  function showCard() { card.classList.remove("hidden"); }
+  function hideCard() { card.classList.add("hidden"); }
+
+  function resetUI() {
+    scoreEl.textContent = "-";
+    todosEl.innerHTML = "";
+    breakdownEl.innerHTML = "";
+    penaltyEl.textContent = "";
+    summaryEl.innerHTML = "";
+    debugEl.textContent = "";
+    msg.textContent = "";
+  }
+
+  function setLoading(isLoading) {
+    btn.disabled = isLoading;
+    showCard();
+    if (isLoading) {
+      msg.textContent = "loading...";
+      scoreEl.textContent = "-";
+      todosEl.innerHTML = "<li>loading...</li>";
+      breakdownEl.innerHTML = "<li>loading...</li>";
+      penaltyEl.textContent = "";
+      summaryEl.innerHTML = "<div>loading...</div>";
+      debugEl.textContent = "";
+    } else {
+      if (msg.textContent === "loading...") msg.textContent = "";
+    }
+  }
+
+  function renderTodos({ todosArr, missingArr }) {
+    todosEl.innerHTML = "";
+    const list =
+      (Array.isArray(todosArr) && todosArr.length ? todosArr : null) ??
+      (Array.isArray(missingArr) && missingArr.length
+        ? missingArr.map((id) => missingLabel[id] ?? id)
+        : []);
+
+    if (list.length === 0) {
+      todosEl.innerHTML = "<li>特になし</li>";
+      return;
+    }
+    list.forEach((t) => {
+      const li = document.createElement("li");
+      li.textContent = t;
+      todosEl.appendChild(li);
+    });
+  }
+
+  function renderBreakdown(diagnosis) {
+    breakdownEl.innerHTML = "";
+
+    const bd = Array.isArray(diagnosis?.breakdown) ? diagnosis.breakdown : [];
+    const missingOnly = bd.filter((r) => r?.missing);
+
+    if (missingOnly.length === 0) {
+      breakdownEl.innerHTML = "<li>減点なし</li>";
+      penaltyEl.textContent = "";
+      return;
+    }
+
+    let shownPenalty = 0;
+    missingOnly.forEach((r) => {
+      const li = document.createElement("li");
+      const label = ruleLabel[r.id] ?? r.id;
+      const w = Number(r.weight) || 0;
+      shownPenalty += w;
+      li.textContent = `× ${label}（-${w}）`;
+      breakdownEl.appendChild(li);
+    });
+
+    penaltyEl.textContent = `合計減点: -${shownPenalty}`;
+  }
+
+  function renderSummary(details, placeId) {
+    const name = details?.name ?? "-";
+    const address = details?.formatted_address ?? "-";
+    const phone = details?.international_phone_number ?? "なし";
+    const website = details?.website ?? null;
+    const photos = details?.photos?.length ?? 0;
+
+    summaryEl.innerHTML = `
+      <div><b>店名:</b> ${name}</div>
+      <div><b>住所:</b> ${address}</div>
+      <div><b>電話:</b> ${phone}</div>
+      <div><b>Web:</b> ${
+        website ? `<a href="${website}" target="_blank" rel="noopener">あり</a>` : "なし"
+      }</div>
+      <div><b>写真数:</b> ${photos}枚</div>
+      <div class="muted"><b>placeId:</b> ${placeId ?? "-"}</div>
+    `;
+  }
+
+  function showError(message) {
+    msg.innerHTML = `<span class="error">ERROR: ${message}</span>`;
+    showCard();
+    scoreEl.textContent = "-";
+    todosEl.innerHTML = "<li>—</li>";
+    breakdownEl.innerHTML = "<li>—</li>";
+    penaltyEl.textContent = "";
+    summaryEl.innerHTML = `<div class="error">ERROR: ${message}</div>`;
+    debugEl.textContent = "";
+  }
+
+  function showResult(data) {
+    const details = data?.details ?? {};
+    const placeId = data?.placeId ?? null;
+    const diagnosis = data?.diagnosis ?? {};
+    const score = Number.isFinite(diagnosis.score) ? diagnosis.score : 0;
+    const version = diagnosis.version ? ` (${diagnosis.version})` : "";
+
+    scoreEl.textContent = String(score);
+    renderTodos({ todosArr: diagnosis.todos, missingArr: diagnosis.missing });
+    renderBreakdown(diagnosis);
+    renderSummary(details, placeId);
+
+    debugEl.textContent = JSON.stringify(data, null, 2);
+    msg.textContent = version ? `OK${version}` : "OK";
+    showCard();
+  }
+
+  // ===== history =====
+  const HISTORY_KEY = "gbp_history_v1";
+  const HISTORY_MAX = 10;
+
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      const arr = JSON.parse(raw || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  }
+  function saveHistory(arr) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+  }
+  function nowStr() {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    return `${mm}/${dd} ${hh}:${mi}`;
+  }
+  function renderHistory(list) {
+    historyEl.innerHTML = "";
+    if (!list.length) {
+      historyEl.innerHTML = `<li class="muted">履歴なし</li>`;
+      return;
+    }
+
+    list.forEach((h, idx) => {
+      const li = document.createElement("li");
+      li.style.display = "flex";
+      li.style.gap = "8px";
+      li.style.alignItems = "center";
+      li.style.margin = "6px 0";
+
+      const showBtn = document.createElement("button");
+      showBtn.type = "button";
+      showBtn.className = "btn";
+      showBtn.dataset.action = "show";
+      showBtn.dataset.index = String(idx);
+      showBtn.textContent = `${h.when} / ${h.score}点 / ${h.name ?? "-"} / ${h.q}`;
+      showBtn.style.flex = "1";
+      showBtn.style.textAlign = "left";
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn";
+      delBtn.dataset.action = "delete";
+      delBtn.dataset.index = String(idx);
+      delBtn.textContent = "削除";
+
+      li.appendChild(showBtn);
+      li.appendChild(delBtn);
+      historyEl.appendChild(li);
+    });
+  }
+  function addHistory(item) {
+    const list = loadHistory();
+    const filtered = list.filter(x => x.q !== item.q);
+    const next = [item, ...filtered].slice(0, HISTORY_MAX);
+    saveHistory(next);
+    renderHistory(next);
+  }
+
+  historyEl.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-index][data-action]");
+    if (!b) return;
+
+    const idx = Number(b.dataset.index);
+    const action = b.dataset.action;
+    const list = loadHistory();
+    const item = list[idx];
+    if (!item) return;
+
+    if (action === "show") {
+      input.value = item.q;
+      if (item.data) showResult(item.data);
+      return;
+    }
+    if (action === "delete") {
+      const next = list.filter((_, i) => i !== idx);
+      saveHistory(next);
+      renderHistory(next);
+      return;
+    }
+  });
+
+  clearHistoryBtn.addEventListener("click", () => {
+    if (!confirm("履歴を全削除して、表示もリセットします。よろしいですか？")) return;
+    saveHistory([]);
+    renderHistory([]);
+    resetUI();
+    hideCard();
+  });
+
+  // ===== events =====
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") btn.click();
+  });
+
+  btn.addEventListener("click", async () => {
+    resetUI();
+
+    const q = input.value.trim();
+    if (!q) {
+      msg.textContent = "URL / 店名+住所 を入力して";
+      showCard();
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`/api/diagnose?url=${encodeURIComponent(q)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+
+      const details = data?.details ?? {};
+      const diagnosis = data?.diagnosis ?? {};
+      const score = Number.isFinite(diagnosis.score) ? diagnosis.score : 0;
+
+      addHistory({
+        q,
+        when: nowStr(),
+        score,
+        name: details?.name ?? null,
+        placeId: data?.placeId ?? null,
+        data,
+      });
+
+      showResult(data);
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // init
+  renderHistory(loadHistory());
+</script>
+</body>
+</html>

@@ -45,6 +45,7 @@ const detailsRes = await fetchJson(
   // ★ 返却はこれで固定（フロントもこれ前提にする）
 const details = detailsRes.result ?? {};
 const diagnosis = buildDiagnosis(details);
+diagnosis.competitors = competitors;
 return json({ placeId, details, diagnosis }, 200);
 
 }

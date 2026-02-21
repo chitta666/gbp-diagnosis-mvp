@@ -1,16 +1,16 @@
 export async function onRequest(context) {
-  const { request, env } = context;
+    const { request } = context;
   const url = new URL(request.url);
-  const input = (url.searchParams.get("url") || "").trim();
 
-  const headers = {
-    "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": "*",
-  };
-  const json = (obj, status = 200) =>
-    new Response(JSON.stringify(obj, null, 2), { status, headers });
+  return new Response(JSON.stringify({
+    marker: "PING_20260221",
+    path: url.pathname,
+    query: Object.fromEntries(url.searchParams),
+  }, null, 2), {
+    status: 200,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
 
-  if (!input) return json({ error: "url parameter is required" }, 400);
 
   const key = env.GOOGLE_MAPS_API_KEY;
   if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
@@ -47,7 +47,7 @@ export async function onRequest(context) {
 const diagnosis = buildDiagnosis(details);
 diagnosis.__DBG = "TEST123";
 diagnosis.competitors = competitors;
-return json({ placeId, details, diagnosis }, 200);
+return json({ marker: "COMP_V1", placeId, details, diagnosis, competitors }, 200);
 }
 
 async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {

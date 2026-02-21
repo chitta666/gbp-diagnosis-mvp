@@ -47,7 +47,15 @@ export async function onRequest(context) {
 const diagnosis = buildDiagnosis(details);
 diagnosis.__DBG = "TEST123";
 diagnosis.competitors = competitors;
-return json({ marker: "COMP_V1", placeId, details, diagnosis, competitors }, 200);
+return json({
+  marker: "COMP_V1",
+  placeId,
+  lat: loc?.lat,
+  lng: loc?.lng,
+  competitorsStatus: competitors.status,
+  competitorsCount: competitors.results?.length,
+  competitors
+}, 200);
 }
 
 async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {

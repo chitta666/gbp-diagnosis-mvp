@@ -31,13 +31,13 @@ export async function onRequest(context) {
   if (!placeId) return json({ error: "Could not resolve place_id. 店名+住所で試して。" }, 400);
 
   // 4) Details
-  const detailsRes = await fetchJson(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
-      placeId
-    )}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos&key=${encodeURIComponent(
-      key
-    )}`
-  );
+const detailsRes = await fetchJson(
+  `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
+    placeId
+  )}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos,geometry&key=${encodeURIComponent(
+    key
+  )}`
+);
 
   if (detailsRes.status !== "OK") {
     return json({ error: "Place Details failed", detailsRes }, 400);
@@ -131,6 +131,7 @@ async function findPlaceIdFromText(text, key) {
     `?input=${encodeURIComponent(text)}` +
     `&inputtype=textquery` +
     `&fields=place_id` +
+    `&locationbias=circle:50000@35.6895,139.6917` +
     `&key=${encodeURIComponent(key)}`;
 
   const r = await fetchJson(endpoint);

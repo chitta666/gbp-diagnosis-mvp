@@ -15,14 +15,11 @@ export async function onRequest(context) {
   const key = env.GOOGLE_MAPS_API_KEY;
   if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
 
-  // 1) 入力がURLっぽいなら最終URLへ
   let final = input;
   if (looksLikeUrl(input)) final = await expandUrl(input);
 
-  // 2) place_id 抜く
   let placeId = extractPlaceId(final);
 
-  // 3) なければ findplacefromtext
   if (!placeId) {
     const text = looksLikeUrl(final) ? extractPlaceText(final) : input;
     if (!text) return json({ error: "Place ID could not be extracted. 店名+住所 でもOK。" }, 400);
@@ -30,24 +27,55 @@ export async function onRequest(context) {
   }
   if (!placeId) return json({ error: "Could not resolve place_id. 店名+住所で試して。" }, 400);
 
-  // 4) Details
-const detailsRes = await fetchJson(
-  `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
-    placeId
-  )}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos,geometry&key=${encodeURIComponent(
-    key
-  )}`
-);
+  const detailsRes = await fetchJson(
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos,geometry&key=${encodeURIComponent(key)}`
+  );
 
   if (detailsRes.status !== "OK") {
     return json({ error: "Place Details failed", detailsRes }, 400);
   }
-  // ★ 返却はこれで固定（フロントもこれ前提にする）
-const details = detailsRes.result ?? {};
+
+  const details = detailsRes.result ?? {};
+
+  // ★ competitors 取得（ここで呼ぶ）
+  const loc = details?.geometry?.location;
+  const competitors =
+    (loc?.lat != null && loc?.lng != null)
+      ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
+      : { status: "NO_GEO", results: [] };
+
 const diagnosis = buildDiagnosis(details);
+diagnosis.__DBG = "TEST123";
 diagnosis.competitors = competitors;
 return json({ placeId, details, diagnosis }, 200);
+}
 
+async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
+  const u =
+    `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
+    `?location=${encodeURIComponent(`${lat},${lng}`)}` +
+    `&radius=${encodeURIComponent(radius)}` +
+    `&type=${encodeURIComponent(type)}` +
+    `&language=ja` +
+    `&key=${encodeURIComponent(key)}`;
+
+  const res = await fetchJson(u);
+
+if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
+  return { status: res.status, error_message: res.error_message ?? null, results: [] };
+}
+
+  const results = (res.results ?? []).slice(0, 10).map((p) => ({
+    place_id: p.place_id,
+    name: p.name,
+    rating: p.rating ?? null,
+    user_ratings_total: p.user_ratings_total ?? 0,
+    vicinity: p.vicinity ?? null,
+    price_level: p.price_level ?? null,
+    types: p.types ?? [],
+  }));
+
+  return { status: res.status, results };
 }
 
 /** ========= 診断はこれ1個だけ ========= */
@@ -132,7 +160,6 @@ async function findPlaceIdFromText(text, key) {
     `?input=${encodeURIComponent(text)}` +
     `&inputtype=textquery` +
     `&fields=place_id` +
-    `&locationbias=circle:50000@35.6895,139.6917` +
     `&key=${encodeURIComponent(key)}`;
 
   const r = await fetchJson(endpoint);

@@ -22,3 +22,5 @@ python-coach/results.csv
 # (任意) Python cache
 __pycache__/
 *.pyc
+# Python practice (local only)
+python-coach/

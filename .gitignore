@@ -1,0 +1,24 @@
+# Cloudflare / Wrangler
+.wrangler/
+.wrangler/**
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+# Local env
+.env
+.env.*
+
+# Python coach outputs (必要なら範囲を絞る)
+python-coach/results*.csv
+python-coach/results.csv
+
+# (任意) Python cache
+__pycache__/
+*.pyc

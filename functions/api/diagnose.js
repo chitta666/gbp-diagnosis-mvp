@@ -132,12 +132,12 @@ return {
   todos,
   missing,
   penalty,
-  breakdown: rules.map((r) => ({
-    id: r.id,
-    weight: r.weight,
-    missing: r.isMissing(details),
-    competitorsAnalysis: comp,
-  })),
+breakdown: rules.map((r) => ({
+  id: r.id,
+  weight: r.weight,
+  missing: r.isMissing(details),
+})),
+competitorsAnalysis: comp,
 };
 }
 

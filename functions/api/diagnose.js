@@ -47,7 +47,7 @@ const headers = {
 
   const diagnosis = buildDiagnosis(details);
   diagnosis.competitors = competitors;
-return json({ _DEPLOY: "2026-02-22-DBG-OFF", placeId, details, diagnosis }, 200);
+return json({ placeId, details, diagnosis }, 200);
 }
 
 async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {

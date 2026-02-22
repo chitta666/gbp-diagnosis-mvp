@@ -3,10 +3,11 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const input = (url.searchParams.get("url") || "").trim();
 
-  const headers = {
-    "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": "*",
-  };
+const headers = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Access-Control-Allow-Origin": "*",
+  "X-Deploy": "2026-02-22-DBG-OFF",
+};
   const json = (obj, status = 200) =>
     new Response(JSON.stringify(obj, null, 2), { status, headers });
 

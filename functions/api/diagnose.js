@@ -111,20 +111,29 @@ const missing = [];
     { id: "phone",   weight: 30, isMissing: (d) => !d?.international_phone_number, todo: "電話番号が未設定（または取得不可）" },
     { id: "website", weight: 20, isMissing: (d) => !d?.website,                    todo: "Webサイトが未設定" },
     { id: "photos",  weight: 10, isMissing: (d) => (d?.photos?.length ?? 0) < 5,    todo: "写真が少ない（目安: 5枚以上）" },
-
-    // 追加：競合の強さ（OKのときだけ減点）
-    { id: "competitors", weight: comp.penalty, isMissing: () => comp.penalty > 0, todo: comp.todo },
   ];
 
-  let penalty = 0;
+let penalty = 0;
 
-  for (const r of rules) {
-    if (r.isMissing(details)) {
-      missing.push(r.id);
-      todos.push(r.todo);
-      penalty += r.weight;
-    }
+for (const r of rules) {
+  if (r.isMissing(details)) {
+    missing.push(r.id);
+    todos.push(r.todo);
+    penalty += r.weight;
   }
+}
+
+// 競合は missing ではなく環境要因
+let environment = [];
+let competitorsPenalty = 0;
+
+if (comp.penalty > 0) {
+  environment.push(comp.todo);
+  competitorsPenalty = comp.penalty;
+}
+
+// competitors 分を加算
+penalty += competitorsPenalty;
 
 return {
   version: "buildDiagnosis_v2",
@@ -132,12 +141,13 @@ return {
   todos,
   missing,
   penalty,
-breakdown: rules.map((r) => ({
-  id: r.id,
-  weight: r.weight,
-  missing: r.isMissing(details),
-})),
-competitorsAnalysis: comp,
+  breakdown: rules.map((r) => ({
+    id: r.id,
+    weight: r.weight,
+    missing: r.isMissing(details),
+  })),
+  competitorsAnalysis: comp,
+  environment,
 };
 }
 

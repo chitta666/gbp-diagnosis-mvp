@@ -45,9 +45,31 @@ const headers = {
       ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
       : { status: "NO_GEO", results: [] };
 
-  const diagnosis = buildDiagnosis(details);
+  const diagnosis = buildDiagnosis(details, competitors);
   diagnosis.competitors = competitors;
 return json({ placeId, details, diagnosis }, 200);
+}
+
+function analyzeCompetitors(competitors) {
+  if (!competitors || competitors.status !== "OK") {
+    return { penalty: 0, strongCount: null, todo: "競合データ取得失敗のため競合評価はスキップ" };
+  }
+
+  const list = competitors.results ?? [];
+  const strongCount = list.filter((p) => (p.rating ?? 0) >= 4.2 && (p.user_ratings_total ?? 0) >= 200).length;
+
+  let penalty = 0;
+  if (strongCount === 1) penalty = 5;
+  else if (strongCount === 2) penalty = 10;
+  else if (strongCount === 3) penalty = 15;
+  else if (strongCount >= 4) penalty = 20;
+
+  const todo =
+    penalty === 0
+      ? "近隣の強い競合は少なめ"
+      : `近隣に強い競合が${strongCount}件（評価4.2+ & 口コミ200+）`;
+
+  return { penalty, strongCount, todo };
 }
 
 async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
@@ -79,14 +101,19 @@ if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
 }
 
 /** ========= 診断はこれ1個だけ ========= */
-function buildDiagnosis(details) {
-  const missing = [];
+function buildDiagnosis(details, competitors) {
+const missing = [];
   const todos = [];
+
+  const comp = analyzeCompetitors(competitors);
 
   const rules = [
     { id: "phone",   weight: 30, isMissing: (d) => !d?.international_phone_number, todo: "電話番号が未設定（または取得不可）" },
     { id: "website", weight: 20, isMissing: (d) => !d?.website,                    todo: "Webサイトが未設定" },
     { id: "photos",  weight: 10, isMissing: (d) => (d?.photos?.length ?? 0) < 5,    todo: "写真が少ない（目安: 5枚以上）" },
+
+    // 追加：競合の強さ（OKのときだけ減点）
+    { id: "competitors", weight: comp.penalty, isMissing: () => comp.penalty > 0, todo: comp.todo },
   ];
 
   let penalty = 0;
@@ -109,6 +136,7 @@ return {
     id: r.id,
     weight: r.weight,
     missing: r.isMissing(details),
+    competitorsAnalysis: comp,
   })),
 };
 }

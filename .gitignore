@@ -24,3 +24,7 @@ __pycache__/
 *.pyc
 # Python practice (local only)
 python-coach/
+node_modules/
+.wrangler/
+dist/
+.DS_Store

@@ -1,55 +1,79 @@
 export async function onRequest(context) {
-  const radius = Number(url.searchParams.get("radius") || 800);
-  const { request, env } = context;
-  const url = new URL(request.url);
-  const input = (url.searchParams.get("url") || "").trim();
+  let json;
 
-const headers = {
-  "Content-Type": "application/json; charset=utf-8",
-  "Access-Control-Allow-Origin": "*",
-  "X-Deploy": "2026-02-22-DBG-OFF",
-};
-  const json = (obj, status = 200) =>
-    new Response(JSON.stringify(obj, null, 2), { status, headers });
+  try {
+    const { request, env } = context;
+    const url = new URL(request.url);
+    const input = (url.searchParams.get("url") || "").trim();
 
-  if (!input) return json({ error: "url parameter is required" }, 400);
+    const headers = {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+    };
 
-  const key = env.GOOGLE_MAPS_API_KEY;
-  if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
+    json = (obj, status = 200) =>
+      new Response(JSON.stringify(obj, null, 2), { status, headers });
 
-  let final = input;
-  if (looksLikeUrl(input)) final = await expandUrl(input);
+    if (!input) return json({ error: "url parameter is required" }, 400);
 
-  let placeId = extractPlaceId(final);
+    const key = env.GOOGLE_MAPS_API_KEY;
+    if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
 
-  if (!placeId) {
-    const text = looksLikeUrl(final) ? extractPlaceText(final) : input;
-    if (!text) return json({ error: "Place ID could not be extracted. 店名+住所 でもOK。" }, 400);
-    placeId = await findPlaceIdFromText(text, key);
+    let final = input;
+    if (looksLikeUrl(input)) final = await expandUrl(input);
+
+    let placeId = extractPlaceId(final);
+
+    if (!placeId) {
+      const text = looksLikeUrl(final) ? extractPlaceText(final) : input;
+      if (!text) return json({ error: "Place ID could not be extracted. 店名+住所 でもOK。" }, 400);
+      placeId = await findPlaceIdFromText(text, key);
+    }
+    if (!placeId) return json({ error: "Could not resolve place_id. 店名+住所で試して。" }, 400);
+
+    const detailsRes = await fetchJson(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos,geometry&key=${encodeURIComponent(key)}`
+    );
+
+    if (detailsRes.status !== "OK") {
+      return json({ error: "Place Details failed", detailsRes }, 400);
+    }
+
+    const details = detailsRes.result ?? {};
+
+    const loc = details?.geometry?.location;
+    const competitors =
+      (loc?.lat != null && loc?.lng != null)
+        ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
+        : { status: "NO_GEO", results: [] };
+
+    // ここは “今の buildDiagnosis の仕様” に合わせる
+    // もし中で comp を使ってるなら、引数で渡すのが正解
+    const diagnosis = buildDiagnosis(details, competitors);
+
+    return json({ placeId, details, diagnosis }, 200);
+  } catch (e) {
+    // jsonが未初期化でも落ちないようにフォールバック
+    if (!json) {
+      const headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+      };
+      return new Response(
+        JSON.stringify({ error: "Unhandled exception", message: String(e?.message ?? e), stack: String(e?.stack ?? "") }, null, 2),
+        { status: 500, headers }
+      );
+    }
+
+    return json(
+      {
+        error: "Unhandled exception",
+        message: String(e?.message ?? e),
+        stack: String(e?.stack ?? ""),
+      },
+      500
+    );
   }
-  if (!placeId) return json({ error: "Could not resolve place_id. 店名+住所で試して。" }, 400);
-
-  const detailsRes = await fetchJson(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos,geometry&key=${encodeURIComponent(key)}`
-  );
-
-  if (detailsRes.status !== "OK") {
-    return json({ error: "Place Details failed", detailsRes }, 400);
-  }
-
-  const details = detailsRes.result ?? {};
-
-  // ★ competitors 取得（ここで呼ぶ）
-  const loc = details?.geometry?.location;
-  const competitors =
-    (loc?.lat != null && loc?.lng != null)
-      ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius, type: "restaurant" })
-      : { status: "NO_GEO", results: [] };
-
-  const diagnosis = buildDiagnosis(details, competitors);
-  diagnosis.competitors = competitors;
-  diagnosis.competitorsMeta = { radius };
-return json({ placeId, details, diagnosis, competitors, radius }, 200);
 }
 
 function analyzeCompetitors(competitors) {

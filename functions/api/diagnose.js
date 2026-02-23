@@ -42,14 +42,15 @@ export async function onRequest(context) {
     const details = detailsRes.result ?? {};
 
     const loc = details?.geometry?.location;
-    const competitors =
-      (loc?.lat != null && loc?.lng != null)
-        ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
-        : { status: "NO_GEO", results: [] };
+const competitors =
+  (loc?.lat != null && loc?.lng != null)
+    ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
+    : { status: "NO_GEO", results: [] };
 
-    // ここは “今の buildDiagnosis の仕様” に合わせる
-    // もし中で comp を使ってるなら、引数で渡すのが正解
-    const diagnosis = buildDiagnosis(details, competitors);
+const diagnosis = buildDiagnosis(details, competitors);
+
+// ✅ competitors をトップレベルに追加
+return json({ placeId, details, diagnosis, competitors }, 200);
 
     return json({ placeId, details, diagnosis }, 200);
   } catch (e) {

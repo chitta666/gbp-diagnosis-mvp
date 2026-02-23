@@ -1,4 +1,5 @@
 export async function onRequest(context) {
+  const radius = Number(url.searchParams.get("radius") || 800);
   const { request, env } = context;
   const url = new URL(request.url);
   const input = (url.searchParams.get("url") || "").trim();
@@ -42,12 +43,13 @@ const headers = {
   const loc = details?.geometry?.location;
   const competitors =
     (loc?.lat != null && loc?.lng != null)
-      ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
+      ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius, type: "restaurant" })
       : { status: "NO_GEO", results: [] };
 
   const diagnosis = buildDiagnosis(details, competitors);
   diagnosis.competitors = competitors;
-return json({ placeId, details, diagnosis }, 200);
+  diagnosis.competitorsMeta = { radius };
+return json({ placeId, details, diagnosis, competitors, radius }, 200);
 }
 
 function analyzeCompetitors(competitors) {

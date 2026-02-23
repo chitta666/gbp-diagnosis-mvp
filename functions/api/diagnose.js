@@ -49,7 +49,7 @@ const competitors =
     : { status: "NO_GEO", results: [] };
 
 // diagnosis は competitors を渡さない（ここ重要）
-const diagnosis = buildDiagnosis(details);
+const diagnosis = buildDiagnosis(details, competitors);
 
 // competitors をトップレベルで返す
 return json({ placeId, details, diagnosis, competitors }, 200);

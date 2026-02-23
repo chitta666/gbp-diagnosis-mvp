@@ -39,17 +39,19 @@ export async function onRequest(context) {
       return json({ error: "Place Details failed", detailsRes }, 400);
     }
 
-    const details = detailsRes.result ?? {};
+const details = detailsRes.result ?? {};
 
-    const loc = details?.geometry?.location;
+// competitors 取得（返すだけ）
+const loc = details?.geometry?.location;
 const competitors =
   (loc?.lat != null && loc?.lng != null)
-    ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, type: "restaurant" })
+    ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, keyword: "飲食店" })
     : { status: "NO_GEO", results: [] };
 
-const diagnosis = buildDiagnosis(details, competitors);
+// diagnosis は competitors を渡さない（ここ重要）
+const diagnosis = buildDiagnosis(details);
 
-// ✅ competitors をトップレベルに追加
+// competitors をトップレベルで返す
 return json({ placeId, details, diagnosis, competitors }, 200);
 
     return json({ placeId, details, diagnosis }, 200);
@@ -99,32 +101,54 @@ function analyzeCompetitors(competitors) {
   return { penalty, strongCount, todo };
 }
 
-async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
-  const u =
-    `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
-    `?location=${encodeURIComponent(`${lat},${lng}`)}` +
-    `&radius=${encodeURIComponent(radius)}` +
-    `&type=${encodeURIComponent(type)}` +
-    `&language=ja` +
-    `&key=${encodeURIComponent(key)}`;
-
-  const res = await fetchJson(u);
-
-if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
-  return { status: res.status, error_message: res.error_message ?? null, results: [] };
+function clamp(x, min, max) {
+  return Math.min(max, Math.max(min, x));
 }
 
-  const results = (res.results ?? []).slice(0, 10).map((p) => ({
-    place_id: p.place_id,
-    name: p.name,
-    rating: p.rating ?? null,
-    user_ratings_total: p.user_ratings_total ?? 0,
-    vicinity: p.vicinity ?? null,
-    price_level: p.price_level ?? null,
-    types: p.types ?? [],
-  }));
+async function fetchCompetitorsAutoRadius({
+  key,
+  lat,
+  lng,
+  type = "restaurant",
+  target = 12,
+  tolerance = 3,
+  minR = 300,
+  maxR = 3000,
+  initialR = 800,
+  maxTries = 4,
+}) {
+  let r = initialR;
+  let last = null;
 
-  return { status: res.status, results };
+  for (let i = 0; i < maxTries; i++) {
+    const res = await fetchCompetitors({ key, lat, lng, radius: Math.round(r), type });
+    last = res;
+
+    // Google側エラーは即返す（UIで扱える形にする）
+    if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
+      return { ...res, usedRadius: Math.round(r), tries: i + 1 };
+    }
+
+    const n = res.results.length;
+
+    // 目標レンジに入ったら確定
+    if (Math.abs(n - target) <= tolerance) {
+      return { ...res, usedRadius: Math.round(r), tries: i + 1 };
+    }
+
+    // 半径更新（面積比例に合わせてsqrt）
+    const ratio = target / Math.max(n, 1);
+    const next = r * Math.sqrt(ratio);
+
+    // 収束しない・変化小さいのを防ぐ
+    const nextClamped = clamp(next, minR, maxR);
+    if (Math.round(nextClamped) === Math.round(r)) break;
+
+    r = nextClamped;
+  }
+
+  // 収束しなかった場合：最後の結果で返す
+  return { ...(last ?? { status: "UNKNOWN", results: [] }), usedRadius: Math.round(r), tries: maxTries };
 }
 
 /** ========= 診断はこれ1個だけ ========= */

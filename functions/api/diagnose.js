@@ -259,3 +259,25 @@ async function fetchJson(u) {
   const res = await fetch(u);
   return await res.json();
 }
+
+async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
+  const url =
+    "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
+    `?location=${encodeURIComponent(`${lat},${lng}`)}` +
+    `&radius=${encodeURIComponent(radius)}` +
+    `&type=${encodeURIComponent(type)}` +
+    `&language=ja` +
+    `&key=${encodeURIComponent(key)}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
+    return { status: data.status, error_message: data.error_message ?? null, results: [] };
+  }
+
+  return {
+    status: data.status,
+    results: (data.results ?? []).slice(0, 10),
+  };
+}

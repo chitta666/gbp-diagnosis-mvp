@@ -260,7 +260,7 @@ async function fetchJson(u) {
   return await res.json();
 }
 
-async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
+async function fetchCompetitors({ key, lat, lng, radius = 30, type = "restaurant" }) {
   const url =
     "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
     `?location=${encodeURIComponent(`${lat},${lng}`)}` +

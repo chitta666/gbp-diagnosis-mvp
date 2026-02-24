@@ -1,82 +1,98 @@
 export async function onRequest(context) {
-  let json;
+  const { request, env } = context;
+  const url = new URL(request.url);
 
-  try {
-    const { request, env } = context;
-    const url = new URL(request.url);
-    const input = (url.searchParams.get("url") || "").trim();
+  const headers = {
+    "Content-Type": "application/json; charset=utf-8",
+    "Access-Control-Allow-Origin": "*",
+  };
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj, null, 2), { status, headers });
 
-    const headers = {
-      "Content-Type": "application/json; charset=utf-8",
-      "Access-Control-Allow-Origin": "*",
-    };
+  const key = env.GOOGLE_MAPS_API_KEY;
+  if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
 
-    json = (obj, status = 200) =>
-      new Response(JSON.stringify(obj, null, 2), { status, headers });
+  const lat = Number(url.searchParams.get("lat"));
+  const lng = Number(url.searchParams.get("lng"));
 
-    if (!input) return json({ error: "url parameter is required" }, 400);
-
-    const key = env.GOOGLE_MAPS_API_KEY;
-    if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
-
-    let final = input;
-    if (looksLikeUrl(input)) final = await expandUrl(input);
-
-    let placeId = extractPlaceId(final);
-
-    if (!placeId) {
-      const text = looksLikeUrl(final) ? extractPlaceText(final) : input;
-      if (!text) return json({ error: "Place ID could not be extracted. 店名+住所 でもOK。" }, 400);
-      placeId = await findPlaceIdFromText(text, key);
-    }
-    if (!placeId) return json({ error: "Could not resolve place_id. 店名+住所で試して。" }, 400);
-
-    const detailsRes = await fetchJson(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=name,rating,user_ratings_total,formatted_address,international_phone_number,website,opening_hours,photos,geometry&key=${encodeURIComponent(key)}`
-    );
-
-    if (detailsRes.status !== "OK") {
-      return json({ error: "Place Details failed", detailsRes }, 400);
-    }
-
-const details = detailsRes.result ?? {};
-
-// competitors 取得（返すだけ）
-const loc = details?.geometry?.location;
-const competitors =
-  (loc?.lat != null && loc?.lng != null)
-    ? await fetchCompetitors({ key, lat: loc.lat, lng: loc.lng, radius: 800, keyword: "飲食店" })
-    : { status: "NO_GEO", results: [] };
-
-// diagnosis は competitors を渡さない（ここ重要）
-const diagnosis = buildDiagnosis(details, competitors);
-
-// competitors をトップレベルで返す
-return json({ placeId, details, diagnosis, competitors }, 200);
-
-    return json({ placeId, details, diagnosis }, 200);
-  } catch (e) {
-    // jsonが未初期化でも落ちないようにフォールバック
-    if (!json) {
-      const headers = {
-        "Content-Type": "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin": "*",
-      };
-      return new Response(
-        JSON.stringify({ error: "Unhandled exception", message: String(e?.message ?? e), stack: String(e?.stack ?? "") }, null, 2),
-        { status: 500, headers }
-      );
-    }
-
-    return json(
-      {
-        error: "Unhandled exception",
-        message: String(e?.message ?? e),
-        stack: String(e?.stack ?? ""),
-      },
-      500
-    );
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return json({ error: "lat & lng are required (number)" }, 400);
   }
+
+  // まずは固定半径でOK（AutoRadiusは後で差し替え）
+  const radius = 800;
+  const competitors = await fetchCompetitors({
+    key,
+    lat,
+    lng,
+    radius,
+    type: "restaurant",
+  });
+
+  const count = competitors?.results?.length ?? 0;
+
+  // 密度（超ざっくり） = 件数 / 面積(km^2)
+  // 面積 = π r^2 (rはkm)
+  const areaKm2 = Math.PI * Math.pow(radius / 1000, 2);
+  const density = areaKm2 > 0 ? count / areaKm2 : 0;
+
+  // 暫定スコア（後で改善）
+  // 密度が高いほど競争激しいのでスコア下げる、みたいな雑モデル
+  const marketScore = clamp(Math.round(100 - density * 5), 0, 100);
+
+  return json(
+    {
+      lat,
+      lng,
+      usedRadius: radius,
+      competitorsCount: count,
+      densityPerKm2: round2(density),
+      marketScore,
+      topCompetitors: (competitors.results ?? []).slice(0, 5),
+      competitors, // デバッグ用（後で消してもOK）
+    },
+    200
+  );
+}
+
+async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
+  const u =
+    `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
+    `?location=${encodeURIComponent(`${lat},${lng}`)}` +
+    `&radius=${encodeURIComponent(radius)}` +
+    `&type=${encodeURIComponent(type)}` +
+    `&language=ja` +
+    `&key=${encodeURIComponent(key)}`;
+
+  const res = await fetchJson(u);
+
+  if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
+    return { status: res.status, error_message: res.error_message ?? null, results: [] };
+  }
+
+  const results = (res.results ?? []).slice(0, 10).map((p) => ({
+    place_id: p.place_id,
+    name: p.name,
+    rating: p.rating ?? null,
+    user_ratings_total: p.user_ratings_total ?? 0,
+    vicinity: p.vicinity ?? null,
+    price_level: p.price_level ?? null,
+    types: p.types ?? [],
+  }));
+
+  return { status: res.status, results };
+}
+
+async function fetchJson(u) {
+  const res = await fetch(u);
+  return await res.json();
+}
+
+function clamp(n, min, max) {
+  return Math.min(max, Math.max(min, n));
+}
+function round2(n) {
+  return Math.round(n * 100) / 100;
 }
 
 function analyzeCompetitors(competitors) {

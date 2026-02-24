@@ -119,21 +119,26 @@ async function fetchCompetitorsAutoRadius({
 }) {
   let r = initialR;
   let last = null;
+  let tries = 0;
 
   for (let i = 0; i < maxTries; i++) {
-    const res = await fetchCompetitors({ key, lat, lng, radius: Math.round(r), type });
-    last = res;
+    tries = i + 1;
+
+    const usedRadius = Math.round(r);
+    const res = await fetchCompetitors({ key, lat, lng, radius: usedRadius, type });
+
+    last = { ...res, usedRadius, tries };
 
     // Google側エラーは即返す（UIで扱える形にする）
     if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
-      return { ...res, usedRadius: Math.round(r), tries: i + 1 };
+      return last;
     }
 
     const n = res.results.length;
 
     // 目標レンジに入ったら確定
     if (Math.abs(n - target) <= tolerance) {
-      return { ...res, usedRadius: Math.round(r), tries: i + 1 };
+      return last;
     }
 
     // 半径更新（面積比例に合わせてsqrt）
@@ -142,13 +147,15 @@ async function fetchCompetitorsAutoRadius({
 
     // 収束しない・変化小さいのを防ぐ
     const nextClamped = clamp(next, minR, maxR);
-    if (Math.round(nextClamped) === Math.round(r)) break;
+    if (Math.round(nextClamped) === usedRadius) {
+      return { ...last, meta: { reason: "NO_RADIUS_CHANGE" } };
+    }
 
     r = nextClamped;
   }
 
   // 収束しなかった場合：最後の結果で返す
-  return { ...(last ?? { status: "UNKNOWN", results: [] }), usedRadius: Math.round(r), tries: maxTries };
+  return last ?? { status: "UNKNOWN", results: [], usedRadius: Math.round(r), tries };
 }
 
 /** ========= 診断はこれ1個だけ ========= */

@@ -20,14 +20,15 @@ export async function onRequest(context) {
   }
 
   // まずは固定半径でOK（AutoRadiusは後で差し替え）
-  const radius = 800;
-  const competitors = await fetchCompetitors({
-    key,
-    lat,
-    lng,
-    radius,
-    type: "restaurant",
-  });
+const competitors =
+  (loc?.lat != null && loc?.lng != null)
+    ? await fetchCompetitorsAutoRadius({
+        key,
+        lat: loc.lat,
+        lng: loc.lng,
+        type: "restaurant"
+      })
+    : { status: "NO_GEO", results: [] };
 
   const count = competitors?.results?.length ?? 0;
 

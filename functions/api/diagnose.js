@@ -232,6 +232,7 @@ async function findPlaceIdFromText(text, key) {
   return null;
 }
 
+/*
 async function fetchJson(u) {
   const res = await fetch(u);
   return await res.json();
@@ -257,4 +258,4 @@ async function fetchCompetitors({ key, lat, lng, radius = 30, type = "restaurant
     status: data.status,
     results: (data.results ?? []).slice(0, 10),
   };
-}
+} */

@@ -19,26 +19,19 @@ export async function onRequest(context) {
     return json({ error: "lat & lng are required (number)" }, 400);
   }
 
-  // まずは固定半径でOK（AutoRadiusは後で差し替え）
-const competitors =
-  (loc?.lat != null && loc?.lng != null)
-    ? await fetchCompetitorsAutoRadius({
-        key,
-        lat: loc.lat,
-        lng: loc.lng,
-        type: "restaurant"
-      })
-    : { status: "NO_GEO", results: [] };
+  const competitors = await fetchCompetitorsAutoRadius({
+    key,
+    lat,
+    lng,
+    type: "restaurant",
+  });
 
+  const radius = competitors.usedRadius ?? 800;
   const count = competitors?.results?.length ?? 0;
 
-  // 密度（超ざっくり） = 件数 / 面積(km^2)
-  // 面積 = π r^2 (rはkm)
   const areaKm2 = Math.PI * Math.pow(radius / 1000, 2);
   const density = areaKm2 > 0 ? count / areaKm2 : 0;
 
-  // 暫定スコア（後で改善）
-  // 密度が高いほど競争激しいのでスコア下げる、みたいな雑モデル
   const marketScore = clamp(Math.round(100 - density * 5), 0, 100);
 
   return json(
@@ -50,7 +43,7 @@ const competitors =
       densityPerKm2: round2(density),
       marketScore,
       topCompetitors: (competitors.results ?? []).slice(0, 5),
-      competitors, // デバッグ用（後で消してもOK）
+      competitors,
     },
     200
   );
@@ -92,36 +85,12 @@ async function fetchJson(u) {
 function clamp(n, min, max) {
   return Math.min(max, Math.max(min, n));
 }
+
 function round2(n) {
   return Math.round(n * 100) / 100;
 }
 
-function analyzeCompetitors(competitors) {
-  if (!competitors || competitors.status !== "OK") {
-    return { penalty: 0, strongCount: null, todo: "競合データ取得失敗のため競合評価はスキップ" };
-  }
-
-  const list = competitors.results ?? [];
-  const strongCount = list.filter((p) => (p.rating ?? 0) >= 4.2 && (p.user_ratings_total ?? 0) >= 200).length;
-
-  let penalty = 0;
-  if (strongCount === 1) penalty = 5;
-  else if (strongCount === 2) penalty = 10;
-  else if (strongCount === 3) penalty = 15;
-  else if (strongCount >= 4) penalty = 20;
-
-  const todo =
-    penalty === 0
-      ? "近隣の強い競合は少なめ"
-      : `近隣に強い競合が${strongCount}件（評価4.2+ & 口コミ200+）`;
-
-  return { penalty, strongCount, todo };
-}
-
-function clamp(x, min, max) {
-  return Math.min(max, Math.max(min, x));
-}
-
+// これもあなたのままでOK（clampは上の1個を使う）
 async function fetchCompetitorsAutoRadius({
   key,
   lat,
@@ -136,43 +105,27 @@ async function fetchCompetitorsAutoRadius({
 }) {
   let r = initialR;
   let last = null;
-  let tries = 0;
 
   for (let i = 0; i < maxTries; i++) {
-    tries = i + 1;
-
     const usedRadius = Math.round(r);
     const res = await fetchCompetitors({ key, lat, lng, radius: usedRadius, type });
+    last = { ...res, usedRadius, tries: i + 1 };
 
-    last = { ...res, usedRadius, tries };
-
-    // Google側エラーは即返す（UIで扱える形にする）
-    if (res.status !== "OK" && res.status !== "ZERO_RESULTS") {
-      return last;
-    }
+    if (res.status !== "OK" && res.status !== "ZERO_RESULTS") return last;
 
     const n = res.results.length;
+    if (Math.abs(n - target) <= tolerance) return last;
 
-    // 目標レンジに入ったら確定
-    if (Math.abs(n - target) <= tolerance) {
-      return last;
-    }
-
-    // 半径更新（面積比例に合わせてsqrt）
     const ratio = target / Math.max(n, 1);
     const next = r * Math.sqrt(ratio);
 
-    // 収束しない・変化小さいのを防ぐ
     const nextClamped = clamp(next, minR, maxR);
-    if (Math.round(nextClamped) === usedRadius) {
-      return { ...last, meta: { reason: "NO_RADIUS_CHANGE" } };
-    }
+    if (Math.round(nextClamped) === usedRadius) return { ...last, meta: { reason: "NO_RADIUS_CHANGE" } };
 
     r = nextClamped;
   }
 
-  // 収束しなかった場合：最後の結果で返す
-  return last ?? { status: "UNKNOWN", results: [], usedRadius: Math.round(r), tries };
+  return last ?? { status: "UNKNOWN", results: [], usedRadius: Math.round(r), tries: maxTries };
 }
 
 /** ========= 診断はこれ1個だけ ========= */

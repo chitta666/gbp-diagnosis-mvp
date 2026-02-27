@@ -3,6 +3,7 @@ import { fetchCompetitorsAutoRadius } from "./_lib/competitors.js";
 import { buildDiagnosis } from "./_lib/diagnosis.js";
 
 export async function onRequest(context) {
+  return new Response("BOOT_OK", { status: 200 });
   const { request, env } = context;
   const url = new URL(request.url);
 

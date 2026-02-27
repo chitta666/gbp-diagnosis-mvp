@@ -24,26 +24,21 @@ export async function onRequest(context) {
 
   const competitors = await fetchCompetitorsAutoRadius({ key, lat, lng, type: "restaurant" });
 
-  // 例：密度スコア計算（今のままなら）
   const radius = competitors.usedRadius ?? 800;
   const count = competitors?.results?.length ?? 0;
   const areaKm2 = Math.PI * Math.pow(radius / 1000, 2);
   const density = areaKm2 > 0 ? count / areaKm2 : 0;
   const marketScore = clamp(Math.round(100 - density * 5), 0, 100);
 
-  // details がまだ無いなら、とりあえず null で
-  const diagnosis = buildDiagnosis({}, competitors);
-  return json(
-    {
-      lat,
-      lng,
-      usedRadius: radius,
-      competitorsCount: count,
-      densityPerKm2: round2(density),
-      marketScore,
-      diagnosis,
-      competitors,
-    },
-    200
-  );
+// const diagnosis = buildDiagnosis(null, competitors);
+
+const diagnosis = { message: "temp ok" };
+  return json({
+    lat, lng,
+    usedRadius: radius,
+    competitorsCount: count,
+    densityPerKm2: round2(density),
+    marketScore,
+    diagnosis,
+  });
 }

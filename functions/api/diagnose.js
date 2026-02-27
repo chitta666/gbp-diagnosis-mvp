@@ -1,15 +1,12 @@
-import { fetchCompetitorsAutoRadius } from "../_lib/competitors.js";
-import { buildDiagnosis } from "../_lib/diagnosis.js";
+import * as comp from "../_lib/competitors.js";
 
-export async function onRequest({ request, env }) {
+export async function onRequest() {
   return new Response(
     JSON.stringify(
       {
-        typeof_fetch: typeof fetch,
-        typeof_autoRadius: typeof fetchCompetitorsAutoRadius,
-        typeof_buildDiagnosis: typeof buildDiagnosis,
-        has_key: !!env?.GOOGLE_MAPS_API_KEY,
-        url: request.url,
+        keys: Object.keys(comp),
+        typeof_fetchCompetitors: typeof comp.fetchCompetitors,
+        typeof_auto: typeof comp.fetchCompetitorsAutoRadius,
       },
       null,
       2

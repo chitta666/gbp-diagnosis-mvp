@@ -19,7 +19,10 @@ export async function onRequest(context) {
     }
 
 // ここまでOKのあと
-
+return new Response(
+  "TYPE: " + typeof fetchCompetitorsAutoRadius,
+  { status: 200 }
+);
 const competitors = await fetchCompetitorsAutoRadius({ key, lat, lng, type: "restaurant" });
 
 // まずは status だけ返す

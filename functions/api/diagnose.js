@@ -18,10 +18,6 @@ export async function onRequest(context) {
       return new Response("BAD_LATLNG", { status: 400 });
     }
 
-    // 3) ここまでOKなら次の段階へ
-    return new Response("PARSE_OK", { status: 200 });
-
-  } catch (e) {
 // ここまでOKのあと
 
 const competitors = await fetchCompetitorsAutoRadius({ key, lat, lng, type: "restaurant" });
@@ -29,5 +25,7 @@ const competitors = await fetchCompetitorsAutoRadius({ key, lat, lng, type: "res
 // まずは status だけ返す
 return new Response("FETCH_OK: " + (competitors?.status ?? "NO_STATUS"), { status: 200 });
 
+  } catch (e) {
+    return new Response("CRASH: " + (e?.stack || e?.message || String(e)), { status: 500 });
   }
 }

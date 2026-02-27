@@ -1,5 +1,5 @@
 import { clamp, round2 } from "./_lib/utils.js";
-import { fetchCompetitorsAutoRadius } from "./_lib/competitors.js";
+import { fetchCompetitorsAutoRadius } from "../_lib/competitors.js";
 import { buildDiagnosis } from "./_lib/diagnosis.js";
 
 export async function onRequest(context) {

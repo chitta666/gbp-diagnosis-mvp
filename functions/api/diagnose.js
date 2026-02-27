@@ -1,6 +1,6 @@
-import { fetchCompetitorsAutoRadius } from "./_lib/competitors.js";
-import { buildDiagnosis } from "./_lib/diagnosis.js";
-import { clamp, round2 } from "./_lib/utils.js";
+import { fetchCompetitorsAutoRadius } from "../_lib/competitors.js";
+import { buildDiagnosis } from "../_lib/diagnosis.js";
+import { clamp, round2 } from "../_lib/utils.js";
 
 export async function onRequest(context) {
   try {

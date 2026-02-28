@@ -7,7 +7,7 @@ function esc(s) {
 async function run() {
   const lat = document.getElementById("lat").value.trim();
   const lng = document.getElementById("lng").value.trim();
-
+　const compMsg = data.competitorsAnalysis?.todo ?? "なし";
   const out = document.getElementById("out");
   out.innerHTML = "診断中...";
 
@@ -15,24 +15,18 @@ async function run() {
   const res = await fetch(url);
   const text = await res.text();
 
-  // 失敗時は生テキストを見せる（デバッグ最強）
-  if (!res.ok) {
-    out.innerHTML = `<div class="card"><h3>ERROR</h3><pre>${esc(text)}</pre></div>`;
-    return;
-  }
+if (!lat || !lng) {
+  out.innerHTML = `<div class="card"><h3>ERROR</h3><pre>lat/lng が空</pre></div>`;
+  return;
+}
 
-  const data = JSON.parse(text);
-
-  out.innerHTML = `
-    <div class="card">
-      <h2>Score: ${esc(data.score)}</h2>
-      <div><b>Penalty:</b> ${esc(data.penalty)}</div>
-      <div style="margin-top:8px;"><b>TODO</b>
-        <ul>${(data.todos ?? []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
-      </div>
-      <div><b>競合</b>: ${(data.competitorsAnalysis?.todo) ? esc(data.competitorsAnalysis.todo) : "なし"}</div>
-    </div>
-  `;
+let data;
+try {
+  data = JSON.parse(text);
+} catch {
+  out.innerHTML = `<div class="card"><h3>INVALID JSON</h3><pre>${esc(text)}</pre></div>`;
+  return;
+}
 }
 
 document.getElementById("run").addEventListener("click", () => {

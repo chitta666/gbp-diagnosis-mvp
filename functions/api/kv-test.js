@@ -1,5 +1,5 @@
 export async function onRequest({ env }) {
-  const kv = env?.GBP_DIAG_KV;
+  const kv = env?.KV; // ← ここ（GBP_DIAG_KV じゃない）
   if (!kv) return new Response("NO_KV_BINDING", { status: 500 });
 
   await kv.put("ping", String(Date.now()));

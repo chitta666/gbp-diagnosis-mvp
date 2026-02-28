@@ -59,152 +59,181 @@
   </div>
 
 <script>
-  // ===== DOM =====
-  const btn = document.getElementById("btn");
-  const input = document.getElementById("urlInput");
-  const msg = document.getElementById("msg");
-  const card = document.getElementById("card");
-  const scoreEl = document.getElementById("score");
-  const todosEl = document.getElementById("todos");
-  const breakdownEl = document.getElementById("breakdown");
-  const penaltyEl = document.getElementById("penalty");
-  const summaryEl = document.getElementById("summary");
-  const debugEl = document.getElementById("debug");
-  const historyEl = document.getElementById("history");
-  const clearHistoryBtn = document.getElementById("clearHistory");
+const btn = document.getElementById("btn");
+const input = document.getElementById("urlInput");
 
-  // ===== labels =====
-  const missingLabel = {
-    phone: "電話番号が未設定",
-    website: "Webサイトが未設定",
-    photos: "写真が少ない（5枚以上推奨）",
-  };
-  const ruleLabel = {
-    phone: "電話番号",
-    website: "Webサイト",
-    photos: "写真",
-  };
+const msg = document.getElementById("msg");
+const card = document.getElementById("card");
 
-  // ===== helpers =====
-  function showCard() { card.classList.remove("hidden"); }
-  function hideCard() { card.classList.add("hidden"); }
+const scoreEl = document.getElementById("score");
+const todosEl = document.getElementById("todos");
+const breakdownEl = document.getElementById("breakdown");
+const penaltyEl = document.getElementById("penalty");
+const summaryEl = document.getElementById("summary");
+const debugEl = document.getElementById("debug");
 
-  function resetUI() {
+// Enterで実行
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") btn.click();
+});
+
+btn.addEventListener("click", async () => {
+  const q = input.value.trim();
+  if (!q) {
+    msg.textContent = "URL / 店名+住所 を入力して";
+    card.classList.add("hidden");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch(`/api/diagnose?url=${encodeURIComponent(q)}`);
+    const text = await res.text();
+
+    // まずJSON化（失敗したら生テキストを見せる）
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("APIがJSONを返していない: " + text.slice(0, 200));
+    }
+
+    if (!res.ok) {
+      throw new Error(data?.error || `HTTP ${res.status}`);
+    }
+
+    showResult(data);
+    msg.textContent = "OK";
+  } catch (e) {
+    showError(e?.message || String(e));
+  } finally {
+    setLoading(false);
+  }
+});
+
+function setLoading(isLoading) {
+  btn.disabled = isLoading;
+  if (isLoading) {
+    msg.textContent = "loading...";
+    card.classList.remove("hidden"); // 読み込み中も出すなら
     scoreEl.textContent = "-";
-    todosEl.innerHTML = "";
-    breakdownEl.innerHTML = "";
+    todosEl.innerHTML = "<li>loading...</li>";
+    breakdownEl.innerHTML = "<li>loading...</li>";
     penaltyEl.textContent = "";
-    summaryEl.innerHTML = "";
-    debugEl.textContent = "";
-    msg.textContent = "";
-  }
-
-  function setLoading(isLoading) {
-    btn.disabled = isLoading;
-    showCard();
-    if (isLoading) {
-      msg.textContent = "loading...";
-      scoreEl.textContent = "-";
-      todosEl.innerHTML = "<li>loading...</li>";
-      breakdownEl.innerHTML = "<li>loading...</li>";
-      penaltyEl.textContent = "";
-      summaryEl.innerHTML = "<div>loading...</div>";
-      debugEl.textContent = "";
-    } else {
-      if (msg.textContent === "loading...") msg.textContent = "";
-    }
-  }
-
-  function renderTodos({ todosArr, missingArr }) {
-    todosEl.innerHTML = "";
-    const list =
-      (Array.isArray(todosArr) && todosArr.length ? todosArr : null) ??
-      (Array.isArray(missingArr) && missingArr.length
-        ? missingArr.map((id) => missingLabel[id] ?? id)
-        : []);
-
-    if (list.length === 0) {
-      todosEl.innerHTML = "<li>特になし</li>";
-      return;
-    }
-    list.forEach((t) => {
-      const li = document.createElement("li");
-      li.textContent = t;
-      todosEl.appendChild(li);
-    });
-  }
-
-  function renderBreakdown(diagnosis) {
-    breakdownEl.innerHTML = "";
-
-    const bd = Array.isArray(diagnosis?.breakdown) ? diagnosis.breakdown : [];
-    const missingOnly = bd.filter((r) => r?.missing);
-
-    if (missingOnly.length === 0) {
-      breakdownEl.innerHTML = "<li>減点なし</li>";
-      penaltyEl.textContent = "";
-      return;
-    }
-
-    let shownPenalty = 0;
-    missingOnly.forEach((r) => {
-      const li = document.createElement("li");
-      const label = ruleLabel[r.id] ?? r.id;
-      const w = Number(r.weight) || 0;
-      shownPenalty += w;
-      li.textContent = `× ${label}（-${w}）`;
-      breakdownEl.appendChild(li);
-    });
-
-    penaltyEl.textContent = `合計減点: -${shownPenalty}`;
-  }
-
-  function renderSummary(details, placeId) {
-    const name = details?.name ?? "-";
-    const address = details?.formatted_address ?? "-";
-    const phone = details?.international_phone_number ?? "なし";
-    const website = details?.website ?? null;
-    const photos = details?.photos?.length ?? 0;
-
-    summaryEl.innerHTML = `
-      <div><b>店名:</b> ${name}</div>
-      <div><b>住所:</b> ${address}</div>
-      <div><b>電話:</b> ${phone}</div>
-      <div><b>Web:</b> ${
-        website ? `<a href="${website}" target="_blank" rel="noopener">あり</a>` : "なし"
-      }</div>
-      <div><b>写真数:</b> ${photos}枚</div>
-      <div class="muted"><b>placeId:</b> ${placeId ?? "-"}</div>
-    `;
-  }
-
-  function showError(message) {
-    msg.innerHTML = `<span class="error">ERROR: ${message}</span>`;
-    showCard();
-    scoreEl.textContent = "-";
-    todosEl.innerHTML = "<li>—</li>";
-    breakdownEl.innerHTML = "<li>—</li>";
-    penaltyEl.textContent = "";
-    summaryEl.innerHTML = `<div class="error">ERROR: ${message}</div>`;
+    summaryEl.innerHTML = "<div>loading...</div>";
     debugEl.textContent = "";
   }
+}
 
-  function showResult(data) {
-    const details = data?.details ?? {};
-    const placeId = data?.placeId ?? null;
-    const diagnosis = data?.diagnosis ?? {};
-    const score = Number.isFinite(diagnosis.score) ? diagnosis.score : 0;
-    const version = diagnosis.version ? ` (${diagnosis.version})` : "";
+function showError(message) {
+  msg.textContent = `ERROR: ${message}`;
+  card.classList.remove("hidden");
+  scoreEl.textContent = "0";
+  todosEl.innerHTML = "<li>—</li>";
+  breakdownEl.innerHTML = "<li>—</li>";
+  penaltyEl.textContent = "";
+  summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
+  debugEl.textContent = "";
+}
 
-    scoreEl.textContent = String(score);
-    renderTodos({ todosArr: diagnosis.todos, missingArr: diagnosis.missing });
-    renderBreakdown(diagnosis);
-    renderSummary(details, placeId);
+function showResult(data) {
+  // あなたのAPIの形に合わせる
+  // 旧: { placeId, details, diagnosis }
+  // 今: { ... diagnosis } を直接返してる場合もある
+  const diagnosis = data?.diagnosis ?? data;  // ←ここがズレ対策の肝
+  const details = data?.details ?? {};
 
-    debugEl.textContent = JSON.stringify(data, null, 2);
-    msg.textContent = version ? `OK${version}` : "OK";
-    showCard();
+  // スコア
+  const score = Number.isFinite(diagnosis?.score) ? diagnosis.score : 0;
+  scoreEl.textContent = String(score);
+
+  // ToDo
+  renderTodos(diagnosis?.todos, diagnosis?.missing);
+
+  // 内訳
+  renderBreakdown(diagnosis);
+
+  // 詳細
+  renderSummary(details, data?.placeId);
+
+  // デバッグ
+  debugEl.textContent = JSON.stringify(data, null, 2);
+
+  // 見せる
+  card.classList.remove("hidden");
+}
+
+function renderTodos(todosArr, missingArr) {
+  todosEl.innerHTML = "";
+  const list =
+    (Array.isArray(todosArr) && todosArr.length ? todosArr : null) ??
+    (Array.isArray(missingArr) && missingArr.length ? missingArr : []);
+
+  if (!list.length) {
+    todosEl.innerHTML = "<li>特になし</li>";
+    return;
   }
+
+  for (const t of list) {
+    const li = document.createElement("li");
+    li.textContent = String(t);
+    todosEl.appendChild(li);
+  }
+}
+
+function renderBreakdown(diagnosis) {
+  breakdownEl.innerHTML = "";
+  const bd = Array.isArray(diagnosis?.breakdown) ? diagnosis.breakdown : [];
+
+  const missingOnly = bd.filter((r) => r?.missing);
+  if (!missingOnly.length) {
+    breakdownEl.innerHTML = "<li>減点なし</li>";
+    penaltyEl.textContent = "";
+    return;
+  }
+
+  let sum = 0;
+  for (const r of missingOnly) {
+    const w = Number(r.weight) || 0;
+    sum += w;
+    const li = document.createElement("li");
+    li.textContent = `× ${r.id}（-${w}）`;
+    breakdownEl.appendChild(li);
+  }
+
+  // APIが penalty を返してるならそれ優先
+  const p = Number.isFinite(diagnosis?.penalty) ? diagnosis.penalty : sum;
+  penaltyEl.textContent = `合計減点: -${p}`;
+}
+
+function renderSummary(details, placeId) {
+  const name = details?.name ?? "-";
+  const address = details?.formatted_address ?? "-";
+  const phone = details?.international_phone_number ?? "なし";
+  const website = details?.website ?? null;
+  const photos = details?.photos?.length ?? 0;
+
+  summaryEl.innerHTML = `
+    <div><b>店名:</b> ${escapeHtml(name)}</div>
+    <div><b>住所:</b> ${escapeHtml(address)}</div>
+    <div><b>電話:</b> ${escapeHtml(phone)}</div>
+    <div><b>Web:</b> ${
+      website ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">あり</a>` : "なし"
+    }</div>
+    <div><b>写真数:</b> ${photos}枚</div>
+    <div class="muted"><b>placeId:</b> ${escapeHtml(placeId ?? "-")}</div>
+  `;
+}
+
+// 最低限のXSS対策（innerHTML使うので必須）
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
 
   // ===== history =====
   const HISTORY_KEY = "gbp_history_v1";
@@ -313,11 +342,11 @@
     resetUI();
 
     const q = input.value.trim();
-    if (!q) {
-      msg.textContent = "URL / 店名+住所 を入力して";
-      showCard();
-      return;
-    }
+ if (!q) {
+  hideCard();
+  msg.textContent = "URL / 店名+住所 を入力して";
+  return;
+}
 
     setLoading(true);
 

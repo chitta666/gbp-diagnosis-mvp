@@ -13,9 +13,6 @@ export function extractPlaceId(u) {
   return m?.[1] ? decodeURIComponent(m[1]) : null;
 }
 
-// functions/_lib/place.js
-import { fetchJson } from "./utils.js";
-
 export async function fetchPlaceDetails({ key, placeId }) {
   const url =
     "https://maps.googleapis.com/maps/api/place/details/json" +

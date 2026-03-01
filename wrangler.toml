@@ -4,3 +4,8 @@ compatibility_date = "2024-02-07"
 
 # 環境変数は .dev.vars または Cloudflare Dashboard で設定します
 # GOOGLE_MAPS_API_KEY = "..."
+
+[[kv_namespaces]]
+binding = "KV"
+id = "GBP_DIAG_KV"
+preview_id = "BP_DIAG_KV"

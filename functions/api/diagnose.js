@@ -1,4 +1,3 @@
-import { fetchPlaceDetails } from "../_lib/place.js";
 import { fetchCompetitorsAutoRadius } from "../_lib/competitors.js";
 import { buildDiagnosis } from "../_lib/diagnosis.js";
 

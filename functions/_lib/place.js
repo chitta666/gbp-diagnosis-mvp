@@ -14,26 +14,27 @@ export function extractPlaceId(u) {
 }
 
 export async function fetchPlaceDetails({ key, placeId }) {
-  const apiUrl =
+  const url =
     "https://maps.googleapis.com/maps/api/place/details/json" +
     `?place_id=${encodeURIComponent(placeId)}` +
     `&fields=name,formatted_address,rating,user_ratings_total` +
     `&language=ja` +
     `&key=${encodeURIComponent(key)}`;
 
-  const res = await fetchJson(apiUrl);
+  const res = await fetchJson(url);
 
-  if (res.status !== "OK" || !res.result) {
-    return { ok: false, status: res.status, raw: res };
+  if (res.status !== "OK") {
+    return { ok: false, status: res.status, error_message: res.error_message ?? null, raw: res };
   }
 
-  const r = res.result;
+  const r = res.result ?? {};
   return {
     ok: true,
+    placeId,
     name: r.name ?? null,
     address: r.formatted_address ?? null,
     rating: r.rating ?? null,
-    user_ratings_total: r.user_ratings_total ?? null,
+    user_ratings_total: r.user_ratings_total ?? 0,
   };
 }
 

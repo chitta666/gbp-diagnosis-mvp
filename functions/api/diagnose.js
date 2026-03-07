@@ -1,26 +1,130 @@
+import { fetchJson } from "../_lib/utils.js";
+import { fetchPlaceDetails } from "../_lib/place.js";
 import { fetchCompetitorsAutoRadius } from "../_lib/competitors.js";
 import { buildDiagnosis } from "../_lib/diagnosis.js";
 
 export async function onRequest({ request, env }) {
-  const key = env?.GOOGLE_MAPS_API_KEY;
-  if (!key) return new Response("NO_KEY", { status: 500 });
+  const headers = {
+    "content-type": "application/json; charset=utf-8",
+    "access-control-allow-origin": "*",
+  };
 
-  const url = new URL(request.url);
-  const lat = Number(url.searchParams.get("lat"));
-  const lng = Number(url.searchParams.get("lng"));
-  const place_id = url.searchParams.get("place_id"); // 使うなら
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj, null, 2), { status, headers });
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return new Response("BAD_LATLNG", { status: 400 });
+  try {
+    const key = env?.GOOGLE_MAPS_API_KEY;
+    if (!key) return json({ ok: false, error: "NO_KEY" }, 500);
 
-  const competitors = await fetchCompetitorsAutoRadius({ key, lat, lng, type: "restaurant" });
+    const url = new URL(request.url);
+    const q = (url.searchParams.get("q") || "").trim();
 
-  const details = place_id
-    ? await fetchPlaceDetails({ key, place_id })
-    : null;
+    if (!q) {
+      return json({ ok: false, error: "q required" }, 400);
+    }
 
-  const diagnosis = buildDiagnosis(details, competitors);
+    // 1) 店名+住所から placeId 解決
+    const findUrl =
+      "https://maps.googleapis.com/maps/api/place/findplacefromtext/json" +
+      `?input=${encodeURIComponent(q)}` +
+      `&inputtype=textquery` +
+      `&fields=place_id,name,formatted_address` +
+      `&language=ja` +
+      `&key=${encodeURIComponent(key)}`;
 
-  return new Response(JSON.stringify(diagnosis, null, 2), {
-    headers: { "content-type": "application/json; charset=utf-8" },
-  });
+    const found = await fetchJson(findUrl);
+
+    if (found.status !== "OK" || !found.candidates?.length) {
+      return json(
+        {
+          ok: false,
+          error: "PLACE_NOT_FOUND",
+          status: found.status,
+          raw: found,
+        },
+        400
+      );
+    }
+
+    const candidate = found.candidates[0];
+    const placeId = candidate.place_id;
+
+    // 2) place details
+    const details = await fetchPlaceDetails({ key, placeId });
+
+    if (!details?.ok) {
+      return json(
+        {
+          ok: false,
+          error: "PLACE_DETAILS_FAILED",
+          details,
+        },
+        400
+      );
+    }
+
+    // 3) lat/lng を details.geometry から取得
+    const lat = Number(details?.geometry?.location?.lat);
+    const lng = Number(details?.geometry?.location?.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return json(
+        {
+          ok: false,
+          error: "BAD_LATLNG",
+          placeId,
+          details,
+        },
+        400
+      );
+    }
+
+    // 4) competitors
+    const competitors = await fetchCompetitorsAutoRadius({
+      key,
+      lat,
+      lng,
+      type: "restaurant",
+    });
+
+    // 5) diagnosis
+const diagnosis = buildDiagnosis(details, competitors);
+
+return new Response(
+  JSON.stringify(
+    {
+      ok: true,
+      placeId: details?.placeId ?? details?.place_id ?? null,
+      diagnosis,
+      details,
+      competitors,
+    },
+    null,
+    2
+  ),
+  {
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+    },
+  }
+);
+    return json({
+      ok: true,
+      placeId: details.placeId ?? details.place_id ?? placeId ?? null,
+      diagnosis,
+      details,
+      competitors,
+    });
+  } catch (e) {
+    return json(
+      {
+        ok: false,
+        error: "CRASH",
+        message: e?.message || String(e),
+        stack: e?.stack || null,
+      },
+      500
+    );
+  }
+  
 }

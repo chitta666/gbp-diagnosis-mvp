@@ -1,5 +1,5 @@
-import { fetchPlaceDetails } from "../_lib/place.js";
 import { ymdTokyo } from "../_lib/date.js";
+import { saveSnapshot } from "../_lib/snapshot.js";
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -29,46 +29,13 @@ export async function onRequest({ request, env }) {
 
   const comp = JSON.parse(rawComp);
   const competitorPlaceId = comp.competitorPlaceId;
-  const today = ymdTokyo();
 
-  async function saveSnapshot(placeId) {
-    const info = await fetchPlaceDetails({ key, placeId });
-
-    if (!info.ok) {
-      return {
-        ok: false,
-        placeId,
-        error: "PLACE_DETAILS_FAILED",
-        info,
-      };
-    }
-
-    const snapKey = `snap:${placeId}:${today}`;
-    const payload = {
-      ts: Date.now(),
-      date: today,
-      placeId,
-      name: info.name ?? null,
-      address: info.address ?? null,
-      rating: info.rating ?? null,
-      user_ratings_total: info.user_ratings_total ?? null,
-    };
-
-    await KV.put(snapKey, JSON.stringify(payload));
-
-    return {
-      ok: true,
-      snapKey,
-      payload,
-    };
-  }
-
-  const my = await saveSnapshot(myPlaceId);
-  const competitor = await saveSnapshot(competitorPlaceId);
+  const my = await saveSnapshot({ KV, key, placeId: myPlaceId });
+  const competitor = await saveSnapshot({ KV, key, placeId: competitorPlaceId });
 
   return json({
     ok: true,
-    today,
+    today: ymdTokyo(),
     myPlaceId,
     competitorPlaceId,
     my,

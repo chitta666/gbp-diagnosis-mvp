@@ -62,7 +62,6 @@
       </details>
     </div>
   </div>
-
 <script>
 const btn = document.getElementById("btn");
 const input = document.getElementById("urlInput");
@@ -76,111 +75,120 @@ const breakdownEl = document.getElementById("breakdown");
 const penaltyEl = document.getElementById("penalty");
 const summaryEl = document.getElementById("summary");
 const debugEl = document.getElementById("debug");
+const compareListEl = document.getElementById("compareList");
 
-// Enterで実行
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") btn.click();
-});
+const historyEl = document.getElementById("history");
+const clearHistoryBtn = document.getElementById("clearHistory");
 
-btn.addEventListener("click", async () => {
-  const q = input.value.trim();
-  if (!q) {
-    msg.textContent = "URL / 店名+住所 を入力して";
-    card.classList.add("hidden");
-    return;
-  }
-
-  setLoading(true);
-
+// ===== helpers =====
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[c]));
+}
+function escapeAttr(s) {
+  return escapeHtml(s);
+}
+function safeJsonParse(text, fallback = null) {
   try {
-    const res = await fetch(`/api/diagnose?url=${encodeURIComponent(q)}`);
-    const text = await res.text();
-
-    // まずJSON化（失敗したら生テキストを見せる）
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("APIがJSONを返していない: " + text.slice(0, 200));
-    }
-
-    if (!res.ok) {
-      throw new Error(data?.error || `HTTP ${res.status}`);
-    }
-
-    showResult(data);
-    msg.textContent = "OK";
-  } catch (e) {
-    showError(e?.message || String(e));
-  } finally {
-    setLoading(false);
+    return JSON.parse(text);
+  } catch {
+    return fallback;
   }
-});
+}
+
+function resetUI() {
+  msg.textContent = "";
+  scoreEl.textContent = "-";
+  todosEl.innerHTML = "";
+  breakdownEl.innerHTML = "";
+  penaltyEl.textContent = "";
+  summaryEl.innerHTML = "";
+  debugEl.textContent = "";
+  if (compareListEl) compareListEl.innerHTML = "";
+}
+
+function hideCard() {
+  card.classList.add("hidden");
+}
+
+function showCard() {
+  card.classList.remove("hidden");
+}
 
 function setLoading(isLoading) {
   btn.disabled = isLoading;
+
   if (isLoading) {
     msg.textContent = "loading...";
-    card.classList.remove("hidden"); // 読み込み中も出すなら
+    showCard();
     scoreEl.textContent = "-";
     todosEl.innerHTML = "<li>loading...</li>";
     breakdownEl.innerHTML = "<li>loading...</li>";
     penaltyEl.textContent = "";
     summaryEl.innerHTML = "<div>loading...</div>";
     debugEl.textContent = "";
+    if (compareListEl) compareListEl.innerHTML = "<li>loading...</li>";
   }
-}
-
-async function fetchCompare(myPlaceId) {
-  const res = await fetch(`/api/compare?my=${encodeURIComponent(myPlaceId)}`);
-  const text = await res.text();
-
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    return { ok: false, error: "INVALID_JSON", raw: text };
-  }
-
-  if (!res.ok) {
-    return { ok: false, ...data };
-  }
-
-  return data;
 }
 
 function showError(message) {
   msg.textContent = `ERROR: ${message}`;
-  card.classList.remove("hidden");
+  showCard();
   scoreEl.textContent = "0";
   todosEl.innerHTML = "<li>—</li>";
   breakdownEl.innerHTML = "<li>—</li>";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
   debugEl.textContent = "";
+  if (compareListEl) compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(message)}</li>`;
 }
 
-async function showResult(data) {
-  const diagnosis = data?.diagnosis ?? data;
-  const details = data?.details ?? {};
-  const placeId = data?.placeId ?? null;
+// ===== compare =====
+async function fetchCompare(myPlaceId) {
+  const res = await fetch(`/api/compare?my=${encodeURIComponent(myPlaceId)}`);
+  const text = await res.text();
 
-  scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
-  renderTodos(diagnosis?.todos, diagnosis?.missing);
-  renderBreakdown(diagnosis);
-  renderSummary(details, placeId);
-  debugEl.textContent = JSON.stringify(data, null, 2);
-  card.classList.remove("hidden");
+  const data = safeJsonParse(text, { ok: false, error: "INVALID_JSON", raw: text });
+  if (!res.ok) return { ok: false, ...data };
 
-  // 追加：口コミ比較
-  if (placeId) {
-    const compare = await fetchCompare(placeId);
-    renderCompare(compare);
+  return data;
+}
+
+function renderCompare(compare) {
+  if (!compareListEl) return;
+
+  compareListEl.innerHTML = "";
+
+  if (!compare?.ok) {
+    compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(compare?.error ?? "unknown error")}</li>`;
+    return;
+  }
+
+  const rows = [
+    `自店 総口コミ数: ${compare.my?.todayTotal ?? "-"}`,
+    `競合 総口コミ数: ${compare.competitor?.todayTotal ?? "-"}`,
+    `総差: ${compare.total_diff ?? "-"}`,
+    `自店 前日差: ${compare.my?.delta ?? "-"}`,
+    `競合 前日差: ${compare.competitor?.delta ?? "-"}`,
+    `勢い差: ${compare.delta_diff ?? "-"}`,
+  ];
+
+  for (const row of rows) {
+    const li = document.createElement("li");
+    li.textContent = row;
+    compareListEl.appendChild(li);
   }
 }
 
+// ===== result rendering =====
 function renderTodos(todosArr, missingArr) {
   todosEl.innerHTML = "";
+
   const list =
     (Array.isArray(todosArr) && todosArr.length ? todosArr : null) ??
     (Array.isArray(missingArr) && missingArr.length ? missingArr : []);
@@ -212,12 +220,12 @@ function renderBreakdown(diagnosis) {
   for (const r of missingOnly) {
     const w = Number(r.weight) || 0;
     sum += w;
+
     const li = document.createElement("li");
     li.textContent = `× ${r.id}（-${w}）`;
     breakdownEl.appendChild(li);
   }
 
-  // APIが penalty を返してるならそれ優先
   const p = Number.isFinite(diagnosis?.penalty) ? diagnosis.penalty : sum;
   penaltyEl.textContent = `合計減点: -${p}`;
 }
@@ -234,114 +242,123 @@ function renderSummary(details, placeId) {
     <div><b>住所:</b> ${escapeHtml(address)}</div>
     <div><b>電話:</b> ${escapeHtml(phone)}</div>
     <div><b>Web:</b> ${
-      website ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">あり</a>` : "なし"
+      website
+        ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">あり</a>`
+        : "なし"
     }</div>
     <div><b>写真数:</b> ${photos}枚</div>
     <div class="muted"><b>placeId:</b> ${escapeHtml(placeId ?? "-")}</div>
   `;
 }
 
-// 最低限のXSS対策（innerHTML使うので必須）
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
+async function showResult(data) {
+  const diagnosis = data?.diagnosis ?? data;
+  const details = data?.details ?? {};
+  const placeId =
+    data?.placeId ??
+    data?.details?.placeId ??
+    data?.details?.place_id ??
+    null;
+
+  scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
+  renderTodos(diagnosis?.todos, diagnosis?.missing);
+  renderBreakdown(diagnosis);
+  renderSummary(details, placeId);
+  debugEl.textContent = JSON.stringify(data, null, 2);
+  showCard();
+
+  if (placeId) {
+    const compare = await fetchCompare(placeId);
+    console.log("compare =", compare);
+    renderCompare(compare);
+  } else {
+    console.log("placeId missing", data);
+    renderCompare({ ok: false, error: "placeId missing" });
+  }
 }
-function escapeAttr(s) { return escapeHtml(s); }
-function renderCompare(compare) {
-  const compareList = document.getElementById("compareList");
-  if (!compareList) return;
 
-  compareList.innerHTML = "";
+// ===== history =====
+const HISTORY_KEY = "gbp_history_v1";
+const HISTORY_MAX = 10;
 
-  if (!compare?.ok) {
-    compareList.innerHTML = "<li>比較データなし</li>";
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const arr = JSON.parse(raw || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(arr) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+}
+
+function nowStr() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${mm}/${dd} ${hh}:${mi}`;
+}
+
+function renderHistory(list) {
+  if (!historyEl) return;
+
+  historyEl.innerHTML = "";
+
+  if (!list.length) {
+    historyEl.innerHTML = `<li class="muted">履歴なし</li>`;
     return;
   }
 
-  const rows = [
-    `自店 総口コミ数: ${compare.my?.todayTotal ?? "-"}`,
-    `競合 総口コミ数: ${compare.competitor?.todayTotal ?? "-"}`,
-    `総差: ${compare.total_diff ?? "-"}`,
-    `自店 前日差: ${compare.my?.delta ?? "-"}`,
-    `競合 前日差: ${compare.competitor?.delta ?? "-"}`,
-    `勢い差: ${compare.delta_diff ?? "-"}`,
-  ];
-
-  for (const row of rows) {
+  list.forEach((h, idx) => {
     const li = document.createElement("li");
-    li.textContent = row;
-    compareList.appendChild(li);
-  }
+    li.style.display = "flex";
+    li.style.gap = "8px";
+    li.style.alignItems = "center";
+    li.style.margin = "6px 0";
+
+    const showBtn = document.createElement("button");
+    showBtn.type = "button";
+    showBtn.className = "btn";
+    showBtn.dataset.action = "show";
+    showBtn.dataset.index = String(idx);
+    showBtn.textContent = `${h.when} / ${h.score}点 / ${h.name ?? "-"} / ${h.q}`;
+    showBtn.style.flex = "1";
+    showBtn.style.textAlign = "left";
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn";
+    delBtn.dataset.action = "delete";
+    delBtn.dataset.index = String(idx);
+    delBtn.textContent = "削除";
+
+    li.appendChild(showBtn);
+    li.appendChild(delBtn);
+    historyEl.appendChild(li);
+  });
 }
 
-  // ===== history =====
-  const HISTORY_KEY = "gbp_history_v1";
-  const HISTORY_MAX = 10;
+function addHistory(item) {
+  const list = loadHistory();
+  const filtered = list.filter((x) => x.q !== item.q);
+  const next = [item, ...filtered].slice(0, HISTORY_MAX);
+  saveHistory(next);
+  renderHistory(next);
+}
 
-  function loadHistory() {
-    try {
-      const raw = localStorage.getItem(HISTORY_KEY);
-      const arr = JSON.parse(raw || "[]");
-      return Array.isArray(arr) ? arr : [];
-    } catch {
-      return [];
-    }
-  }
-  function saveHistory(arr) {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
-  }
-  function nowStr() {
-    const d = new Date();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    return `${mm}/${dd} ${hh}:${mi}`;
-  }
-  function renderHistory(list) {
-    historyEl.innerHTML = "";
-    if (!list.length) {
-      historyEl.innerHTML = `<li class="muted">履歴なし</li>`;
-      return;
-    }
+// ===== events =====
+if (input) {
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") btn.click();
+  });
+}
 
-    list.forEach((h, idx) => {
-      const li = document.createElement("li");
-      li.style.display = "flex";
-      li.style.gap = "8px";
-      li.style.alignItems = "center";
-      li.style.margin = "6px 0";
-
-      const showBtn = document.createElement("button");
-      showBtn.type = "button";
-      showBtn.className = "btn";
-      showBtn.dataset.action = "show";
-      showBtn.dataset.index = String(idx);
-      showBtn.textContent = `${h.when} / ${h.score}点 / ${h.name ?? "-"} / ${h.q}`;
-      showBtn.style.flex = "1";
-      showBtn.style.textAlign = "left";
-
-      const delBtn = document.createElement("button");
-      delBtn.type = "button";
-      delBtn.className = "btn";
-      delBtn.dataset.action = "delete";
-      delBtn.dataset.index = String(idx);
-      delBtn.textContent = "削除";
-
-      li.appendChild(showBtn);
-      li.appendChild(delBtn);
-      historyEl.appendChild(li);
-    });
-  }
-  function addHistory(item) {
-    const list = loadHistory();
-    const filtered = list.filter(x => x.q !== item.q);
-    const next = [item, ...filtered].slice(0, HISTORY_MAX);
-    saveHistory(next);
-    renderHistory(next);
-  }
-
+if (historyEl) {
   historyEl.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-index][data-action]");
     if (!b) return;
@@ -357,14 +374,16 @@ function renderCompare(compare) {
       if (item.data) showResult(item.data);
       return;
     }
+
     if (action === "delete") {
       const next = list.filter((_, i) => i !== idx);
       saveHistory(next);
       renderHistory(next);
-      return;
     }
   });
+}
 
+if (clearHistoryBtn) {
   clearHistoryBtn.addEventListener("click", () => {
     if (!confirm("履歴を全削除して、表示もリセットします。よろしいですか？")) return;
     saveHistory([]);
@@ -372,52 +391,59 @@ function renderCompare(compare) {
     resetUI();
     hideCard();
   });
-
-  // ===== events =====
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") btn.click();
-  });
-
-  btn.addEventListener("click", async () => {
-    resetUI();
-
-    const q = input.value.trim();
- if (!q) {
-  hideCard();
-  msg.textContent = "URL / 店名+住所 を入力して";
-  return;
 }
 
-    setLoading(true);
+btn.addEventListener("click", async () => {
+  resetUI();
 
-    try {
-      const res = await fetch(`/api/diagnose?url=${encodeURIComponent(q)}`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+  const q = input.value.trim();
+  if (!q) {
+    hideCard();
+    msg.textContent = "URL / 店名+住所 を入力して";
+    return;
+  }
 
-      const details = data?.details ?? {};
-      const diagnosis = data?.diagnosis ?? {};
-      const score = Number.isFinite(diagnosis.score) ? diagnosis.score : 0;
+  setLoading(true);
 
-      addHistory({
-        q,
-        when: nowStr(),
-        score,
-        name: details?.name ?? null,
-        placeId: data?.placeId ?? null,
-        data,
-      });
+  try {
+    const res = await fetch(`/api/diagnose?url=${encodeURIComponent(q)}`);
+    const text = await res.text();
 
-      showResult(data);
-    } catch (e) {
-      showError(e.message);
-    } finally {
-      setLoading(false);
+    const data = safeJsonParse(text);
+    if (!data) {
+      throw new Error("APIがJSONを返していない: " + text.slice(0, 200));
     }
-  });
 
-  // init
-  renderHistory(loadHistory());
+    if (!res.ok) {
+      throw new Error(data?.error || `HTTP ${res.status}`);
+    }
+
+    const details = data?.details ?? {};
+    const diagnosis = data?.diagnosis ?? data;
+    const score = Number.isFinite(diagnosis?.score) ? diagnosis.score : 0;
+
+    addHistory({
+      q,
+      when: nowStr(),
+      score,
+      name: details?.name ?? null,
+      placeId:
+        data?.placeId ??
+        data?.details?.placeId ??
+        data?.details?.place_id ??
+        null,
+      data,
+    });
+
+    await showResult(data);
+    msg.textContent = "OK";
+  } catch (e) {
+    showError(e?.message || String(e));
+  } finally {
+    setLoading(false);
+  }
+});
+
+// init
+renderHistory(loadHistory());
 </script>
-</body>
-</html>

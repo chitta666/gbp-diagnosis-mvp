@@ -1,5 +1,4 @@
-import { ymdTokyo } from "../_lib/date.js";
-import { saveSnapshot } from "../_lib/snapshot.js";
+import { runDailyForPlace } from "../_lib/runDaily.js";
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -22,23 +21,6 @@ export async function onRequest({ request, env }) {
     return json({ ok: false, error: "my placeId required" }, 400);
   }
 
-  const rawComp = await KV.get(`comp:${myPlaceId}`);
-  if (!rawComp) {
-    return json({ ok: false, error: "competitor not set" }, 400);
-  }
-
-  const comp = JSON.parse(rawComp);
-  const competitorPlaceId = comp.competitorPlaceId;
-
-  const my = await saveSnapshot({ KV, key, placeId: myPlaceId });
-  const competitor = await saveSnapshot({ KV, key, placeId: competitorPlaceId });
-
-  return json({
-    ok: true,
-    today: ymdTokyo(),
-    myPlaceId,
-    competitorPlaceId,
-    my,
-    competitor,
-  });
+  const result = await runDailyForPlace({ KV, key, myPlaceId });
+  return json(result, result.ok ? 200 : 400);
 }

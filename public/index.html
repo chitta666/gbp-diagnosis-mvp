@@ -27,6 +27,11 @@
       </div>
 
       <div class="section">
+  <h2 class="section__title">口コミ比較</h2>
+  <ul id="compareList" class="list"></ul>
+</div>
+
+      <div class="section">
         <h2 class="section__title">改善ToDo</h2>
         <ul id="todos" class="list"></ul>
       </div>
@@ -126,6 +131,24 @@ function setLoading(isLoading) {
   }
 }
 
+async function fetchCompare(myPlaceId) {
+  const res = await fetch(`/api/compare?my=${encodeURIComponent(myPlaceId)}`);
+  const text = await res.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return { ok: false, error: "INVALID_JSON", raw: text };
+  }
+
+  if (!res.ok) {
+    return { ok: false, ...data };
+  }
+
+  return data;
+}
+
 function showError(message) {
   msg.textContent = `ERROR: ${message}`;
   card.classList.remove("hidden");
@@ -137,31 +160,23 @@ function showError(message) {
   debugEl.textContent = "";
 }
 
-function showResult(data) {
-  // あなたのAPIの形に合わせる
-  // 旧: { placeId, details, diagnosis }
-  // 今: { ... diagnosis } を直接返してる場合もある
-  const diagnosis = data?.diagnosis ?? data;  // ←ここがズレ対策の肝
+async function showResult(data) {
+  const diagnosis = data?.diagnosis ?? data;
   const details = data?.details ?? {};
+  const placeId = data?.placeId ?? null;
 
-  // スコア
-  const score = Number.isFinite(diagnosis?.score) ? diagnosis.score : 0;
-  scoreEl.textContent = String(score);
-
-  // ToDo
+  scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
   renderTodos(diagnosis?.todos, diagnosis?.missing);
-
-  // 内訳
   renderBreakdown(diagnosis);
-
-  // 詳細
-  renderSummary(details, data?.placeId);
-
-  // デバッグ
+  renderSummary(details, placeId);
   debugEl.textContent = JSON.stringify(data, null, 2);
-
-  // 見せる
   card.classList.remove("hidden");
+
+  // 追加：口コミ比較
+  if (placeId) {
+    const compare = await fetchCompare(placeId);
+    renderCompare(compare);
+  }
 }
 
 function renderTodos(todosArr, missingArr) {
@@ -233,7 +248,32 @@ function escapeHtml(s) {
   }[c]));
 }
 function escapeAttr(s) { return escapeHtml(s); }
+function renderCompare(compare) {
+  const compareList = document.getElementById("compareList");
+  if (!compareList) return;
 
+  compareList.innerHTML = "";
+
+  if (!compare?.ok) {
+    compareList.innerHTML = "<li>比較データなし</li>";
+    return;
+  }
+
+  const rows = [
+    `自店 総口コミ数: ${compare.my?.todayTotal ?? "-"}`,
+    `競合 総口コミ数: ${compare.competitor?.todayTotal ?? "-"}`,
+    `総差: ${compare.total_diff ?? "-"}`,
+    `自店 前日差: ${compare.my?.delta ?? "-"}`,
+    `競合 前日差: ${compare.competitor?.delta ?? "-"}`,
+    `勢い差: ${compare.delta_diff ?? "-"}`,
+  ];
+
+  for (const row of rows) {
+    const li = document.createElement("li");
+    li.textContent = row;
+    compareList.appendChild(li);
+  }
+}
 
   // ===== history =====
   const HISTORY_KEY = "gbp_history_v1";

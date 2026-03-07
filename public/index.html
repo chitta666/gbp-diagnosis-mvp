@@ -31,6 +31,11 @@
   <ul id="compareList" class="list"></ul>
 </div>
 
+<div class="section">
+  <h2 class="section__title">ひとこと診断</h2>
+  <div id="insight" class="muted"></div>
+</div>
+
       <div class="section">
         <h2 class="section__title">改善ToDo</h2>
         <ul id="todos" class="list"></ul>
@@ -267,14 +272,56 @@ async function showResult(data) {
   debugEl.textContent = JSON.stringify(data, null, 2);
   showCard();
 
+  let compare;
+
   if (placeId) {
-    const compare = await fetchCompare(placeId);
+    compare = await fetchCompare(placeId);
     console.log("compare =", compare);
     renderCompare(compare);
   } else {
     console.log("placeId missing", data);
-    renderCompare({ ok: false, error: "placeId missing" });
+    compare = { ok: false, error: "placeId missing" };
+    renderCompare(compare);
   }
+
+  const insightEl = document.getElementById("insight");
+  if (insightEl) {
+    insightEl.textContent = buildInsight(diagnosis, compare);
+  }
+}
+
+function buildInsight(diagnosis, compare) {
+  const todos = Array.isArray(diagnosis?.todos) ? diagnosis.todos : [];
+  const totalDiff = compare?.total_diff;
+  const deltaDiff = compare?.delta_diff;
+
+  const reasons = [];
+
+  if (Number.isFinite(totalDiff)) {
+    if (totalDiff < 0) {
+      reasons.push(`競合が総口コミ数で${Math.abs(totalDiff)}件多い`);
+    } else if (totalDiff > 0) {
+      reasons.push(`自店が総口コミ数で${totalDiff}件多い`);
+    } else {
+      reasons.push("総口コミ数は拮抗している");
+    }
+  }
+
+  if (Number.isFinite(deltaDiff)) {
+    if (deltaDiff < 0) {
+      reasons.push(`直近の口コミ増加は競合が${Math.abs(deltaDiff)}件上回る`);
+    } else if (deltaDiff > 0) {
+      reasons.push(`直近の口コミ増加は自店が${deltaDiff}件上回る`);
+    } else {
+      reasons.push("直近の口コミ増加は同水準");
+    }
+  }
+
+  if (todos.length) {
+    reasons.push(`優先改善: ${todos.slice(0, 2).join(" / ")}`);
+  }
+
+  return reasons.length ? reasons.join("。") + "。" : "比較データがまだ不足しています。";
 }
 
 // ===== history =====

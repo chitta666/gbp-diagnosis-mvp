@@ -260,10 +260,10 @@ async function showResult(data) {
   const diagnosis = data?.diagnosis ?? data;
   const details = data?.details ?? {};
   const placeId =
-    data?.placeId ??
-    data?.details?.placeId ??
-    data?.details?.place_id ??
-    null;
+  data?.placeId ??
+  data?.details?.placeId ??
+  data?.details?.place_id ??
+  null;
 
   scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
   renderTodos(diagnosis?.todos, diagnosis?.missing);
@@ -453,7 +453,7 @@ btn.addEventListener("click", async () => {
   setLoading(true);
 
   try {
-    const res = await fetch(`/api/diagnose?url=${encodeURIComponent(q)}`);
+    const res = await fetch(`/api/diagnose?q=${encodeURIComponent(q)}`);
     const text = await res.text();
 
     const data = safeJsonParse(text);

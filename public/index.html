@@ -252,6 +252,7 @@ function renderPhotoCompare(photo) {
 }
 
 function renderPhotoAdvice(photoAdvice) {
+function renderPhotoAdvice(photoAdvice) {
   const el = document.getElementById("photoAdviceList");
   if (!el) return;
 
@@ -263,12 +264,19 @@ function renderPhotoAdvice(photoAdvice) {
   }
 
   const shots = photoAdvice.recommendedShots ?? [];
+  const advice = photoAdvice.advice ?? [];
 
-  for (const s of shots) {
+  advice.forEach((a) => {
     const li = document.createElement("li");
-    li.textContent = s;
+    li.textContent = a;
     el.appendChild(li);
-  }
+  });
+
+  shots.forEach((s) => {
+    const li = document.createElement("li");
+    li.textContent = `撮影推奨: ${s}`;
+    el.appendChild(li);
+  });
 }
 
 // ===== result rendering =====

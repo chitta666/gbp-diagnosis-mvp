@@ -20,6 +20,27 @@ function calcCompetitorPhotoAvg(competitors) {
   return Math.round(sum / nums.length);
 }
 
+function buildPhotoAdvice(myPhotos, competitorPhotoAvg) {
+  const advice = [];
+
+  if (competitorPhotoAvg == null) {
+    advice.push("競合写真データが取得できていません");
+  } else if (myPhotos < competitorPhotoAvg) {
+    advice.push(`競合平均より${competitorPhotoAvg - myPhotos}枚写真が少ない`);
+  }
+
+  return {
+    recommendedShots: [
+      "外観",
+      "料理",
+      "メニュー",
+      "店内",
+      "スタッフ"
+    ],
+    advice
+  };
+}
+
 export async function onRequest({ request, env }) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -115,18 +136,21 @@ export async function onRequest({ request, env }) {
         ? Math.max(competitorPhotoAvg - myPhotos, 0)
         : null;
 
-    return json({
-      ok: true,
-      placeId: details?.placeId ?? details?.place_id ?? placeId ?? null,
-      diagnosis,
-      details,
-      competitors,
-      photoAnalysis: {
-        myPhotos,
-        competitorPhotoAvg,
-        missingPhotos,
-      },
-    });
+const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg);
+
+return json({
+  ok: true,
+  placeId,
+  diagnosis,
+  details,
+  competitors,
+  photoAnalysis: {
+    myPhotos,
+    competitorPhotoAvg,
+    missingPhotos,
+  },
+  photoAdvice
+});
   } catch (e) {
     return json(
       {
@@ -138,4 +162,5 @@ export async function onRequest({ request, env }) {
       500
     );
   }
+
 }

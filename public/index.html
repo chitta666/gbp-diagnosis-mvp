@@ -34,6 +34,9 @@
 <h2>写真比較</h2>
 <ul id="photoCompare"></ul>
 
+<h2>撮影すべき写真</h2>
+<ul id="photoAdviceList"></ul>
+
 <div class="section">
   <h2 class="section__title">ひとこと診断</h2>
   <div id="insight" class="muted"></div>
@@ -248,6 +251,26 @@ function renderPhotoCompare(photo) {
   }
 }
 
+function renderPhotoAdvice(photoAdvice) {
+  const el = document.getElementById("photoAdviceList");
+  if (!el) return;
+
+  el.innerHTML = "";
+
+  if (!photoAdvice) {
+    el.innerHTML = "<li>写真アドバイスなし</li>";
+    return;
+  }
+
+  const shots = photoAdvice.recommendedShots ?? [];
+
+  for (const s of shots) {
+    const li = document.createElement("li");
+    li.textContent = s;
+    el.appendChild(li);
+  }
+}
+
 // ===== result rendering =====
 function renderTodos(todosArr, missingArr) {
   todosEl.innerHTML = "";
@@ -355,6 +378,7 @@ async function showResult(data) {
   renderSummary(details, placeId);
   debugEl.textContent = JSON.stringify(data, null, 2);
   renderPhotoCompare(data?.photoAnalysis);
+  renderPhotoAdvice(data.photoAdvice);
   showCard();
 
   let compare;

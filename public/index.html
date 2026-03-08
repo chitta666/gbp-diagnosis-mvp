@@ -36,6 +36,11 @@
   <div id="insight" class="muted"></div>
 </div>
 
+<div class="section">
+  <h2 class="section__title">今週レポート</h2>
+  <ul id="weeklyReportList" class="list"></ul>
+</div>
+
       <div class="section">
         <h2 class="section__title">改善ToDo</h2>
         <ul id="todos" class="list"></ul>
@@ -84,6 +89,7 @@ const compareListEl = document.getElementById("compareList");
 
 const historyEl = document.getElementById("history");
 const clearHistoryBtn = document.getElementById("clearHistory");
+const weeklyReportListEl = document.getElementById("weeklyReportList");
 
 // ===== helpers =====
 function escapeHtml(s) {
@@ -115,6 +121,7 @@ function resetUI() {
   summaryEl.innerHTML = "";
   debugEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
+  if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
 }
 
 function hideCard() {
@@ -138,6 +145,7 @@ function setLoading(isLoading) {
     summaryEl.innerHTML = "<div>loading...</div>";
     debugEl.textContent = "";
     if (compareListEl) compareListEl.innerHTML = "<li>loading...</li>";
+    if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>loading...</li>";
   }
 }
 
@@ -151,6 +159,9 @@ function showError(message) {
   summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
   debugEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(message)}</li>`;
+  if (weeklyReportListEl) {
+  weeklyReportListEl.innerHTML = `<li>週次レポートなし: ${escapeHtml(message)}</li>`;
+}
 }
 
 // ===== compare =====
@@ -160,6 +171,24 @@ async function fetchCompare(myPlaceId) {
 
   const data = safeJsonParse(text, { ok: false, error: "INVALID_JSON", raw: text });
   if (!res.ok) return { ok: false, ...data };
+
+  return data;
+}
+
+async function fetchWeeklyReport(myPlaceId) {
+  const res = await fetch(`/api/weekly-report?my=${encodeURIComponent(myPlaceId)}`);
+  const text = await res.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return { ok: false, error: "INVALID_JSON", raw: text };
+  }
+
+  if (!res.ok) {
+    return { ok: false, ...data };
+  }
 
   return data;
 }
@@ -256,14 +285,40 @@ function renderSummary(details, placeId) {
   `;
 }
 
+function renderWeeklyReport(report) {
+  if (!weeklyReportListEl) return;
+
+  weeklyReportListEl.innerHTML = "";
+
+  if (!report?.ok) {
+    weeklyReportListEl.innerHTML = `<li>週次レポートなし: ${escapeHtml(report?.error ?? "unknown error")}</li>`;
+    return;
+  }
+
+  const rows = [
+    `自店 今週口コミ増加: ${report.my?.weeklyGain ?? "-"}`,
+    `競合 今週口コミ増加: ${report.competitor?.weeklyGain ?? "-"}`,
+    `今週増加差: ${report.weeklyGainDiff ?? "-"}`,
+    `総口コミ差: ${report.totalDiff ?? "-"}`,
+    `レポート期間: ${report.weekAgo ?? "-"} → ${report.today ?? "-"}`,
+    `週次診断: ${report.insight ?? "-"}`,
+  ];
+
+  for (const row of rows) {
+    const li = document.createElement("li");
+    li.textContent = row;
+    weeklyReportListEl.appendChild(li);
+  }
+}
+
 async function showResult(data) {
   const diagnosis = data?.diagnosis ?? data;
   const details = data?.details ?? {};
   const placeId =
-  data?.placeId ??
-  data?.details?.placeId ??
-  data?.details?.place_id ??
-  null;
+    data?.placeId ??
+    data?.details?.placeId ??
+    data?.details?.place_id ??
+    null;
 
   scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
   renderTodos(diagnosis?.todos, diagnosis?.missing);
@@ -273,15 +328,20 @@ async function showResult(data) {
   showCard();
 
   let compare;
+  let weeklyReport;
 
   if (placeId) {
     compare = await fetchCompare(placeId);
-    console.log("compare =", compare);
     renderCompare(compare);
+
+    weeklyReport = await fetchWeeklyReport(placeId);
+    renderWeeklyReport(weeklyReport);
   } else {
-    console.log("placeId missing", data);
     compare = { ok: false, error: "placeId missing" };
     renderCompare(compare);
+
+    weeklyReport = { ok: false, error: "placeId missing" };
+    renderWeeklyReport(weeklyReport);
   }
 
   const insightEl = document.getElementById("insight");
@@ -418,8 +478,9 @@ if (historyEl) {
 
     if (action === "show") {
       input.value = item.q;
-      if (item.data) showResult(item.data);
-      return;
+if (item.data) {
+  showResult(item.data).catch((e) => showError(e?.message || String(e)));
+}      return;
     }
 
     if (action === "delete") {

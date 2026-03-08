@@ -31,6 +31,9 @@
   <ul id="compareList" class="list"></ul>
 </div>
 
+<h2>写真比較</h2>
+<ul id="photoCompare"></ul>
+
 <div class="section">
   <h2 class="section__title">ひとこと診断</h2>
   <div id="insight" class="muted"></div>
@@ -51,6 +54,8 @@
         <ul id="breakdown" class="list"></ul>
         <div id="penalty" class="muted" style="margin-top:8px;"></div>
       </div>
+
+      
 
       <div class="section">
         <h2 class="section__title">詳細</h2>
@@ -219,6 +224,30 @@ function renderCompare(compare) {
   }
 }
 
+function renderPhotoCompare(photo) {
+  const el = document.getElementById("photoCompare");
+  if (!el) return;
+
+  el.innerHTML = "";
+
+  if (!photo) {
+    el.innerHTML = "<li>写真比較データなし</li>";
+    return;
+  }
+
+  const rows = [
+    `自店写真数: ${photo.myPhotos ?? "-"}`,
+    `競合平均: ${photo.competitorPhotoAvg ?? "-"}`,
+    `不足写真: ${photo.missingPhotos ?? "-"}`,
+  ];
+
+  for (const row of rows) {
+    const li = document.createElement("li");
+    li.textContent = row;
+    el.appendChild(li);
+  }
+}
+
 // ===== result rendering =====
 function renderTodos(todosArr, missingArr) {
   todosEl.innerHTML = "";
@@ -325,6 +354,7 @@ async function showResult(data) {
   renderBreakdown(diagnosis);
   renderSummary(details, placeId);
   debugEl.textContent = JSON.stringify(data, null, 2);
+  renderPhotoCompare(data?.photoAnalysis);
   showCard();
 
   let compare;

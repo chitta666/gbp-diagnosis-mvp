@@ -3,6 +3,23 @@ import { fetchPlaceDetails } from "../_lib/place.js";
 import { fetchCompetitorsAutoRadius } from "../_lib/competitors.js";
 import { buildDiagnosis } from "../_lib/diagnosis.js";
 
+function calcCompetitorPhotoAvg(competitors) {
+  if (!Array.isArray(competitors) || !competitors.length) return null;
+
+  const nums = competitors
+    .map((c) => {
+      if (Array.isArray(c?.photos)) return c.photos.length;
+      if (Number.isFinite(c?.photoCount)) return Number(c.photoCount);
+      return null;
+    })
+    .filter((n) => Number.isFinite(n));
+
+  if (!nums.length) return null;
+
+  const sum = nums.reduce((a, b) => a + b, 0);
+  return Math.round(sum / nums.length);
+}
+
 export async function onRequest({ request, env }) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -23,7 +40,7 @@ export async function onRequest({ request, env }) {
       return json({ ok: false, error: "q required" }, 400);
     }
 
-    // 1) 店名+住所から placeId 解決
+    // 1) 店名 or 店名+住所 から placeId 解決
     const findUrl =
       "https://maps.googleapis.com/maps/api/place/findplacefromtext/json" +
       `?input=${encodeURIComponent(q)}` +
@@ -49,7 +66,7 @@ export async function onRequest({ request, env }) {
     const candidate = found.candidates[0];
     const placeId = candidate.place_id;
 
-    // 2) place details
+    // 2) place details 取得
     const details = await fetchPlaceDetails({ key, placeId });
 
     if (!details?.ok) {
@@ -63,7 +80,7 @@ export async function onRequest({ request, env }) {
       );
     }
 
-    // 3) lat/lng を details.geometry から取得
+    // 3) lat/lng 取得
     const lat = Number(details?.geometry?.location?.lat);
     const lng = Number(details?.geometry?.location?.lng);
 
@@ -79,7 +96,7 @@ export async function onRequest({ request, env }) {
       );
     }
 
-    // 4) competitors
+    // 4) 競合取得
     const competitors = await fetchCompetitorsAutoRadius({
       key,
       lat,
@@ -87,33 +104,28 @@ export async function onRequest({ request, env }) {
       type: "restaurant",
     });
 
-    // 5) diagnosis
-const diagnosis = buildDiagnosis(details, competitors);
+    // 5) 診断生成
+    const diagnosis = buildDiagnosis(details, competitors);
 
-return new Response(
-  JSON.stringify(
-    {
-      ok: true,
-      placeId: details?.placeId ?? details?.place_id ?? null,
-      diagnosis,
-      details,
-      competitors,
-    },
-    null,
-    2
-  ),
-  {
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-    },
-  }
-);
+    // 6) 写真比較
+    const myPhotos = Array.isArray(details?.photos) ? details.photos.length : 0;
+    const competitorPhotoAvg = calcCompetitorPhotoAvg(competitors);
+    const missingPhotos =
+      competitorPhotoAvg != null
+        ? Math.max(competitorPhotoAvg - myPhotos, 0)
+        : null;
+
     return json({
       ok: true,
-      placeId: details.placeId ?? details.place_id ?? placeId ?? null,
+      placeId: details?.placeId ?? details?.place_id ?? placeId ?? null,
       diagnosis,
       details,
       competitors,
+      photoAnalysis: {
+        myPhotos,
+        competitorPhotoAvg,
+        missingPhotos,
+      },
     });
   } catch (e) {
     return json(
@@ -126,5 +138,4 @@ return new Response(
       500
     );
   }
-  
 }

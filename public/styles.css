@@ -102,6 +102,23 @@ button {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+.kpi {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.kpi__value {
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.kpi__unit {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
 .btn {
   padding: 10px 14px;
   border: 1px solid var(--border);
@@ -118,6 +135,12 @@ button {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
+}
+
+.section {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 #pdfBtn {
@@ -237,6 +260,13 @@ button {
   padding: 8px 10px;
   background: var(--surface);
   border-radius: var(--r-1);
+}
+
+#insight {
+  background: var(--surface);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
   a {

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -106,7 +106,6 @@ const todosEl = document.getElementById("todos");
 const breakdownEl = document.getElementById("breakdown");
 const penaltyEl = document.getElementById("penalty");
 const summaryEl = document.getElementById("summary");
-const debugEl = document.getElementById("debug");
 const compareListEl = document.getElementById("compareList");
 
 const historyEl = document.getElementById("history");
@@ -141,7 +140,6 @@ function resetUI() {
   breakdownEl.innerHTML = "";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = "";
-  debugEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
 }
@@ -165,7 +163,6 @@ function setLoading(isLoading) {
     breakdownEl.innerHTML = "<li>loading...</li>";
     penaltyEl.textContent = "";
     summaryEl.innerHTML = "<div>loading...</div>";
-    debugEl.textContent = "";
     if (compareListEl) compareListEl.innerHTML = "<li>loading...</li>";
     if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>loading...</li>";
   }
@@ -179,7 +176,6 @@ function showError(message) {
   breakdownEl.innerHTML = "<li>—</li>";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
-  debugEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(message)}</li>`;
   if (weeklyReportListEl) {
   weeklyReportListEl.innerHTML = `<li>週次レポートなし: ${escapeHtml(message)}</li>`;
@@ -397,7 +393,6 @@ async function showResult(data) {
   renderTodos(diagnosis?.todos, diagnosis?.missing);
   renderBreakdown(diagnosis);
   renderSummary(details, placeId);
-  debugEl.textContent = JSON.stringify(data, null, 2);
   renderPhotoCompare(data?.photoAnalysis);
   renderPhotoAdvice(data.photoAdvice);
   showCard();

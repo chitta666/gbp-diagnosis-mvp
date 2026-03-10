@@ -3,83 +3,94 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GBP 改善診断 (MVP)</title>
+  <title>Google Maps Performance Report</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="container">
-    <h1 class="h1">GBP 改善診断 (MVP)</h1>
+  <h1 class="h1">Google Maps Performance Report</h1>
 
-    <div class="row">
-      <input id="urlInput" class="input" placeholder="URL または 店名+住所" />
-      <button id="btn" class="btn btn--primary" type="button">診断する</button>
+  <div class="row">
+    <input id="urlInput" class="input" placeholder="Enter business name and address" />
+    <button id="btn" class="btn btn--primary" type="button">Analyze Listing</button>
+  </div>
+
+<div class="muted">
+Analyze your Google Maps listing and compare it with competitors.  
+Get insights on reviews, photos, and improvement opportunities.
+</div>
+
+  <div id="card" class="card hidden">
+    <h2 class="section__title">Google Maps Performance Report</h2>
+    <p id="reportDate" class="muted"></p>
+
+<div class="kpi">
+  <div class="kpi__value" id="score">-</div>
+  <div class="kpi__unit">/100</div>
+</div>
+
+    <div class="section">
+      <h2 class="section__title">Quick Insight</h2>
+      <div id="insight" class="muted"></div>
     </div>
 
-    <div id="msg" class="muted"></div>
+    <div class="section">
+      <h2 class="section__title">Review Comparison</h2>
+      <ul id="compareList" class="list"></ul>
+    </div>
 
-    <div id="card" class="card hidden">
-      <div class="kpi">
-        <div>
-          <div class="kpi__label">スコア</div>
-          <div id="score" class="kpi__value">-</div>
-        </div>
-        <div class="muted">/ 100</div>
+    <div class="section">
+      <h2 class="section__title">Weekly Report</h2>
+      <ul id="weeklyReportList" class="list"></ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Photo Comparison</h2>
+      <ul id="photoCompare" class="list"></ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Recommended Photos</h2>
+      <ul id="photoAdviceList" class="list"></ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Improvement Tasks</h2>
+      <ul id="todos" class="list"></ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Score Breakdown</h2>
+      <ul id="breakdown" class="list"></ul>
+      <div id="penalty" class="muted" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">詳細</h2>
+      <div id="summary"></div>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">次のアクション</h2>
+      <ul class="list">
+        <li>Webサイトを設定する</li>
+        <li>外観・料理・メニュー・店内・スタッフ写真を追加する</li>
+        <li>口コミ投稿を促す導線を作る</li>
+      </ul>
+    </div>
+
+    <button id="pdfBtn" class="btn">PDFダウンロード</button>
+
+    <div class="section">
+      <h2 class="section__title">History</h2>
+      <div class="row" style="justify-content:space-between;">
+        <button id="clearHistory" type="button" class="btn">履歴を全削除</button>
+        <div class="muted" style="font-size:12px;">※履歴クリックで再表示（APIは叩かない）</div>
       </div>
-
-      <div class="section">
-  <h2 class="section__title">口コミ比較</h2>
-  <ul id="compareList" class="list"></ul>
-</div>
-
-<h2>写真比較</h2>
-<ul id="photoCompare"></ul>
-
-<h2>撮影すべき写真</h2>
-<ul id="photoAdviceList"></ul>
-
-<div class="section">
-  <h2 class="section__title">ひとこと診断</h2>
-  <div id="insight" class="muted"></div>
-</div>
-
-<div class="section">
-  <h2 class="section__title">今週レポート</h2>
-  <ul id="weeklyReportList" class="list"></ul>
-</div>
-
-      <div class="section">
-        <h2 class="section__title">改善ToDo</h2>
-        <ul id="todos" class="list"></ul>
-      </div>
-
-      <div class="section">
-        <h2 class="section__title">減点内訳</h2>
-        <ul id="breakdown" class="list"></ul>
-        <div id="penalty" class="muted" style="margin-top:8px;"></div>
-      </div>
-
-      
-
-      <div class="section">
-        <h2 class="section__title">詳細</h2>
-        <div id="summary"></div>
-      </div>
-
-      <div class="section">
-        <h2 class="section__title">履歴</h2>
-        <div class="row" style="justify-content:space-between;">
-          <button id="clearHistory" type="button" class="btn">履歴を全削除</button>
-          <div class="muted" style="font-size:12px;">※履歴クリックで再表示（APIは叩かない）</div>
-        </div>
-        <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
-      </div>
-
-      <details class="section">
-        <summary style="cursor:pointer;">デバッグJSON（開く）</summary>
-        <pre id="debug" class="pre"></pre>
-      </details>
+      <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
     </div>
   </div>
+</div>
 <script>
 const btn = document.getElementById("btn");
 const input = document.getElementById("urlInput");
@@ -92,7 +103,6 @@ const todosEl = document.getElementById("todos");
 const breakdownEl = document.getElementById("breakdown");
 const penaltyEl = document.getElementById("penalty");
 const summaryEl = document.getElementById("summary");
-const debugEl = document.getElementById("debug");
 const compareListEl = document.getElementById("compareList");
 
 const historyEl = document.getElementById("history");
@@ -127,7 +137,6 @@ function resetUI() {
   breakdownEl.innerHTML = "";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = "";
-  debugEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
 }
@@ -151,7 +160,6 @@ function setLoading(isLoading) {
     breakdownEl.innerHTML = "<li>loading...</li>";
     penaltyEl.textContent = "";
     summaryEl.innerHTML = "<div>loading...</div>";
-    debugEl.textContent = "";
     if (compareListEl) compareListEl.innerHTML = "<li>loading...</li>";
     if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>loading...</li>";
   }
@@ -165,7 +173,6 @@ function showError(message) {
   breakdownEl.innerHTML = "<li>—</li>";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
-  debugEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(message)}</li>`;
   if (weeklyReportListEl) {
   weeklyReportListEl.innerHTML = `<li>週次レポートなし: ${escapeHtml(message)}</li>`;
@@ -383,7 +390,6 @@ async function showResult(data) {
   renderTodos(diagnosis?.todos, diagnosis?.missing);
   renderBreakdown(diagnosis);
   renderSummary(details, placeId);
-  debugEl.textContent = JSON.stringify(data, null, 2);
   renderPhotoCompare(data?.photoAnalysis);
   renderPhotoAdvice(data.photoAdvice);
   showCard();
@@ -615,4 +621,12 @@ btn.addEventListener("click", async () => {
 
 // init
 renderHistory(loadHistory());
+
+const pdfBtn = document.getElementById("pdfBtn");
+
+if (pdfBtn) {
+  pdfBtn.addEventListener("click", () => {
+    window.print();
+  });
+}
 </script>

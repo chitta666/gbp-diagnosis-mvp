@@ -24,18 +24,17 @@ function buildPhotoAdvice(myPhotos, competitorPhotoAvg) {
   const advice = [];
 
   if (competitorPhotoAvg == null) {
-    advice.push("競合写真データが取得できていません");
+    advice.push("Competitor photo data is not available.");
   } else if (myPhotos < competitorPhotoAvg) {
-    advice.push(`競合平均より${competitorPhotoAvg - myPhotos}枚写真が少ない`);
-  }
+    advice.push(`Your listing has ${competitorPhotoAvg - myPhotos} fewer photos than nearby competitors.`);  }
 
   return {
     recommendedShots: [
-      "外観",
-      "料理",
-      "メニュー",
-      "店内",
-      "スタッフ"
+  "Storefront / Exterior",
+  "Signature Dishes",
+  "Menu",
+  "Interior Atmosphere",
+  "Staff / Team"
     ],
     advice
   };

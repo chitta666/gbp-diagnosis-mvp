@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Google Maps Performance Report</title>
+  <title>Google Maps Listing Analyzer</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="container">
-  <h1 class="h1">Google Maps Performance Report</h1>
+  <h1 class="h1">Google Maps Listing Analyzer</h1>
 
   <div class="row">
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
@@ -16,8 +16,7 @@
   </div>
 
 <div class="muted">
-Analyze your Google Maps listing and compare it with competitors.  
-Get insights on reviews, photos, and improvement opportunities.
+Analyze your Google Maps listing, compare competitors, and discover how to improve reviews, photos, and visibility.
 </div>
 
   <div id="msg" class="muted"></div>
@@ -76,9 +75,9 @@ Get insights on reviews, photos, and improvement opportunities.
     <div class="section">
       <h2 class="section__title">Recommended Actions</h2>
       <ul class="list">
-        <li>Webサイトを設定する</li>
-        <li>外観・料理・メニュー・店内・スタッフ写真を追加する</li>
-        <li>口コミ投稿を促す導線を作る</li>
+      <li>Add a website to your Google listing</li>
+      <li>Add photos of exterior, food, menu, interior, and staff</li>
+      <li>Create a system to encourage customers to leave reviews</li>
       </ul>
     </div>
 
@@ -88,7 +87,7 @@ Get insights on reviews, photos, and improvement opportunities.
       <h2 class="section__title">History</h2>
       <div class="row" style="justify-content:space-between;">
         <button id="clearHistory" type="button" class="btn">Clear History</button>
-        <div class="muted" style="font-size:12px;">※履歴クリックで再表示（APIは叩かない）</div>
+        <div class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
       </div>
       <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
     </div>
@@ -176,9 +175,9 @@ function showError(message) {
   breakdownEl.innerHTML = "<li>—</li>";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
-  if (compareListEl) compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(message)}</li>`;
+  if (compareListEl) compareListEl.innerHTML = `<li>No comparison data: ${escapeHtml(message)}</li>`;
   if (weeklyReportListEl) {
-  weeklyReportListEl.innerHTML = `<li>週次レポートなし: ${escapeHtml(message)}</li>`;
+  weeklyReportListEl.innerHTML = `<li>No weekly report data: ${escapeHtml(message)}</li>`;
 }
 }
 
@@ -217,17 +216,17 @@ function renderCompare(compare) {
   compareListEl.innerHTML = "";
 
   if (!compare?.ok) {
-    compareListEl.innerHTML = `<li>比較データなし: ${escapeHtml(compare?.error ?? "unknown error")}</li>`;
+    compareListEl.innerHTML = `<li>No comparison data: ${escapeHtml(compare?.error ?? "unknown error")}</li>`;
     return;
   }
 
   const rows = [
-    `自店 総口コミ数: ${compare.my?.todayTotal ?? "-"}`,
-    `競合 総口コミ数: ${compare.competitor?.todayTotal ?? "-"}`,
-    `総差: ${compare.total_diff ?? "-"}`,
-    `自店 前日差: ${compare.my?.delta ?? "-"}`,
-    `競合 前日差: ${compare.competitor?.delta ?? "-"}`,
-    `勢い差: ${compare.delta_diff ?? "-"}`,
+    `Your total reviews ${compare.my?.todayTotal ?? "-"}`,
+    `Competitor total reviews: ${compare.competitor?.todayTotal ?? "-"}`,
+    `Total review difference: ${compare.total_diff ?? "-"}`,
+    `Your daily change: ${compare.my?.delta ?? "-"}`,
+    `Competitor daily change: ${compare.competitor?.delta ?? "-"}`,
+    `Growth difference: ${compare.delta_diff ?? "-"}`,
   ];
 
   for (const row of rows) {
@@ -243,16 +242,16 @@ function renderPhotoCompare(photo) {
 
   el.innerHTML = "";
 
-  if (!photo) {
-    el.innerHTML = "<li>写真比較データなし</li>";
-    return;
-  }
+if (!photo) {
+  el.innerHTML = "<li>No photo comparison data</li>";
+  return;
+}
 
-  const rows = [
-    `自店写真数: ${photo.myPhotos ?? "-"}`,
-    `競合平均: ${photo.competitorPhotoAvg ?? "-"}`,
-    `不足写真: ${photo.missingPhotos ?? "-"}`,
-  ];
+const rows = [
+  `Your photo count: ${photo.myPhotos ?? "-"}`,
+  `Competitor average: ${photo.competitorPhotoAvg ?? "-"}`,
+  `Missing photos: ${photo.missingPhotos ?? "-"}`,
+];
 
   for (const row of rows) {
     const li = document.createElement("li");
@@ -267,10 +266,10 @@ function renderPhotoAdvice(photoAdvice) {
 
   el.innerHTML = "";
 
-  if (!photoAdvice) {
-    el.innerHTML = "<li>写真アドバイスなし</li>";
-    return;
-  }
+if (!photoAdvice) {
+  el.innerHTML = "<li>No photo advice available</li>";
+  return;
+}
 
   const shots = photoAdvice.recommendedShots ?? [];
   const advice = photoAdvice.advice ?? [];
@@ -281,11 +280,11 @@ function renderPhotoAdvice(photoAdvice) {
     el.appendChild(li);
   });
 
-  shots.forEach((s) => {
-    const li = document.createElement("li");
-    li.textContent = `撮影推奨: ${s}`;
-    el.appendChild(li);
-  });
+shots.forEach((s) => {
+  const li = document.createElement("li");
+  li.textContent = `Recommended shot: ${s}`;
+  el.appendChild(li);
+});
 }
 
 // ===== result rendering =====
@@ -297,7 +296,7 @@ function renderTodos(todosArr, missingArr) {
     (Array.isArray(missingArr) && missingArr.length ? missingArr : []);
 
   if (!list.length) {
-    todosEl.innerHTML = "<li>特になし</li>";
+    todosEl.innerHTML = "<li>No improvements required</li>";
     return;
   }
 
@@ -314,7 +313,7 @@ function renderBreakdown(diagnosis) {
 
   const missingOnly = bd.filter((r) => r?.missing);
   if (!missingOnly.length) {
-    breakdownEl.innerHTML = "<li>減点なし</li>";
+    breakdownEl.innerHTML = "<li>No penalties</li>";
     penaltyEl.textContent = "";
     return;
   }
@@ -330,27 +329,26 @@ function renderBreakdown(diagnosis) {
   }
 
   const p = Number.isFinite(diagnosis?.penalty) ? diagnosis.penalty : sum;
-  penaltyEl.textContent = `合計減点: -${p}`;
+  penaltyEl.textContent = `Total penalty: -${p}`;
 }
 
 function renderSummary(details, placeId) {
   const name = details?.name ?? "-";
   const address = details?.formatted_address ?? "-";
-  const phone = details?.international_phone_number ?? "なし";
+  const phone = details?.international_phone_number ?? "Not available";
   const website = details?.website ?? null;
   const photos = details?.photos?.length ?? 0;
 
   summaryEl.innerHTML = `
-    <div><b>店名:</b> ${escapeHtml(name)}</div>
-    <div><b>住所:</b> ${escapeHtml(address)}</div>
-    <div><b>電話:</b> ${escapeHtml(phone)}</div>
-    <div><b>Web:</b> ${
+    <div><b>Business Name:</b> ${escapeHtml(name)}</div>
+    <div><b>Address:</b> ${escapeHtml(address)}</div>
+    <div><b>Phone:</b> ${escapeHtml(phone)}</div>
+    <div><b>Website:</b> ${
       website
-        ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">あり</a>`
-        : "なし"
+        ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">Available</a>`
+        : "Not available"
     }</div>
-    <div><b>写真数:</b> ${photos}枚</div>
-    <div class="muted"><b>placeId:</b> ${escapeHtml(placeId ?? "-")}</div>
+    <div><b>Photo Count:</b> ${photos}</div>
   `;
 }
 
@@ -360,17 +358,17 @@ function renderWeeklyReport(report) {
   weeklyReportListEl.innerHTML = "";
 
   if (!report?.ok) {
-    weeklyReportListEl.innerHTML = `<li>週次レポートなし: ${escapeHtml(report?.error ?? "unknown error")}</li>`;
+    weeklyReportListEl.innerHTML = `<li>No weekly report data: ${escapeHtml(report?.error ?? "unknown error")}</li>`;
     return;
   }
 
   const rows = [
-    `自店 今週口コミ増加: ${report.my?.weeklyGain ?? "-"}`,
-    `競合 今週口コミ増加: ${report.competitor?.weeklyGain ?? "-"}`,
-    `今週増加差: ${report.weeklyGainDiff ?? "-"}`,
-    `総口コミ差: ${report.totalDiff ?? "-"}`,
-    `レポート期間: ${report.weekAgo ?? "-"} → ${report.today ?? "-"}`,
-    `週次診断: ${report.insight ?? "-"}`,
+    `Your weekly review growth: ${report.my?.weeklyGain ?? "-"}`,
+    `Competitor weekly review growth: ${report.competitor?.weeklyGain ?? "-"}`,
+    `Weekly growth difference: ${report.weeklyGainDiff ?? "-"}`,
+    `Total review difference: ${report.totalDiff ?? "-"}`,
+    `Report period: ${report.weekAgo ?? "-"} → ${report.today ?? "-"}`,
+    `Weekly insight: ${report.insight ?? "-"}`,
   ];
 
   for (const row of rows) {
@@ -429,29 +427,31 @@ function buildInsight(diagnosis, compare) {
 
   if (Number.isFinite(totalDiff)) {
     if (totalDiff < 0) {
-      reasons.push(`競合が総口コミ数で${Math.abs(totalDiff)}件多い`);
+      reasons.push(`Competitors have ${Math.abs(totalDiff)} more total reviews`);
     } else if (totalDiff > 0) {
-      reasons.push(`自店が総口コミ数で${totalDiff}件多い`);
+      reasons.push(`Your business has ${totalDiff} more total reviews`);
     } else {
-      reasons.push("総口コミ数は拮抗している");
+      reasons.push("Total review count is similar");
     }
   }
 
   if (Number.isFinite(deltaDiff)) {
     if (deltaDiff < 0) {
-      reasons.push(`直近の口コミ増加は競合が${Math.abs(deltaDiff)}件上回る`);
+      reasons.push(`Competitors have stronger recent review growth by ${Math.abs(deltaDiff)}`);
     } else if (deltaDiff > 0) {
-      reasons.push(`直近の口コミ増加は自店が${deltaDiff}件上回る`);
+      reasons.push(`Your business has stronger recent review growth by ${deltaDiff}`);
     } else {
-      reasons.push("直近の口コミ増加は同水準");
+      reasons.push("Recent review growth is similar");
     }
   }
 
   if (todos.length) {
-    reasons.push(`優先改善: ${todos.slice(0, 2).join(" / ")}`);
+    reasons.push(`Priority improvements: ${todos.slice(0, 2).join(" / ")}`);
   }
 
-  return reasons.length ? reasons.join("。") + "。" : "比較データがまだ不足しています。";
+  return reasons.length
+    ? reasons.join(". ") + "."
+    : "Comparison data is not sufficient yet.";
 }
 
 // ===== history =====
@@ -487,7 +487,7 @@ function renderHistory(list) {
   historyEl.innerHTML = "";
 
   if (!list.length) {
-    historyEl.innerHTML = `<li class="muted">履歴なし</li>`;
+    historyEl.innerHTML = `<li class="muted">No history yet</li>`;
     return;
   }
 
@@ -503,7 +503,7 @@ function renderHistory(list) {
     showBtn.className = "btn";
     showBtn.dataset.action = "show";
     showBtn.dataset.index = String(idx);
-    showBtn.textContent = `${h.when} / ${h.score}点 / ${h.name ?? "-"} / ${h.q}`;
+    showBtn.textContent = `${h.when} / Score ${h.score} / ${h.name ?? "-"} / ${h.q}`;
     showBtn.style.flex = "1";
     showBtn.style.textAlign = "left";
 
@@ -512,7 +512,7 @@ function renderHistory(list) {
     delBtn.className = "btn";
     delBtn.dataset.action = "delete";
     delBtn.dataset.index = String(idx);
-    delBtn.textContent = "削除";
+    delBtn.textContent = "Delete";
 
     li.appendChild(showBtn);
     li.appendChild(delBtn);
@@ -548,9 +548,10 @@ if (historyEl) {
 
     if (action === "show") {
       input.value = item.q;
-if (item.data) {
-  showResult(item.data).catch((e) => showError(e?.message || String(e)));
-}      return;
+      if (item.data) {
+        showResult(item.data).catch((e) => showError(e?.message || String(e)));
+      }
+      return;
     }
 
     if (action === "delete") {
@@ -563,7 +564,7 @@ if (item.data) {
 
 if (clearHistoryBtn) {
   clearHistoryBtn.addEventListener("click", () => {
-    if (!confirm("履歴を全削除して、表示もリセットします。よろしいですか？")) return;
+    if (!confirm("Clear all history and reset the display. Continue?")) return;
     saveHistory([]);
     renderHistory([]);
     resetUI();
@@ -577,7 +578,7 @@ btn.addEventListener("click", async () => {
   const q = input.value.trim();
   if (!q) {
     hideCard();
-    msg.textContent = "URL / 店名+住所 を入力して";
+    msg.textContent = "Please enter a business name and address.";
     return;
   }
 
@@ -589,7 +590,7 @@ btn.addEventListener("click", async () => {
 
     const data = safeJsonParse(text);
     if (!data) {
-      throw new Error("APIがJSONを返していない: " + text.slice(0, 200));
+      throw new Error("The API did not return valid JSON: " + text.slice(0, 200));
     }
 
     if (!res.ok) {
@@ -614,7 +615,7 @@ btn.addEventListener("click", async () => {
     });
 
     await showResult(data);
-    msg.textContent = "OK";
+    msg.textContent = "Analysis complete.";
   } catch (e) {
     showError(e?.message || String(e));
   } finally {

@@ -20,35 +20,88 @@ export async function onRequest({ request, env }) {
   const json = (obj, status = 200) =>
     new Response(JSON.stringify(obj, null, 2), { status, headers });
 
+  const today = ymdTokyo();
+  const yesterday = ymdTokyo(new Date(Date.now() - 24 * 60 * 60 * 1000));
+
+  const baseResponse = ({
+    competitorPlaceId = null,
+    status = "ready",
+    message = null,
+  } = {}) => ({
+    ok: true,
+    status,
+    message,
+    today,
+    yesterday,
+    my: {
+      placeId: myPlaceId || null,
+      todayTotal: null,
+      yesterdayTotal: null,
+      delta: null,
+    },
+    competitor: {
+      placeId: competitorPlaceId,
+      todayTotal: null,
+      yesterdayTotal: null,
+      delta: null,
+    },
+    total_diff: null,
+    delta_diff: null,
+  });
+
   if (!myPlaceId) {
-    return json({ error: "my placeId required" }, 400);
+    return json(
+      { ok: false, code: "BAD_REQUEST", message: "A place ID is required." },
+      400
+    );
   }
 
   const KV = env?.KV;
-  if (!KV) return json({ error: "NO_KV_BINDING" }, 500);
+  if (!KV) {
+    return json(
+      {
+        ok: false,
+        code: "SERVICE_UNAVAILABLE",
+        message: "Comparison data is temporarily unavailable.",
+      },
+      500
+    );
+  }
 
-  // ① 競合取得
   const rawComp = await KV.get(`comp:${myPlaceId}`);
-  if (!rawComp) return json({ error: "competitor not set" }, 400);
+  if (!rawComp) {
+    return json(
+      baseResponse({
+        status: "setup_required",
+        message: "Comparison data is being prepared.",
+      })
+    );
+  }
 
   const comp = safeJson(rawComp);
   const competitorPlaceId = comp?.competitorPlaceId;
   if (!competitorPlaceId) {
-    return json({ error: "invalid competitor data" }, 400);
+    return json(
+      baseResponse({
+        status: "setup_required",
+        message: "Comparison data is being prepared.",
+      })
+    );
   }
 
-  // ② 日付
-  const today = ymdTokyo();
-  const yesterday = ymdTokyo(new Date(Date.now() - 24 * 60 * 60 * 1000));
-
-  // ③ snapshot取得
   const myTodayRaw = await KV.get(`snap:${myPlaceId}:${today}`);
   const myYdayRaw = await KV.get(`snap:${myPlaceId}:${yesterday}`);
   const compTodayRaw = await KV.get(`snap:${competitorPlaceId}:${today}`);
   const compYdayRaw = await KV.get(`snap:${competitorPlaceId}:${yesterday}`);
 
+  const response = baseResponse({ competitorPlaceId });
+
   if (!myTodayRaw || !compTodayRaw) {
-    return json({ error: "today snapshot missing" }, 400);
+    return json({
+      ...response,
+      status: "collecting_daily_data",
+      message: "Comparison snapshots are being prepared.",
+    });
   }
 
   const myToday = safeJson(myTodayRaw);
@@ -82,9 +135,12 @@ export async function onRequest({ request, env }) {
       : null;
 
   return json({
-    ok: true,
-    today,
-    yesterday,
+    ...response,
+    status: myYdayRaw && compYdayRaw ? "ready" : "collecting_history",
+    message:
+      myYdayRaw && compYdayRaw
+        ? null
+        : "Daily change will appear after more snapshots are saved.",
     my: {
       placeId: myPlaceId,
       todayTotal: Number.isFinite(myTodayTotal) ? myTodayTotal : null,

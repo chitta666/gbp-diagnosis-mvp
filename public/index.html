@@ -23,7 +23,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
 
   <div id="card" class="card hidden">
-    <h2 class="section__title">Google Maps Analyze Report</h2>
+    <h2 class="section__title">Google Maps Analysis Report</h2>
     <p id="reportDate" class="muted"></p>
 
 <div class="kpi">
@@ -83,7 +83,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
     <button id="pdfBtn" class="btn">Export PDF</button>
 
-    <div class="section">
+    <div class="section" id="historySection">
       <h2 class="section__title">History</h2>
       <div class="row" style="justify-content:space-between;">
         <button id="clearHistory" type="button" class="btn">Clear History</button>
@@ -106,6 +106,7 @@ const breakdownEl = document.getElementById("breakdown");
 const penaltyEl = document.getElementById("penalty");
 const summaryEl = document.getElementById("summary");
 const compareListEl = document.getElementById("compareList");
+const reportDateEl = document.getElementById("reportDate");
 
 const historyEl = document.getElementById("history");
 const clearHistoryBtn = document.getElementById("clearHistory");
@@ -132,15 +133,70 @@ function safeJsonParse(text, fallback = null) {
   }
 }
 
+function formatReportDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return `Report generated: ${date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+}
+
+function setReportDate(value) {
+  if (!reportDateEl) return;
+  reportDateEl.textContent = formatReportDate(value);
+}
+
+function valueOrFallback(value, fallback = "Collecting data") {
+  return Number.isFinite(value) ? String(value) : fallback;
+}
+
+function getApiMessage(payload, fallback) {
+  return payload?.message ?? payload?.error ?? fallback;
+}
+
+async function fetchApiJson(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  const data = safeJsonParse(text, {
+    ok: false,
+    code: "INVALID_JSON",
+    message: "The server returned an invalid response.",
+  });
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      code: data?.code ?? "REQUEST_FAILED",
+      message: getApiMessage(data, `Request failed with HTTP ${res.status}.`),
+    };
+  }
+
+  return data;
+}
+
 function resetUI() {
   msg.textContent = "";
+  setReportDate(null);
   scoreEl.textContent = "-";
   todosEl.innerHTML = "";
   breakdownEl.innerHTML = "";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = "";
+  const insightEl = document.getElementById("insight");
+  if (insightEl) insightEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
+  const photoCompareEl = document.getElementById("photoCompare");
+  if (photoCompareEl) photoCompareEl.innerHTML = "";
+  const photoAdviceEl = document.getElementById("photoAdviceList");
+  if (photoAdviceEl) photoAdviceEl.innerHTML = "";
 }
 
 function hideCard() {
@@ -155,59 +211,74 @@ function setLoading(isLoading) {
   btn.disabled = isLoading;
 
   if (isLoading) {
-    msg.textContent = "loading...";
+    msg.textContent = "Analyzing listing...";
     showCard();
     scoreEl.textContent = "-";
-    todosEl.innerHTML = "<li>loading...</li>";
-    breakdownEl.innerHTML = "<li>loading...</li>";
+    setReportDate(new Date().toISOString());
+    todosEl.innerHTML = "<li>Loading...</li>";
+    breakdownEl.innerHTML = "<li>Loading...</li>";
     penaltyEl.textContent = "";
-    summaryEl.innerHTML = "<div>loading...</div>";
-    if (compareListEl) compareListEl.innerHTML = "<li>loading...</li>";
-    if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>loading...</li>";
+    summaryEl.innerHTML = "<div>Loading...</div>";
+    if (compareListEl) compareListEl.innerHTML = "<li>Loading...</li>";
+    if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>Loading...</li>";
+    const photoCompareEl = document.getElementById("photoCompare");
+    if (photoCompareEl) photoCompareEl.innerHTML = "<li>Loading...</li>";
+    const photoAdviceEl = document.getElementById("photoAdviceList");
+    if (photoAdviceEl) photoAdviceEl.innerHTML = "<li>Loading...</li>";
   }
 }
 
 function showError(message) {
-  msg.textContent = `ERROR: ${message}`;
+  msg.textContent = message;
   showCard();
   scoreEl.textContent = "0";
   todosEl.innerHTML = "<li>—</li>";
   breakdownEl.innerHTML = "<li>—</li>";
   penaltyEl.textContent = "";
-  summaryEl.innerHTML = `<div class="error"><b>ERROR:</b> ${escapeHtml(message)}</div>`;
-  if (compareListEl) compareListEl.innerHTML = `<li>No comparison data: ${escapeHtml(message)}</li>`;
+  summaryEl.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+  if (compareListEl) compareListEl.innerHTML = `<li>${escapeHtml(message)}</li>`;
   if (weeklyReportListEl) {
-  weeklyReportListEl.innerHTML = `<li>No weekly report data: ${escapeHtml(message)}</li>`;
-}
+    weeklyReportListEl.innerHTML = `<li>${escapeHtml(message)}</li>`;
+  }
 }
 
 // ===== compare =====
 async function fetchCompare(myPlaceId) {
-  const res = await fetch(`/api/compare?my=${encodeURIComponent(myPlaceId)}`);
-  const text = await res.text();
-
-  const data = safeJsonParse(text, { ok: false, error: "INVALID_JSON", raw: text });
-  if (!res.ok) return { ok: false, ...data };
-
-  return data;
+  return fetchApiJson(`/api/compare?my=${encodeURIComponent(myPlaceId)}`);
 }
 
 async function fetchWeeklyReport(myPlaceId) {
-  const res = await fetch(`/api/weekly-report?my=${encodeURIComponent(myPlaceId)}`);
-  const text = await res.text();
+  return fetchApiJson(`/api/weekly-report?my=${encodeURIComponent(myPlaceId)}`);
+}
 
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    return { ok: false, error: "INVALID_JSON", raw: text };
-  }
+async function setCompetitor(myPlaceId, competitorPlaceId) {
+  return fetchApiJson(
+    `/api/set-competitor?my=${encodeURIComponent(myPlaceId)}&competitor=${encodeURIComponent(
+      competitorPlaceId
+    )}`
+  );
+}
 
-  if (!res.ok) {
-    return { ok: false, ...data };
-  }
+async function runDaily(myPlaceId) {
+  return fetchApiJson(`/api/run-daily?my=${encodeURIComponent(myPlaceId)}`);
+}
 
-  return data;
+function pickDefaultCompetitor(data, myPlaceId) {
+  const fromPayload = data?.defaultCompetitorPlaceId;
+  if (fromPayload) return fromPayload;
+
+  const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const first = list.find((item) => item?.place_id && item.place_id !== myPlaceId);
+  return first?.place_id ?? null;
+}
+
+async function ensureComparisonReady(placeId, competitorPlaceId) {
+  if (!placeId || !competitorPlaceId) return;
+
+  const setup = await setCompetitor(placeId, competitorPlaceId);
+  if (!setup?.ok) return;
+
+  await runDaily(placeId);
 }
 
 function renderCompare(compare) {
@@ -216,17 +287,23 @@ function renderCompare(compare) {
   compareListEl.innerHTML = "";
 
   if (!compare?.ok) {
-    compareListEl.innerHTML = `<li>No comparison data: ${escapeHtml(compare?.error ?? "unknown error")}</li>`;
+    compareListEl.innerHTML = `<li>${escapeHtml(getApiMessage(compare, "Comparison data is unavailable."))}</li>`;
     return;
   }
 
+  if (compare?.message) {
+    const statusItem = document.createElement("li");
+    statusItem.textContent = compare.message;
+    compareListEl.appendChild(statusItem);
+  }
+
   const rows = [
-    `Your total reviews ${compare.my?.todayTotal ?? "-"}`,
-    `Competitor total reviews: ${compare.competitor?.todayTotal ?? "-"}`,
-    `Total review difference: ${compare.total_diff ?? "-"}`,
-    `Your daily change: ${compare.my?.delta ?? "-"}`,
-    `Competitor daily change: ${compare.competitor?.delta ?? "-"}`,
-    `Growth difference: ${compare.delta_diff ?? "-"}`,
+    `Your total reviews: ${valueOrFallback(compare.my?.todayTotal, "-")}`,
+    `Competitor total reviews: ${valueOrFallback(compare.competitor?.todayTotal, "-")}`,
+    `Total review difference: ${valueOrFallback(compare.total_diff, "-")}`,
+    `Your daily change: ${valueOrFallback(compare.my?.delta)}`,
+    `Competitor daily change: ${valueOrFallback(compare.competitor?.delta)}`,
+    `Growth difference: ${valueOrFallback(compare.delta_diff)}`,
   ];
 
   for (const row of rows) {
@@ -242,16 +319,16 @@ function renderPhotoCompare(photo) {
 
   el.innerHTML = "";
 
-if (!photo) {
-  el.innerHTML = "<li>No photo comparison data</li>";
-  return;
-}
+  if (!photo) {
+    el.innerHTML = "<li>No photo comparison data</li>";
+    return;
+  }
 
-const rows = [
-  `Your photo count: ${photo.myPhotos ?? "-"}`,
-  `Competitor average: ${photo.competitorPhotoAvg ?? "-"}`,
-  `Missing photos: ${photo.missingPhotos ?? "-"}`,
-];
+  const rows = [
+    `Your photo count: ${valueOrFallback(photo.myPhotos, "-")}`,
+    `Competitor average: ${valueOrFallback(photo.competitorPhotoAvg)}`,
+    `Missing photos: ${valueOrFallback(photo.missingPhotos, "0")}`,
+  ];
 
   for (const row of rows) {
     const li = document.createElement("li");
@@ -266,10 +343,10 @@ function renderPhotoAdvice(photoAdvice) {
 
   el.innerHTML = "";
 
-if (!photoAdvice) {
-  el.innerHTML = "<li>No photo advice available</li>";
-  return;
-}
+  if (!photoAdvice) {
+    el.innerHTML = "<li>No photo advice available</li>";
+    return;
+  }
 
   const shots = photoAdvice.recommendedShots ?? [];
   const advice = photoAdvice.advice ?? [];
@@ -296,7 +373,7 @@ function renderTodos(todosArr, missingArr) {
     (Array.isArray(missingArr) && missingArr.length ? missingArr : []);
 
   if (!list.length) {
-    todosEl.innerHTML = "<li>No improvements required</li>";
+    todosEl.innerHTML = "<li>No immediate improvements required</li>";
     return;
   }
 
@@ -324,7 +401,7 @@ function renderBreakdown(diagnosis) {
     sum += w;
 
     const li = document.createElement("li");
-    li.textContent = `× ${r.id}（-${w}）`;
+    li.textContent = `${r.id}: -${w}`;
     breakdownEl.appendChild(li);
   }
 
@@ -358,15 +435,21 @@ function renderWeeklyReport(report) {
   weeklyReportListEl.innerHTML = "";
 
   if (!report?.ok) {
-    weeklyReportListEl.innerHTML = `<li>No weekly report data: ${escapeHtml(report?.error ?? "unknown error")}</li>`;
+    weeklyReportListEl.innerHTML = `<li>${escapeHtml(getApiMessage(report, "Weekly report data is unavailable."))}</li>`;
     return;
   }
 
+  if (report?.message) {
+    const statusItem = document.createElement("li");
+    statusItem.textContent = report.message;
+    weeklyReportListEl.appendChild(statusItem);
+  }
+
   const rows = [
-    `Your weekly review growth: ${report.my?.weeklyGain ?? "-"}`,
-    `Competitor weekly review growth: ${report.competitor?.weeklyGain ?? "-"}`,
-    `Weekly growth difference: ${report.weeklyGainDiff ?? "-"}`,
-    `Total review difference: ${report.totalDiff ?? "-"}`,
+    `Your weekly review growth: ${valueOrFallback(report.my?.weeklyGain)}`,
+    `Competitor weekly review growth: ${valueOrFallback(report.competitor?.weeklyGain)}`,
+    `Weekly growth difference: ${valueOrFallback(report.weeklyGainDiff)}`,
+    `Total review difference: ${valueOrFallback(report.totalDiff, "-")}`,
     `Report period: ${report.weekAgo ?? "-"} → ${report.today ?? "-"}`,
     `Weekly insight: ${report.insight ?? "-"}`,
   ];
@@ -378,7 +461,8 @@ function renderWeeklyReport(report) {
   }
 }
 
-async function showResult(data) {
+async function showResult(data, options = {}) {
+  const allowNetwork = options.allowNetwork !== false;
   const diagnosis = data?.diagnosis ?? data;
   const details = data?.details ?? {};
   const placeId =
@@ -386,6 +470,10 @@ async function showResult(data) {
     data?.details?.placeId ??
     data?.details?.place_id ??
     null;
+  const generatedAt = data?.generatedAt ?? new Date().toISOString();
+
+  data.generatedAt = generatedAt;
+  setReportDate(generatedAt);
 
   scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
   renderTodos(diagnosis?.todos, diagnosis?.missing);
@@ -398,24 +486,50 @@ async function showResult(data) {
   let compare;
   let weeklyReport;
 
-  if (placeId) {
-    compare = await fetchCompare(placeId);
-    renderCompare(compare);
+  if (allowNetwork && placeId) {
+    const competitorPlaceId = pickDefaultCompetitor(data, placeId);
+    await ensureComparisonReady(placeId, competitorPlaceId);
 
-    weeklyReport = await fetchWeeklyReport(placeId);
-    renderWeeklyReport(weeklyReport);
+    compare = data?.compare ?? await fetchCompare(placeId);
+    weeklyReport = data?.weeklyReport ?? await fetchWeeklyReport(placeId);
   } else {
-    compare = { ok: false, error: "placeId missing" };
-    renderCompare(compare);
-
-    weeklyReport = { ok: false, error: "placeId missing" };
-    renderWeeklyReport(weeklyReport);
+    compare = data?.compare ?? {
+      ok: true,
+      status: "cached_only",
+      message: "Comparison data is not available in this saved report.",
+      my: { todayTotal: null, delta: null },
+      competitor: { todayTotal: null, delta: null },
+      total_diff: null,
+      delta_diff: null,
+    };
+    weeklyReport = data?.weeklyReport ?? {
+      ok: true,
+      status: "cached_only",
+      message: "Weekly report data is not available in this saved report.",
+      my: { weeklyGain: null },
+      competitor: { weeklyGain: null },
+      totalDiff: null,
+      weeklyGainDiff: null,
+      weekAgo: "-",
+      today: "-",
+      insight: "Weekly report data is not available in this saved report.",
+    };
   }
+
+  renderCompare(compare);
+  renderWeeklyReport(weeklyReport);
 
   const insightEl = document.getElementById("insight");
   if (insightEl) {
     insightEl.textContent = buildInsight(diagnosis, compare);
   }
+
+  return {
+    ...data,
+    generatedAt,
+    compare,
+    weeklyReport,
+  };
 }
 
 function buildInsight(diagnosis, compare) {
@@ -455,7 +569,7 @@ function buildInsight(diagnosis, compare) {
 }
 
 // ===== history =====
-const HISTORY_KEY = "gbp_history_v1";
+const HISTORY_KEY = "gbp_history_v2";
 const HISTORY_MAX = 10;
 
 function loadHistory() {
@@ -493,23 +607,18 @@ function renderHistory(list) {
 
   list.forEach((h, idx) => {
     const li = document.createElement("li");
-    li.style.display = "flex";
-    li.style.gap = "8px";
-    li.style.alignItems = "center";
-    li.style.margin = "6px 0";
+    li.className = "history__item";
 
     const showBtn = document.createElement("button");
     showBtn.type = "button";
-    showBtn.className = "btn";
+    showBtn.className = "btn history__show";
     showBtn.dataset.action = "show";
     showBtn.dataset.index = String(idx);
     showBtn.textContent = `${h.when} / Score ${h.score} / ${h.name ?? "-"} / ${h.q}`;
-    showBtn.style.flex = "1";
-    showBtn.style.textAlign = "left";
 
     const delBtn = document.createElement("button");
     delBtn.type = "button";
-    delBtn.className = "btn";
+    delBtn.className = "btn history__delete";
     delBtn.dataset.action = "delete";
     delBtn.dataset.index = String(idx);
     delBtn.textContent = "Delete";
@@ -549,7 +658,9 @@ if (historyEl) {
     if (action === "show") {
       input.value = item.q;
       if (item.data) {
-        showResult(item.data).catch((e) => showError(e?.message || String(e)));
+        showResult(item.data, { allowNetwork: false }).catch((e) =>
+          showError(e?.message || String(e))
+        );
       }
       return;
     }
@@ -585,21 +696,13 @@ btn.addEventListener("click", async () => {
   setLoading(true);
 
   try {
-    const res = await fetch(`/api/diagnose?q=${encodeURIComponent(q)}`);
-    const text = await res.text();
-
-    const data = safeJsonParse(text);
-    if (!data) {
-      throw new Error("The API did not return valid JSON: " + text.slice(0, 200));
-    }
-
-    if (!res.ok) {
-      throw new Error(data?.error || `HTTP ${res.status}`);
-    }
+    const data = await fetchApiJson(`/api/diagnose?q=${encodeURIComponent(q)}`);
+    if (!data?.ok) throw new Error(getApiMessage(data, "Analysis failed."));
 
     const details = data?.details ?? {};
     const diagnosis = data?.diagnosis ?? data;
     const score = Number.isFinite(diagnosis?.score) ? diagnosis.score : 0;
+    const hydrated = await showResult(data);
 
     addHistory({
       q,
@@ -611,10 +714,8 @@ btn.addEventListener("click", async () => {
         data?.details?.placeId ??
         data?.details?.place_id ??
         null,
-      data,
+      data: hydrated,
     });
-
-    await showResult(data);
     msg.textContent = "Analysis complete.";
   } catch (e) {
     showError(e?.message || String(e));

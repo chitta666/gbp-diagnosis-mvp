@@ -12,10 +12,6 @@ export async function fetchJson(u) {
   const ct = res.headers.get("content-type") || "";
   const text = await res.text();
 
-  console.log("FETCH_STATUS:", res.status);
-  console.log("FETCH_CT:", ct);
-  console.log("FETCH_BODY_HEAD:", text.slice(0, 200));
-
   if (!res.ok) {
     throw new Error(`FETCH_FAILED status=${res.status}`);
   }

@@ -189,6 +189,24 @@ button {
   padding-left: 18px;
 }
 
+.history__item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0;
+}
+
+.history__show {
+  flex: 1;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.history__delete {
+  flex: none;
+}
+
 .pre {
   margin-top: var(--s-3);
   padding: var(--s-3);
@@ -224,6 +242,15 @@ button {
   .btn {
     width: 100%;
   }
+
+  .history__item {
+    flex-direction: column;
+  }
+
+  .history__show,
+  .history__delete {
+    width: 100%;
+  }
 }
 
 /* ===== Print / PDF ===== */
@@ -239,7 +266,7 @@ button {
   #urlInput,
   #btn,
   #pdfBtn,
-  #history,
+  #historySection,
   #clearHistory,
   #debug,
   details,

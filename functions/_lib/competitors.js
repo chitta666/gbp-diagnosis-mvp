@@ -6,7 +6,7 @@ export async function fetchCompetitors({ key, lat, lng, radius = 800, type = "re
     `?location=${encodeURIComponent(`${lat},${lng}`)}` +
     `&radius=${encodeURIComponent(radius)}` +
     `&type=${encodeURIComponent(type)}` +
-    `&language=ja` +
+    `&language=en` +
     `&key=${encodeURIComponent(key)}`;
 
   const res = await fetchJson(u);

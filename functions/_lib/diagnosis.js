@@ -1,6 +1,10 @@
 function analyzeCompetitors(competitors) {
   if (!competitors || competitors.status !== "OK") {
-    return { penalty: 0, strongCount: null, todo: "競合データ取得失敗のため競合評価はスキップ" };
+    return {
+      penalty: 0,
+      strongCount: null,
+      todo: "Competitor analysis is unavailable right now.",
+    };
   }
 
   const list = competitors.results ?? [];
@@ -14,8 +18,8 @@ function analyzeCompetitors(competitors) {
 
   const todo =
     penalty === 0
-      ? "近隣の強い競合は少なめ"
-      : `近隣に強い競合が${strongCount}件（評価4.2+ & 口コミ200+）`;
+      ? "There are few strong competitors nearby."
+      : `There are ${strongCount} strong competitors nearby (rating 4.2+ and 200+ reviews).`;
 
   return { penalty, strongCount, todo };
 }
@@ -26,9 +30,24 @@ export function buildDiagnosis(details, competitors) {
   const comp = analyzeCompetitors(competitors);
 
   const rules = [
-    { id: "phone", weight: 30, isMissing: (d) => !d?.international_phone_number, todo: "電話番号が未設定（または取得不可）" },
-    { id: "website", weight: 20, isMissing: (d) => !d?.website, todo: "Webサイトが未設定" },
-    { id: "photos", weight: 10, isMissing: (d) => (d?.photos?.length ?? 0) < 5, todo: "写真が少ない（目安: 5枚以上）" },
+    {
+      id: "phone",
+      weight: 30,
+      isMissing: (d) => !d?.international_phone_number,
+      todo: "Add a phone number to the listing.",
+    },
+    {
+      id: "website",
+      weight: 20,
+      isMissing: (d) => !d?.website,
+      todo: "Add a website to the listing.",
+    },
+    {
+      id: "photos",
+      weight: 10,
+      isMissing: (d) => (d?.photos?.length ?? 0) < 5,
+      todo: "Add more listing photos (target: at least 5).",
+    },
   ];
 
   let penalty = 0;

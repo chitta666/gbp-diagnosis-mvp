@@ -12,6 +12,43 @@ function dateDaysAgo(days) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 }
 
+function buildWeeklyInsight({
+  totalDiff,
+  myWeeklyGain,
+  competitorWeeklyGain,
+  weeklyGainDiff,
+}) {
+  const parts = [];
+
+  if (Number.isFinite(totalDiff)) {
+    if (totalDiff > 0) parts.push(`Your business has ${totalDiff} more total reviews.`);
+    else if (totalDiff < 0) {
+      parts.push(`Competitors have ${Math.abs(totalDiff)} more total reviews.`);
+    } else {
+      parts.push("Total review count is similar.");
+    }
+  }
+
+  if (Number.isFinite(weeklyGainDiff)) {
+    if (weeklyGainDiff > 0) {
+      parts.push(`Your business gained ${weeklyGainDiff} more reviews this week.`);
+    } else if (weeklyGainDiff < 0) {
+      parts.push(`Competitors gained ${Math.abs(weeklyGainDiff)} more reviews this week.`);
+    } else {
+      parts.push("Weekly review growth is similar.");
+    }
+  } else if (
+    Number.isFinite(myWeeklyGain) ||
+    Number.isFinite(competitorWeeklyGain)
+  ) {
+    parts.push("Weekly trend data is still being collected.");
+  }
+
+  return parts.length
+    ? parts.join(" ")
+    : "Weekly trend data is still being collected.";
+}
+
 export async function onRequest({ request, env }) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -25,32 +62,92 @@ export async function onRequest({ request, env }) {
   const myPlaceId = (url.searchParams.get("my") || "").trim();
 
   if (!myPlaceId) {
-    return json({ ok: false, error: "my placeId required" }, 400);
+    return json(
+      { ok: false, code: "BAD_REQUEST", message: "A place ID is required." },
+      400
+    );
   }
 
   const KV = env?.KV;
-  if (!KV) return json({ ok: false, error: "NO_KV_BINDING" }, 500);
-
-  // 競合取得
-  const rawComp = await KV.get(`comp:${myPlaceId}`);
-  if (!rawComp) return json({ ok: false, error: "competitor not set" }, 400);
-
-  const comp = safeJson(rawComp);
-  const competitorPlaceId = comp?.competitorPlaceId;
-  if (!competitorPlaceId) {
-    return json({ ok: false, error: "invalid competitor data" }, 400);
+  if (!KV) {
+    return json(
+      {
+        ok: false,
+        code: "SERVICE_UNAVAILABLE",
+        message: "Weekly report data is temporarily unavailable.",
+      },
+      500
+    );
   }
 
   const today = ymdTokyo();
   const weekAgo = ymdTokyo(dateDaysAgo(7));
+
+  const baseResponse = ({
+    competitorPlaceId = null,
+    status = "ready",
+    message = null,
+    insight = "Weekly trend data is still being collected.",
+  } = {}) => ({
+    ok: true,
+    status,
+    message,
+    today,
+    weekAgo,
+    my: {
+      placeId: myPlaceId || null,
+      todayTotal: null,
+      weekAgoTotal: null,
+      weeklyGain: null,
+    },
+    competitor: {
+      placeId: competitorPlaceId,
+      todayTotal: null,
+      weekAgoTotal: null,
+      weeklyGain: null,
+    },
+    totalDiff: null,
+    weeklyGainDiff: null,
+    insight,
+  });
+
+  const rawComp = await KV.get(`comp:${myPlaceId}`);
+  if (!rawComp) {
+    return json(
+      baseResponse({
+        status: "setup_required",
+        message: "Weekly report data is being prepared.",
+        insight: "Weekly report data is being prepared.",
+      })
+    );
+  }
+
+  const comp = safeJson(rawComp);
+  const competitorPlaceId = comp?.competitorPlaceId;
+  if (!competitorPlaceId) {
+    return json(
+      baseResponse({
+        status: "setup_required",
+        message: "Weekly report data is being prepared.",
+        insight: "Weekly report data is being prepared.",
+      })
+    );
+  }
 
   const myTodayRaw = await KV.get(`snap:${myPlaceId}:${today}`);
   const myWeekAgoRaw = await KV.get(`snap:${myPlaceId}:${weekAgo}`);
   const compTodayRaw = await KV.get(`snap:${competitorPlaceId}:${today}`);
   const compWeekAgoRaw = await KV.get(`snap:${competitorPlaceId}:${weekAgo}`);
 
+  const response = baseResponse({ competitorPlaceId });
+
   if (!myTodayRaw || !compTodayRaw) {
-    return json({ ok: false, error: "today snapshot missing" }, 400);
+    return json({
+      ...response,
+      status: "collecting_daily_data",
+      message: "Weekly report snapshots are being prepared.",
+      insight: "Weekly report snapshots are being prepared.",
+    });
   }
 
   const myToday = safeJson(myTodayRaw);
@@ -83,27 +180,20 @@ export async function onRequest({ request, env }) {
       ? myWeeklyGain - competitorWeeklyGain
       : null;
 
-  const diagnosis = {
-    todos: [],
-  };
-
-  // 今日の diagnose をまだつながない簡易版
-  if (myToday?.website == null) {
-    diagnosis.todos.push("Webサイトが未設定");
-  }
-
   const insight = buildWeeklyInsight({
     totalDiff,
     myWeeklyGain,
     competitorWeeklyGain,
     weeklyGainDiff,
-    todos: diagnosis.todos,
   });
 
   return json({
-    ok: true,
-    today,
-    weekAgo,
+    ...response,
+    status: myWeekAgoRaw && compWeekAgoRaw ? "ready" : "collecting_history",
+    message:
+      myWeekAgoRaw && compWeekAgoRaw
+        ? null
+        : "Weekly trend data will appear after more daily snapshots are saved.",
     my: {
       placeId: myPlaceId,
       todayTotal: Number.isFinite(myTodayTotal) ? myTodayTotal : null,
@@ -118,38 +208,9 @@ export async function onRequest({ request, env }) {
     },
     totalDiff,
     weeklyGainDiff,
-    insight,
+    insight:
+      myWeekAgoRaw && compWeekAgoRaw
+        ? insight
+        : "We're collecting weekly trend data. Check back after more daily snapshots are saved.",
   });
-}
-
-function buildWeeklyInsight({
-  totalDiff,
-  myWeeklyGain,
-  competitorWeeklyGain,
-  weeklyGainDiff,
-  todos,
-}) {
-  const parts = [];
-
-  if (Number.isFinite(totalDiff)) {
-    if (totalDiff > 0) parts.push(`総口コミ数は自店が${totalDiff}件多い`);
-    else if (totalDiff < 0) parts.push(`総口コミ数は競合が${Math.abs(totalDiff)}件多い`);
-    else parts.push("総口コミ数は同水準");
-  }
-
-  if (Number.isFinite(weeklyGainDiff)) {
-    if (weeklyGainDiff > 0) parts.push(`今週の口コミ増加は自店が${weeklyGainDiff}件上回る`);
-    else if (weeklyGainDiff < 0) parts.push(`今週の口コミ増加は競合が${Math.abs(weeklyGainDiff)}件上回る`);
-    else parts.push("今週の口コミ増加は同水準");
-  } else {
-    if (Number.isFinite(myWeeklyGain) || Number.isFinite(competitorWeeklyGain)) {
-      parts.push("週次比較データはまだ不足");
-    }
-  }
-
-  if (Array.isArray(todos) && todos.length) {
-    parts.push(`優先改善: ${todos.slice(0, 2).join(" / ")}`);
-  }
-
-  return parts.length ? parts.join("。") + "。" : "比較データがまだ不足しています。";
 }

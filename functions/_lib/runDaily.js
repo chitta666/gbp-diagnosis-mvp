@@ -6,7 +6,7 @@ export async function runDailyForPlace({ KV, key, myPlaceId }) {
   if (!rawComp) {
     return {
       ok: false,
-      error: "competitor not set",
+      error: "COMPETITOR_NOT_SET",
       myPlaceId,
     };
   }

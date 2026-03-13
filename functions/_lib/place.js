@@ -31,7 +31,7 @@ export async function fetchPlaceDetails({ key, placeId }) {
     "https://maps.googleapis.com/maps/api/place/details/json" +
     `?place_id=${encodeURIComponent(placeId)}` +
     `&fields=place_id,name,formatted_address,international_phone_number,website,photos,rating,user_ratings_total,geometry` +
-    `&language=ja` +
+    `&language=en` +
     `&key=${encodeURIComponent(key)}`;
 
   const res = await fetchJson(apiUrl);
@@ -55,7 +55,7 @@ export async function fetchPlaceDetails({ key, placeId }) {
   return {
     ok: true,
     place_id: r.place_id ?? placeId,
-    placeId: r.place_id ?? placeId, // フロント/バックどっちでも使いやすいよう両方持たせる
+    placeId: r.place_id ?? placeId,
     name: r.name ?? null,
     formatted_address: r.formatted_address ?? null,
     address: r.formatted_address ?? null,

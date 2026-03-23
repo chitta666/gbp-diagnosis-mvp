@@ -73,7 +73,8 @@ export async function onRequest({ request, env }) {
     return json(
       baseResponse({
         status: "setup_required",
-        message: "Comparison data is being prepared.",
+        message:
+          "Starting comparison tracking. Check back after the first daily snapshot is saved.",
       })
     );
   }
@@ -84,7 +85,8 @@ export async function onRequest({ request, env }) {
     return json(
       baseResponse({
         status: "setup_required",
-        message: "Comparison data is being prepared.",
+        message:
+          "Starting comparison tracking. Check back after the first daily snapshot is saved.",
       })
     );
   }
@@ -100,7 +102,8 @@ export async function onRequest({ request, env }) {
     return json({
       ...response,
       status: "collecting_daily_data",
-      message: "Comparison snapshots are being prepared.",
+      message:
+        "Saving the first comparison snapshot. Review totals will appear after it is saved.",
     });
   }
 
@@ -140,7 +143,7 @@ export async function onRequest({ request, env }) {
     message:
       myYdayRaw && compYdayRaw
         ? null
-        : "Daily change will appear after more snapshots are saved.",
+        : "Tracking daily changes. Check back after the next daily snapshot is saved.",
     my: {
       placeId: myPlaceId,
       todayTotal: Number.isFinite(myTodayTotal) ? myTodayTotal : null,

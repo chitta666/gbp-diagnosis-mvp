@@ -30,7 +30,7 @@ export async function fetchPlaceDetails({ key, placeId }) {
   const apiUrl =
     "https://maps.googleapis.com/maps/api/place/details/json" +
     `?place_id=${encodeURIComponent(placeId)}` +
-    `&fields=place_id,name,formatted_address,international_phone_number,website,photos,rating,user_ratings_total,geometry` +
+    `&fields=place_id,name,formatted_address,international_phone_number,website,photos,rating,user_ratings_total,geometry,types` +
     `&language=en` +
     `&key=${encodeURIComponent(key)}`;
 
@@ -65,6 +65,7 @@ export async function fetchPlaceDetails({ key, placeId }) {
     rating: Number.isFinite(r.rating) ? r.rating : null,
     user_ratings_total: Number.isFinite(r.user_ratings_total) ? r.user_ratings_total : null,
     geometry: r.geometry ?? null,
+    types: Array.isArray(r.types) ? r.types : [],
     raw: r,
   };
 }

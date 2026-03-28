@@ -12,18 +12,53 @@ export async function onRequest({ request, env }) {
   };
   const json = (obj, status = 200) =>
     new Response(JSON.stringify(obj, null, 2), { status, headers });
+  const publicError = (code, message, status = 400, extra = {}) =>
+    json(
+      {
+        ok: false,
+        code,
+        message,
+        ...extra,
+      },
+      status
+    );
 
-  if (!placeId) return json({ error: "placeId is required" }, 400);
+  if (!placeId) {
+    return publicError("BAD_REQUEST", "A place ID is required.", 400);
+  }
 
   const key = env?.GOOGLE_MAPS_API_KEY;
-  if (!key) return json({ error: "Missing GOOGLE_MAPS_API_KEY" }, 500);
+  if (!key) {
+    return publicError(
+      "SERVICE_UNAVAILABLE",
+      "Snapshot collection is temporarily unavailable.",
+      500
+    );
+  }
 
   const KV = env?.KV;
-  if (!KV) return json({ error: "NO_KV_BINDING (env.KV)" }, 500);
+  if (!KV) {
+    return publicError(
+      "KV_UNAVAILABLE",
+      "Snapshot storage is temporarily unavailable.",
+      500
+    );
+  }
 
   // 1) Placesから今の値を取得
   const info = await fetchPlaceDetails({ key, placeId });
-  if (!info.ok) return json({ error: "Place Details failed", info }, 400);
+  if (!info.ok) {
+    return publicError(
+      info.code || info.error || "PLACE_DETAILS_FAILED",
+      info.message || "We couldn't load the business details for that listing.",
+      info.httpStatus || 502,
+      {
+        hint: info.hint ?? null,
+        upstreamStatus: info.upstreamStatus ?? info.status ?? null,
+        upstreamErrorMessage: info.upstreamErrorMessage ?? null,
+      }
+    );
+  }
 
   // 2) KVキー（Tokyo日付）
   const today = ymdTokyo();
@@ -56,9 +91,14 @@ export async function onRequest({ request, env }) {
   try {
     await KV.put(kToday, JSON.stringify(payload));
   } catch (e) {
-    return json(
-      { error: "KV.put failed", storedKey: kToday, message: String(e) },
-      500
+    return publicError(
+      "KV_WRITE_FAILED",
+      "Snapshot storage failed.",
+      500,
+      {
+        storedKey: kToday,
+        upstreamErrorMessage: String(e),
+      }
     );
   }
 

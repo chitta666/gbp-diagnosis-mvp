@@ -106,6 +106,10 @@ Required:
 
 Optional for lightweight saved-listing management:
 - `APP_BASE_URL`
+- `HEALTHCHECK_SECRET`
+- `HEALTHCHECK_QUERY`
+- `HEALTHCHECK_SNAPSHOT_PLACE_ID`
+- `HEALTH_ALERT_EMAIL`
 
 Optional only if email notification is re-enabled later:
 - `NOTIFICATION_SECRET`
@@ -179,6 +183,87 @@ Existing / important endpoints:
 - `/api/saved-listings`
 - `/api/saved-report`
 - `/api/process-saved-listings`
+- `/api/health-check`
+- `/api/health-status`
+
+## Minimal health monitoring
+
+The public beta includes a small core-flow health check so we can catch cases where the site loads but Google Places is failing.
+
+Current monitored checks:
+- `/`
+- `/api/kv-test`
+- `/api/resolve?query=...`
+- `/api/diagnose?q=...`
+- `/api/snapshot?placeId=...`
+
+The health check does not only look at HTTP 200. It also records:
+- `ok`
+- `code`
+- `upstreamStatus`
+- `message`
+
+Examples of failures it classifies:
+- `BILLING_NOT_ENABLED`
+- `PLACES_API_DISABLED`
+- `API_DENIED`
+- `5xx` responses
+- repeated `resolve` / `snapshot` failures
+
+### Post-deploy smoke check
+
+Run this after a deploy:
+
+```bash
+HEALTHCHECK_BASE_URL="https://gbp-diagnosis-mvp.pages.dev" \
+HEALTHCHECK_SECRET="replace-this-with-the-shared-secret" \
+npm run smoke
+```
+
+This calls `POST /api/health-check` with `mode=smoke` and exits non-zero when the core flow is unhealthy.
+
+There is also a manual GitHub Actions helper:
+- `.github/workflows/post-deploy-smoke.yml`
+
+### Periodic health check
+
+The repo includes a scheduled GitHub Actions workflow:
+- `.github/workflows/periodic-health-check.yml`
+
+It runs:
+
+```bash
+npm run health:prod
+```
+
+or the same CLI with workflow-specific inputs, and stores the raw JSON result as an artifact while the endpoint keeps the latest runs in KV.
+
+Required GitHub Actions secret:
+- `HEALTHCHECK_SECRET`
+
+Optional GitHub Actions variable:
+- `HEALTH_ALERT_EMAIL`
+
+### Health status / record
+
+The latest health result is stored in KV and can be read from:
+- `GET /api/health-status`
+
+This endpoint also requires:
+- `Authorization: Bearer <HEALTHCHECK_SECRET>`
+
+### Email alerts
+
+When mail is configured, `/api/health-check` can send alert mail for unhealthy runs.
+
+Required for alerts:
+- `MAILCHANNELS_API_KEY`
+- `MAIL_FROM_EMAIL`
+
+Default alert target:
+- `contact@getflowmetric.com`
+
+For setup details, see [docs/CORE_HEALTH_MONITORING.md](./docs/CORE_HEALTH_MONITORING.md).
 
 ## Known beta limitations
 

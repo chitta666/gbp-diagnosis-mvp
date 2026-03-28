@@ -26,7 +26,7 @@ export async function fetchJson(u) {
 export function mapGooglePlacesApiError({ status, errorMessage } = {}) {
   const upstreamStatus = String(status || "").trim() || null;
   const upstreamErrorMessage = String(errorMessage || "").trim() || null;
-  const details = upstreamErrorMessage.toLowerCase();
+  const details = String(upstreamErrorMessage || "").toLowerCase();
 
   if (upstreamStatus === "OK") return null;
 

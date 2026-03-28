@@ -151,6 +151,7 @@ If notification / email is out of scope for this release, mark this whole sectio
 - [ ] 1件分析する
 - [ ] saved listings を読み込む
 - [ ] deep link を開く
+- [ ] `npm run smoke` で core flow smoke check を通す
 - [ ] Issues / logs / errors を確認する
 - [ ] 実施担当者が決まっている
 

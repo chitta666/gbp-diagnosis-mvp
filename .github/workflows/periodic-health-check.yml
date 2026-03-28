@@ -1,0 +1,48 @@
+name: Periodic core health check
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: "Base URL to check"
+        required: false
+        default: "https://gbp-diagnosis-mvp.pages.dev"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: periodic-core-health
+  cancel-in-progress: true
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run periodic core health check
+        env:
+          HEALTHCHECK_BASE_URL: ${{ inputs.origin || 'https://gbp-diagnosis-mvp.pages.dev' }}
+          HEALTHCHECK_SECRET: ${{ secrets.HEALTHCHECK_SECRET }}
+          HEALTH_ALERT_EMAIL: ${{ vars.HEALTH_ALERT_EMAIL }}
+          HEALTHCHECK_OUTPUT: artifacts/periodic-health-check.json
+        run: npm run health:prod
+
+      - name: Upload periodic health result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: periodic-health-check-${{ github.run_id }}
+          path: artifacts/periodic-health-check.json
+          retention-days: 14
+          if-no-files-found: ignore

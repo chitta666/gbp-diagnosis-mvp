@@ -1,0 +1,45 @@
+name: Post-deploy smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: "Base URL to check after deploy"
+        required: false
+        default: "https://gbp-diagnosis-mvp.pages.dev"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-deploy-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run post-deploy smoke check
+        env:
+          HEALTHCHECK_BASE_URL: ${{ inputs.origin || 'https://gbp-diagnosis-mvp.pages.dev' }}
+          HEALTHCHECK_SECRET: ${{ secrets.HEALTHCHECK_SECRET }}
+          HEALTHCHECK_OUTPUT: artifacts/post-deploy-smoke.json
+        run: npm run smoke
+
+      - name: Upload smoke result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-smoke-${{ github.run_id }}
+          path: artifacts/post-deploy-smoke.json
+          retention-days: 14
+          if-no-files-found: ignore

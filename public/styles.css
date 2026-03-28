@@ -309,6 +309,74 @@ button {
   font-size: var(--fs-2);
 }
 
+.compare__controls {
+  margin: 0 0 12px;
+}
+
+.compare__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.compare__toggle,
+.compare__reset {
+  width: auto;
+}
+
+.compare__picker {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-1);
+  background: var(--surface);
+}
+
+.compare__picker-title {
+  font-size: var(--fs-2);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.compare__options {
+  display: grid;
+  gap: 8px;
+}
+
+.compare__option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-1);
+}
+
+.compare__option--selected {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+}
+
+.compare__option-name {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.compare__option-address {
+  font-size: var(--fs-2);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.compare__option-state {
+  font-size: 12px;
+  color: var(--primary);
+}
+
 .compare__with {
   font-weight: 600;
   color: var(--fg);
@@ -381,6 +449,15 @@ button {
   .saved__actions,
   .history__show,
   .history__delete {
+    width: 100%;
+  }
+
+  .compare__actions {
+    flex-direction: column;
+  }
+
+  .compare__toggle,
+  .compare__reset {
     width: 100%;
   }
 

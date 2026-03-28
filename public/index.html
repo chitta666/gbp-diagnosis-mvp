@@ -54,6 +54,17 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="section">
       <h2 class="section__title">Review Comparison</h2>
       <div id="compareMeta" class="compare__meta"></div>
+      <div id="compareControls" class="compare__controls hidden">
+        <div class="compare__actions">
+          <button id="changeCompetitorBtn" class="btn compare__toggle" type="button">
+            Change competitor
+          </button>
+          <button id="resetCompetitorBtn" class="btn compare__reset hidden" type="button">
+            Reset to recommended competitor
+          </button>
+        </div>
+        <div id="competitorPicker" class="compare__picker hidden"></div>
+      </div>
       <ul id="compareList" class="list"></ul>
     </div>
 
@@ -128,6 +139,10 @@ const penaltyEl = document.getElementById("penalty");
 const summaryEl = document.getElementById("summary");
 const compareListEl = document.getElementById("compareList");
 const compareMetaEl = document.getElementById("compareMeta");
+const compareControlsEl = document.getElementById("compareControls");
+const changeCompetitorBtn = document.getElementById("changeCompetitorBtn");
+const resetCompetitorBtn = document.getElementById("resetCompetitorBtn");
+const competitorPickerEl = document.getElementById("competitorPicker");
 const reportDateEl = document.getElementById("reportDate");
 
 const historyEl = document.getElementById("history");
@@ -139,6 +154,8 @@ const HISTORY_MAX = 10;
 const SUBSCRIBER_EMAIL_KEY = "gbp_subscriber_email_v1";
 
 let currentResult = null;
+let competitorChooserOpen = false;
+let competitorUpdateInFlight = false;
 
 // ===== helpers =====
 function escapeHtml(s) {
@@ -266,6 +283,8 @@ async function fetchApiJson(url, options = {}) {
 
 function resetUI() {
   currentResult = null;
+  competitorChooserOpen = false;
+  competitorUpdateInFlight = false;
   if (saveListingBtn) saveListingBtn.disabled = true;
   msg.textContent = "";
   setReportDate(null);
@@ -278,6 +297,19 @@ function resetUI() {
   if (insightEl) insightEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
   if (compareMetaEl) compareMetaEl.innerHTML = "";
+  if (compareControlsEl) compareControlsEl.classList.add("hidden");
+  if (competitorPickerEl) {
+    competitorPickerEl.classList.add("hidden");
+    competitorPickerEl.innerHTML = "";
+  }
+  if (changeCompetitorBtn) {
+    changeCompetitorBtn.disabled = false;
+    changeCompetitorBtn.textContent = "Change competitor";
+  }
+  if (resetCompetitorBtn) {
+    resetCompetitorBtn.classList.add("hidden");
+    resetCompetitorBtn.disabled = false;
+  }
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
   const photoCompareEl = document.getElementById("photoCompare");
   if (photoCompareEl) photoCompareEl.innerHTML = "";
@@ -351,10 +383,23 @@ async function runDaily(myPlaceId) {
 }
 
 function pickDefaultCompetitor(data, myPlaceId) {
+  const fromSelected = data?.selectedCompetitor?.placeId;
+  if (fromSelected) return fromSelected;
+
   const fromSaved = data?.savedListing?.competitorPlaceId;
   if (fromSaved) return fromSaved;
 
-  const fromPayload = data?.defaultCompetitorPlaceId;
+  const fromPayload =
+    data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId;
+  if (fromPayload) return fromPayload;
+
+  const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const first = list.find((item) => item?.place_id && item.place_id !== myPlaceId);
+  return first?.place_id ?? null;
+}
+
+function pickRecommendedCompetitor(data, myPlaceId) {
+  const fromPayload = data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId;
   if (fromPayload) return fromPayload;
 
   const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
@@ -369,7 +414,9 @@ function competitorAddress(item) {
 function getSelectedCompetitor(data, competitorPlaceId) {
   const resolvedPlaceId =
     competitorPlaceId ??
+    data?.selectedCompetitor?.placeId ??
     data?.savedListing?.competitorPlaceId ??
+    data?.recommendedCompetitorPlaceId ??
     data?.defaultCompetitorPlaceId ??
     null;
 
@@ -400,6 +447,67 @@ function getSelectedCompetitor(data, competitorPlaceId) {
   };
 }
 
+function getCompetitorCandidates(data, limit = 5) {
+  const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const seen = new Set();
+  const candidates = [];
+  const byPlaceId = new Map(list.map((item) => [item?.place_id, item]));
+  const priorityPlaceIds = [
+    data?.selectedCompetitor?.placeId ?? null,
+    data?.savedListing?.competitorPlaceId ?? null,
+    data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId ?? null,
+  ].filter(Boolean);
+
+  function addCandidateFromItem(item) {
+    const placeId = item?.place_id;
+    if (!placeId || seen.has(placeId)) return false;
+    seen.add(placeId);
+    candidates.push({
+      placeId,
+      name: item?.name || "Nearby competitor",
+      address: competitorAddress(item) || "",
+    });
+    return true;
+  }
+
+  function addSyntheticCandidate(placeId, fallback = {}) {
+    if (!placeId || seen.has(placeId)) return false;
+    const name = fallback?.name || "Selected competitor";
+    const address = fallback?.address || "";
+    seen.add(placeId);
+    candidates.push({ placeId, name, address });
+    return true;
+  }
+
+  priorityPlaceIds.forEach((placeId) => {
+    if (candidates.length >= limit) return;
+    const item = byPlaceId.get(placeId);
+    if (item) {
+      addCandidateFromItem(item);
+      return;
+    }
+
+    if (placeId === data?.selectedCompetitor?.placeId) {
+      addSyntheticCandidate(placeId, data?.selectedCompetitor);
+      return;
+    }
+
+    if (placeId === data?.savedListing?.competitorPlaceId) {
+      addSyntheticCandidate(placeId, {
+        name: data?.savedListing?.competitorName,
+        address: data?.savedListing?.competitorAddress,
+      });
+    }
+  });
+
+  for (const item of list) {
+    addCandidateFromItem(item);
+    if (candidates.length >= limit) break;
+  }
+
+  return candidates;
+}
+
 function renderCompareMeta(competitor) {
   if (!compareMetaEl) return;
 
@@ -418,6 +526,168 @@ function renderCompareMeta(competitor) {
         : ""
     }
   `;
+}
+
+function renderCompetitorControls(data) {
+  if (!compareControlsEl || !competitorPickerEl || !changeCompetitorBtn || !resetCompetitorBtn) {
+    return;
+  }
+
+  const candidates = getCompetitorCandidates(data);
+  const selectedPlaceId = data?.selectedCompetitor?.placeId ?? null;
+  const recommendedPlaceId = pickRecommendedCompetitor(
+    data,
+    data?.placeId ?? data?.details?.placeId ?? data?.details?.place_id ?? null
+  );
+
+  if (candidates.length <= 1) {
+    compareControlsEl.classList.add("hidden");
+    competitorPickerEl.classList.add("hidden");
+    competitorPickerEl.innerHTML = "";
+    return;
+  }
+
+  compareControlsEl.classList.remove("hidden");
+  changeCompetitorBtn.textContent = competitorChooserOpen
+    ? "Hide competitor options"
+    : "Change competitor";
+  changeCompetitorBtn.disabled = competitorUpdateInFlight;
+
+  const canReset =
+    Boolean(recommendedPlaceId) && Boolean(selectedPlaceId) && recommendedPlaceId !== selectedPlaceId;
+  resetCompetitorBtn.classList.toggle("hidden", !canReset);
+  resetCompetitorBtn.disabled = competitorUpdateInFlight;
+
+  competitorPickerEl.classList.toggle("hidden", !competitorChooserOpen);
+  competitorPickerEl.innerHTML = "";
+
+  if (!competitorChooserOpen) {
+    return;
+  }
+
+  const heading = document.createElement("div");
+  heading.className = "compare__picker-title";
+  heading.textContent = "Choose a competitor for this report";
+  competitorPickerEl.appendChild(heading);
+
+  const list = document.createElement("div");
+  list.className = "compare__options";
+
+  candidates.forEach((candidate) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = `compare__option${
+      candidate.placeId === selectedPlaceId ? " compare__option--selected" : ""
+    }`;
+    option.dataset.competitorId = candidate.placeId;
+    option.disabled = competitorUpdateInFlight;
+    option.innerHTML = `
+      <span class="compare__option-name">${escapeHtml(candidate.name)}</span>
+      ${
+        candidate.address
+          ? `<span class="compare__option-address">${escapeHtml(candidate.address)}</span>`
+          : ""
+      }
+      <span class="compare__option-state">${
+        candidate.placeId === selectedPlaceId
+          ? "Selected"
+          : candidate.placeId === recommendedPlaceId
+            ? "Recommended"
+            : "Use this competitor"
+      }</span>
+    `;
+    list.appendChild(option);
+  });
+
+  competitorPickerEl.appendChild(list);
+}
+
+function renderInsight(data) {
+  const insightEl = document.getElementById("insight");
+  if (!insightEl) return;
+
+  insightEl.textContent = buildInsight(data?.diagnosis ?? {}, data?.compare ?? {}, {
+    selectedCompetitor: data?.selectedCompetitor,
+    savedListing: data?.savedListing,
+    photoAnalysis: data?.photoAnalysis,
+  });
+}
+
+async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
+  if (!currentResult?.placeId || !competitorPlaceId || competitorUpdateInFlight) return;
+  if (currentResult?.selectedCompetitor?.placeId === competitorPlaceId) {
+    competitorChooserOpen = false;
+    renderCompetitorControls(currentResult);
+    return;
+  }
+
+  competitorUpdateInFlight = true;
+  if (compareListEl) compareListEl.innerHTML = "<li>Updating competitor comparison...</li>";
+  if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>Updating weekly report...</li>";
+  renderCompetitorControls(currentResult);
+
+  try {
+    const placeId = currentResult.placeId;
+    await ensureComparisonReady(placeId, competitorPlaceId);
+
+    const [compare, weeklyReport] = await Promise.all([
+      fetchCompare(placeId),
+      fetchWeeklyReport(placeId),
+    ]);
+
+    if (!compare?.ok) {
+      throw new Error(getApiMessage(compare, "Could not update competitor comparison."));
+    }
+
+    if (!weeklyReport?.ok) {
+      throw new Error(getApiMessage(weeklyReport, "Could not update weekly report."));
+    }
+
+    const compareCompetitorPlaceId = compare?.competitor?.placeId ?? null;
+    const weeklyCompetitorPlaceId = weeklyReport?.competitor?.placeId ?? null;
+    if (
+      compareCompetitorPlaceId !== competitorPlaceId ||
+      weeklyCompetitorPlaceId !== competitorPlaceId
+    ) {
+      throw new Error("Could not confirm the selected competitor. Please try again.");
+    }
+
+    const selectedCompetitor = getSelectedCompetitor(currentResult, competitorPlaceId);
+    const nextSavedListing = currentResult?.savedListing
+      ? {
+          ...currentResult.savedListing,
+          competitorPlaceId,
+          competitorName: selectedCompetitor?.name ?? currentResult.savedListing?.competitorName ?? null,
+          competitorAddress:
+            selectedCompetitor?.address ?? currentResult.savedListing?.competitorAddress ?? null,
+        }
+      : currentResult?.savedListing;
+
+    currentResult = {
+      ...currentResult,
+      compare,
+      weeklyReport,
+      selectedCompetitor,
+      savedListing: nextSavedListing,
+    };
+
+    renderCompare(compare, selectedCompetitor);
+    renderWeeklyReport(weeklyReport);
+    renderInsight(currentResult);
+    competitorChooserOpen = options.keepOpen === true;
+    renderCompetitorControls(currentResult);
+    msg.textContent = "Competitor updated for this report.";
+    setSavedMessage("Competitor updated. Save Current Listing to keep this selection.");
+  } catch (error) {
+    renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
+    renderWeeklyReport(currentResult?.weeklyReport);
+    renderInsight(currentResult);
+    renderCompetitorControls(currentResult);
+    setSavedMessage(error?.message || String(error), true);
+  } finally {
+    competitorUpdateInFlight = false;
+    renderCompetitorControls(currentResult);
+  }
 }
 
 function appendListRow(listEl, label, value) {
@@ -737,6 +1007,7 @@ async function showResult(data, options = {}) {
   let compare;
   let weeklyReport;
   let selectedCompetitor;
+  const recommendedCompetitorPlaceId = pickRecommendedCompetitor(data, placeId);
 
   if (allowNetwork && placeId) {
     const competitorPlaceId = pickDefaultCompetitor(data, placeId);
@@ -783,24 +1054,18 @@ async function showResult(data, options = {}) {
   renderCompare(compare, selectedCompetitor);
   renderWeeklyReport(weeklyReport);
 
-  const insightEl = document.getElementById("insight");
-  if (insightEl) {
-    insightEl.textContent = buildInsight(diagnosis, compare, {
-      selectedCompetitor,
-      savedListing: data?.savedListing,
-      photoAnalysis: data?.photoAnalysis,
-    });
-  }
-
   const hydrated = {
     ...data,
     generatedAt,
     compare,
     weeklyReport,
     selectedCompetitor,
+    recommendedCompetitorPlaceId,
   };
 
   currentResult = hydrated;
+  renderInsight(hydrated);
+  renderCompetitorControls(hydrated);
   if (saveListingBtn) saveListingBtn.disabled = false;
 
   return hydrated;
@@ -1299,6 +1564,33 @@ if (saveListingBtn) {
     } catch (error) {
       setSavedMessage(error?.message || String(error), true);
     }
+  });
+}
+
+if (changeCompetitorBtn) {
+  changeCompetitorBtn.addEventListener("click", () => {
+    if (!currentResult) return;
+    competitorChooserOpen = !competitorChooserOpen;
+    renderCompetitorControls(currentResult);
+  });
+}
+
+if (resetCompetitorBtn) {
+  resetCompetitorBtn.addEventListener("click", async () => {
+    if (!currentResult) return;
+    const recommendedPlaceId = pickRecommendedCompetitor(currentResult, currentResult.placeId);
+    if (!recommendedPlaceId) return;
+    await updateSelectedCompetitor(recommendedPlaceId);
+  });
+}
+
+if (competitorPickerEl) {
+  competitorPickerEl.addEventListener("click", async (e) => {
+    const option = e.target.closest("button[data-competitor-id]");
+    if (!option) return;
+    const competitorId = option.dataset.competitorId;
+    if (!competitorId) return;
+    await updateSelectedCompetitor(competitorId);
   });
 }
 

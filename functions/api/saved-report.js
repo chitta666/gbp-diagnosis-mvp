@@ -48,6 +48,7 @@ export async function onRequest({ request, env }) {
     generatedAt: new Date().toISOString(),
     defaultCompetitorPlaceId:
       saved.competitorPlaceId || report.defaultCompetitorPlaceId || null,
+    recommendedCompetitorPlaceId: report.defaultCompetitorPlaceId || null,
     savedListing: publicSavedListing(saved, {
       origin: url.origin,
     }),

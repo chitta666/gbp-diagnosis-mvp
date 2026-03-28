@@ -9,8 +9,16 @@ export async function onRequest({ request, env }) {
   const json = (obj, status = 200) =>
     new Response(JSON.stringify(obj, null, 2), { status, headers });
 
-  const publicError = (code, message, status = 400) =>
-    json({ ok: false, code, message }, status);
+  const publicError = (code, message, status = 400, extra = {}) =>
+    json(
+      {
+        ok: false,
+        code,
+        message,
+        ...extra,
+      },
+      status
+    );
 
   try {
     const key = env?.GOOGLE_MAPS_API_KEY;
@@ -31,12 +39,33 @@ export async function onRequest({ request, env }) {
 
     const resolved = await resolvePlaceIdFromQuery({ key, q });
     if (!resolved.ok) {
-      return publicError(resolved.code, resolved.message, 404);
+      console.error("diagnose resolve failed", {
+        q,
+        code: resolved.code,
+        upstreamStatus: resolved.upstreamStatus ?? null,
+        upstreamErrorMessage: resolved.upstreamErrorMessage ?? null,
+      });
+      return publicError(resolved.code, resolved.message, resolved.httpStatus ?? 404, {
+        hint: resolved.hint ?? null,
+        upstreamStatus: resolved.upstreamStatus ?? null,
+        upstreamErrorMessage: resolved.upstreamErrorMessage ?? null,
+      });
     }
 
     const report = await buildListingReport({ key, placeId: resolved.placeId });
     if (!report.ok) {
-      return publicError(report.code, report.message, 400);
+      console.error("diagnose build report failed", {
+        q,
+        placeId: resolved.placeId,
+        code: report.code,
+        upstreamStatus: report.upstreamStatus ?? null,
+        upstreamErrorMessage: report.upstreamErrorMessage ?? null,
+      });
+      return publicError(report.code, report.message, report.httpStatus ?? 400, {
+        hint: report.hint ?? null,
+        upstreamStatus: report.upstreamStatus ?? null,
+        upstreamErrorMessage: report.upstreamErrorMessage ?? null,
+      });
     }
 
     return json(report);

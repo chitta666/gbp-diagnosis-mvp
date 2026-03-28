@@ -1,4 +1,8 @@
-import { fetchJson } from "./utils.js";
+import {
+  fetchJson,
+  mapGooglePlacesApiError,
+  mapGooglePlacesTransportError,
+} from "./utils.js";
 import { fetchPlaceDetails } from "./place.js";
 import { fetchCompetitorsAutoRadius } from "./competitors.js";
 import { buildDiagnosis } from "./diagnosis.js";
@@ -55,30 +59,51 @@ const TYPE_FAMILIES = new Map([
 ]);
 
 export async function resolvePlaceIdFromQuery({ key, q }) {
-  const findUrl =
-    "https://maps.googleapis.com/maps/api/place/findplacefromtext/json" +
-    `?input=${encodeURIComponent(q)}` +
-    `&inputtype=textquery` +
-    `&fields=place_id,name,formatted_address` +
-    `&language=en` +
-    `&key=${encodeURIComponent(key)}`;
+  try {
+    const findUrl =
+      "https://maps.googleapis.com/maps/api/place/findplacefromtext/json" +
+      `?input=${encodeURIComponent(q)}` +
+      `&inputtype=textquery` +
+      `&fields=place_id,name,formatted_address` +
+      `&language=en` +
+      `&key=${encodeURIComponent(key)}`;
 
-  const found = await fetchJson(findUrl);
+    const found = await fetchJson(findUrl);
+    const mappedError = mapGooglePlacesApiError({
+      status: found?.status,
+      errorMessage: found?.error_message,
+    });
+    if (mappedError) {
+      return {
+        ok: false,
+        ...mappedError,
+      };
+    }
 
-  if (found.status !== "OK" || !found.candidates?.length) {
+    if (!found.candidates?.length) {
+      return {
+        ok: false,
+        code: "PLACE_NOT_FOUND",
+        message:
+          "We couldn't find that business. Try the business name with the full address.",
+        hint: "Try the business name with the full address.",
+        httpStatus: 404,
+        upstreamStatus: found?.status ?? null,
+        upstreamErrorMessage: found?.error_message ?? null,
+      };
+    }
+
+    return {
+      ok: true,
+      placeId: found.candidates[0].place_id,
+      candidate: found.candidates[0],
+    };
+  } catch (error) {
     return {
       ok: false,
-      code: "PLACE_NOT_FOUND",
-      message:
-        "We couldn't find that business. Try the business name with the full address.",
+      ...mapGooglePlacesTransportError(error),
     };
   }
-
-  return {
-    ok: true,
-    placeId: found.candidates[0].place_id,
-    candidate: found.candidates[0],
-  };
 }
 
 function calcCompetitorPhotoAvg(competitors) {
@@ -257,8 +282,12 @@ export async function buildListingReport({ key, placeId }) {
   if (!details?.ok) {
     return {
       ok: false,
-      code: "PLACE_DETAILS_FAILED",
-      message: "We couldn't load the business details for that listing.",
+      code: details?.code || "PLACE_DETAILS_FAILED",
+      message: details?.message || "We couldn't load the business details for that listing.",
+      hint: details?.hint ?? null,
+      httpStatus: details?.httpStatus ?? 502,
+      upstreamStatus: details?.upstreamStatus ?? details?.status ?? null,
+      upstreamErrorMessage: details?.upstreamErrorMessage ?? null,
     };
   }
 

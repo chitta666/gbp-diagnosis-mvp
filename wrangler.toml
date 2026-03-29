@@ -3,7 +3,19 @@ pages_build_output_dir = "./public"
 compatibility_date = "2024-02-07"
 
 # 環境変数は .dev.vars または Cloudflare Dashboard で設定します
+# Required now:
 # GOOGLE_MAPS_API_KEY = "..."
+# APP_BASE_URL = "https://gbp-diagnosis-mvp.pages.dev"
+# HEALTHCHECK_SECRET = "replace-this-with-a-long-random-string"
+# HEALTHCHECK_QUERY = "Starbucks Coffee Shibuya Tsutaya Tokyo"
+# HEALTHCHECK_SNAPSHOT_PLACE_ID = "ChIJiXocb7WNGGAReVVBhRwWLoQ"
+# HEALTH_ALERT_EMAIL = "contact@getflowmetric.com"
+# Optional only if email notification is re-enabled later:
+# NOTIFICATION_SECRET = "replace-this-with-a-long-random-string"
+# MAILCHANNELS_API_KEY = "..."
+# MAIL_FROM_EMAIL = "noreply@example.com"
+# MAIL_FROM_NAME = "GBP Diagnosis"
+# MAIL_REPLY_TO = "support@example.com"
 
 [[kv_namespaces]]
 binding = "KV"

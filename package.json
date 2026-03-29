@@ -3,7 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "wrangler pages dev public --compatibility-date=2025-01-01 --local",
-    "deploy": "wrangler pages deploy public"
+    "deploy": "wrangler pages deploy public",
+    "smoke": "node scripts/post-deploy-smoke.cjs",
+    "health:prod": "node scripts/health-check.mjs --mode health --origin https://gbp-diagnosis-mvp.pages.dev",
+    "health:smoke": "node scripts/health-check.mjs --mode smoke"
   },
   "devDependencies": {
     "wrangler": "^3.0.0"

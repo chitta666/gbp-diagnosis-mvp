@@ -1,4 +1,8 @@
-import { fetchJson } from "./utils.js";
+import {
+  fetchJson,
+  mapGooglePlacesApiError,
+  mapGooglePlacesTransportError,
+} from "./utils.js";
 
 export async function fetchPlaceDetails({ key, placeId }) {
   if (!key) {
@@ -30,17 +34,51 @@ export async function fetchPlaceDetails({ key, placeId }) {
   const apiUrl =
     "https://maps.googleapis.com/maps/api/place/details/json" +
     `?place_id=${encodeURIComponent(placeId)}` +
-    `&fields=place_id,name,formatted_address,international_phone_number,website,photos,rating,user_ratings_total,geometry` +
+    `&fields=place_id,name,formatted_address,international_phone_number,website,photos,rating,user_ratings_total,geometry,types` +
     `&language=en` +
     `&key=${encodeURIComponent(key)}`;
 
-  const res = await fetchJson(apiUrl);
-
-  if (res.status !== "OK" || !res.result) {
+  let res;
+  try {
+    res = await fetchJson(apiUrl);
+  } catch (error) {
+    const mappedError = mapGooglePlacesTransportError(error);
     return {
       ok: false,
-      error: "PLACE_DETAILS_FAILED",
-      status: res.status ?? null,
+      error: mappedError.code,
+      code: mappedError.code,
+      message: mappedError.message,
+      hint: mappedError.hint,
+      httpStatus: mappedError.httpStatus,
+      status: null,
+      upstreamStatus: mappedError.upstreamStatus,
+      upstreamErrorMessage: mappedError.upstreamErrorMessage,
+      placeId,
+      name: null,
+      address: null,
+      rating: null,
+      user_ratings_total: null,
+      raw: null,
+    };
+  }
+
+  const mappedError = mapGooglePlacesApiError({
+    status: res?.status,
+    errorMessage: res?.error_message,
+  });
+
+  if (mappedError || !res.result) {
+    return {
+      ok: false,
+      error: mappedError?.code || "PLACE_DETAILS_FAILED",
+      code: mappedError?.code || "PLACE_DETAILS_FAILED",
+      message:
+        mappedError?.message || "We couldn't load the business details for that listing.",
+      hint: mappedError?.hint || "Check the Google Maps project configuration for this API key.",
+      httpStatus: mappedError?.httpStatus || 502,
+      status: res?.status ?? null,
+      upstreamStatus: mappedError?.upstreamStatus ?? res?.status ?? null,
+      upstreamErrorMessage: mappedError?.upstreamErrorMessage ?? res?.error_message ?? null,
       placeId,
       name: null,
       address: null,
@@ -65,6 +103,7 @@ export async function fetchPlaceDetails({ key, placeId }) {
     rating: Number.isFinite(r.rating) ? r.rating : null,
     user_ratings_total: Number.isFinite(r.user_ratings_total) ? r.user_ratings_total : null,
     geometry: r.geometry ?? null,
+    types: Array.isArray(r.types) ? r.types : [],
     raw: r,
   };
 }

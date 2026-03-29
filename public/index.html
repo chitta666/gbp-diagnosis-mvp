@@ -15,11 +15,26 @@
     <button id="btn" class="btn btn--primary" type="button">Analyze Listing</button>
   </div>
 
-<div class="muted">
+<div id="introText" class="muted">
 Analyze your Google Maps listing, compare competitors, and discover how to improve reviews, photos, and visibility.
 </div>
 
   <div id="msg" class="muted"></div>
+
+  <div id="savedHub" class="card">
+    <h2 class="section__title">Saved Listings</h2>
+    <div class="row">
+      <input id="emailInput" class="input" type="email" placeholder="Enter email to manage saved listings" />
+      <button id="loadSavedBtn" class="btn" type="button">Load Saved Listings</button>
+    </div>
+    <div class="row">
+      <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save Current Listing</button>
+    </div>
+    <div id="savedMsg" class="muted">
+      Analyze a listing, then save it so you can reopen the latest report quickly from this app.
+    </div>
+    <ul id="savedListings" class="saved-list"></ul>
+  </div>
 
 
   <div id="card" class="card hidden">
@@ -38,6 +53,18 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
     <div class="section">
       <h2 class="section__title">Review Comparison</h2>
+      <div id="compareMeta" class="compare__meta"></div>
+      <div id="compareControls" class="compare__controls hidden">
+        <div class="compare__actions">
+          <button id="changeCompetitorBtn" class="btn compare__toggle" type="button">
+            Change competitor
+          </button>
+          <button id="resetCompetitorBtn" class="btn compare__reset hidden" type="button">
+            Reset to recommended competitor
+          </button>
+        </div>
+        <div id="competitorPicker" class="compare__picker hidden"></div>
+      </div>
       <ul id="compareList" class="list"></ul>
     </div>
 
@@ -96,6 +123,11 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 <script>
 const btn = document.getElementById("btn");
 const input = document.getElementById("urlInput");
+const emailInput = document.getElementById("emailInput");
+const saveListingBtn = document.getElementById("saveListingBtn");
+const loadSavedBtn = document.getElementById("loadSavedBtn");
+const savedMsgEl = document.getElementById("savedMsg");
+const savedListingsEl = document.getElementById("savedListings");
 
 const msg = document.getElementById("msg");
 const card = document.getElementById("card");
@@ -106,11 +138,24 @@ const breakdownEl = document.getElementById("breakdown");
 const penaltyEl = document.getElementById("penalty");
 const summaryEl = document.getElementById("summary");
 const compareListEl = document.getElementById("compareList");
+const compareMetaEl = document.getElementById("compareMeta");
+const compareControlsEl = document.getElementById("compareControls");
+const changeCompetitorBtn = document.getElementById("changeCompetitorBtn");
+const resetCompetitorBtn = document.getElementById("resetCompetitorBtn");
+const competitorPickerEl = document.getElementById("competitorPicker");
 const reportDateEl = document.getElementById("reportDate");
 
 const historyEl = document.getElementById("history");
 const clearHistoryBtn = document.getElementById("clearHistory");
 const weeklyReportListEl = document.getElementById("weeklyReportList");
+
+const HISTORY_KEY = "gbp_history_v2";
+const HISTORY_MAX = 10;
+const SUBSCRIBER_EMAIL_KEY = "gbp_subscriber_email_v1";
+
+let currentResult = null;
+let competitorChooserOpen = false;
+let competitorUpdateInFlight = false;
 
 // ===== helpers =====
 function escapeHtml(s) {
@@ -133,19 +178,24 @@ function safeJsonParse(text, fallback = null) {
   }
 }
 
-function formatReportDate(value) {
+function formatDateTime(value) {
   if (!value) return "";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return `Report generated: ${date.toLocaleString("en-US", {
+  return date.toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  })}`;
+  });
+}
+
+function formatReportDate(value) {
+  const formatted = formatDateTime(value);
+  return formatted ? `Report generated: ${formatted}` : "";
 }
 
 function setReportDate(value) {
@@ -161,8 +211,58 @@ function getApiMessage(payload, fallback) {
   return payload?.message ?? payload?.error ?? fallback;
 }
 
-async function fetchApiJson(url) {
-  const res = await fetch(url);
+function isLikelyEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function currentTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+function getSubscriberEmail() {
+  return String(emailInput?.value || "").trim().toLowerCase();
+}
+
+function persistSubscriberEmail(email) {
+  try {
+    const normalized = String(email || "").trim().toLowerCase();
+    if (normalized) {
+      localStorage.setItem(SUBSCRIBER_EMAIL_KEY, normalized);
+    } else {
+      localStorage.removeItem(SUBSCRIBER_EMAIL_KEY);
+    }
+  } catch {
+    // noop
+  }
+}
+
+function loadSubscriberEmail() {
+  try {
+    return localStorage.getItem(SUBSCRIBER_EMAIL_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function setSavedMessage(message, isError = false) {
+  if (!savedMsgEl) return;
+  savedMsgEl.textContent = message;
+  savedMsgEl.classList.toggle("error", Boolean(isError));
+}
+
+function setUrlSavedParam(savedId) {
+  const url = new URL(window.location.href);
+  if (savedId) url.searchParams.set("saved", savedId);
+  else url.searchParams.delete("saved");
+  window.history.replaceState({}, "", url.toString());
+}
+
+async function fetchApiJson(url, options = {}) {
+  const res = await fetch(url, options);
   const text = await res.text();
   const data = safeJsonParse(text, {
     ok: false,
@@ -182,6 +282,10 @@ async function fetchApiJson(url) {
 }
 
 function resetUI() {
+  currentResult = null;
+  competitorChooserOpen = false;
+  competitorUpdateInFlight = false;
+  if (saveListingBtn) saveListingBtn.disabled = true;
   msg.textContent = "";
   setReportDate(null);
   scoreEl.textContent = "-";
@@ -192,6 +296,20 @@ function resetUI() {
   const insightEl = document.getElementById("insight");
   if (insightEl) insightEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
+  if (compareMetaEl) compareMetaEl.innerHTML = "";
+  if (compareControlsEl) compareControlsEl.classList.add("hidden");
+  if (competitorPickerEl) {
+    competitorPickerEl.classList.add("hidden");
+    competitorPickerEl.innerHTML = "";
+  }
+  if (changeCompetitorBtn) {
+    changeCompetitorBtn.disabled = false;
+    changeCompetitorBtn.textContent = "Change competitor";
+  }
+  if (resetCompetitorBtn) {
+    resetCompetitorBtn.classList.add("hidden");
+    resetCompetitorBtn.disabled = false;
+  }
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
   const photoCompareEl = document.getElementById("photoCompare");
   if (photoCompareEl) photoCompareEl.innerHTML = "";
@@ -236,6 +354,7 @@ function showError(message) {
   breakdownEl.innerHTML = "<li>—</li>";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+  if (compareMetaEl) compareMetaEl.innerHTML = "";
   if (compareListEl) compareListEl.innerHTML = `<li>${escapeHtml(message)}</li>`;
   if (weeklyReportListEl) {
     weeklyReportListEl.innerHTML = `<li>${escapeHtml(message)}</li>`;
@@ -264,12 +383,347 @@ async function runDaily(myPlaceId) {
 }
 
 function pickDefaultCompetitor(data, myPlaceId) {
-  const fromPayload = data?.defaultCompetitorPlaceId;
+  const fromSelected = data?.selectedCompetitor?.placeId;
+  if (fromSelected) return fromSelected;
+
+  const fromSaved = data?.savedListing?.competitorPlaceId;
+  if (fromSaved) return fromSaved;
+
+  const fromPayload =
+    data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId;
   if (fromPayload) return fromPayload;
 
   const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
   const first = list.find((item) => item?.place_id && item.place_id !== myPlaceId);
   return first?.place_id ?? null;
+}
+
+function pickRecommendedCompetitor(data, myPlaceId) {
+  const fromPayload = data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId;
+  if (fromPayload) return fromPayload;
+
+  const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const first = list.find((item) => item?.place_id && item.place_id !== myPlaceId);
+  return first?.place_id ?? null;
+}
+
+function competitorAddress(item) {
+  return item?.vicinity ?? item?.formatted_address ?? item?.address ?? null;
+}
+
+function getSelectedCompetitor(data, competitorPlaceId) {
+  const resolvedPlaceId =
+    competitorPlaceId ??
+    data?.selectedCompetitor?.placeId ??
+    data?.savedListing?.competitorPlaceId ??
+    data?.recommendedCompetitorPlaceId ??
+    data?.defaultCompetitorPlaceId ??
+    null;
+
+  if (!resolvedPlaceId) return null;
+
+  const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const fromResults = list.find((item) => item?.place_id === resolvedPlaceId);
+  if (fromResults) {
+    return {
+      placeId: resolvedPlaceId,
+      name: fromResults.name ?? data?.savedListing?.competitorName ?? null,
+      address: competitorAddress(fromResults) ?? data?.savedListing?.competitorAddress ?? null,
+    };
+  }
+
+  if (data?.savedListing?.competitorPlaceId === resolvedPlaceId) {
+    return {
+      placeId: resolvedPlaceId,
+      name: data?.savedListing?.competitorName ?? null,
+      address: data?.savedListing?.competitorAddress ?? null,
+    };
+  }
+
+  return {
+    placeId: resolvedPlaceId,
+    name: null,
+    address: null,
+  };
+}
+
+function getCompetitorCandidates(data, limit = 5) {
+  const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const seen = new Set();
+  const candidates = [];
+  const byPlaceId = new Map(list.map((item) => [item?.place_id, item]));
+  const priorityPlaceIds = [
+    data?.selectedCompetitor?.placeId ?? null,
+    data?.savedListing?.competitorPlaceId ?? null,
+    data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId ?? null,
+  ].filter(Boolean);
+
+  function addCandidateFromItem(item) {
+    const placeId = item?.place_id;
+    if (!placeId || seen.has(placeId)) return false;
+    seen.add(placeId);
+    candidates.push({
+      placeId,
+      name: item?.name || "Nearby competitor",
+      address: competitorAddress(item) || "",
+    });
+    return true;
+  }
+
+  function addSyntheticCandidate(placeId, fallback = {}) {
+    if (!placeId || seen.has(placeId)) return false;
+    const name = fallback?.name || "Selected competitor";
+    const address = fallback?.address || "";
+    seen.add(placeId);
+    candidates.push({ placeId, name, address });
+    return true;
+  }
+
+  priorityPlaceIds.forEach((placeId) => {
+    if (candidates.length >= limit) return;
+    const item = byPlaceId.get(placeId);
+    if (item) {
+      addCandidateFromItem(item);
+      return;
+    }
+
+    if (placeId === data?.selectedCompetitor?.placeId) {
+      addSyntheticCandidate(placeId, data?.selectedCompetitor);
+      return;
+    }
+
+    if (placeId === data?.savedListing?.competitorPlaceId) {
+      addSyntheticCandidate(placeId, {
+        name: data?.savedListing?.competitorName,
+        address: data?.savedListing?.competitorAddress,
+      });
+    }
+  });
+
+  for (const item of list) {
+    addCandidateFromItem(item);
+    if (candidates.length >= limit) break;
+  }
+
+  return candidates;
+}
+
+function renderCompareMeta(competitor) {
+  if (!compareMetaEl) return;
+
+  if (!competitor?.name && !competitor?.address) {
+    compareMetaEl.innerHTML = "";
+    return;
+  }
+
+  compareMetaEl.innerHTML = `
+    <div class="compare__with">Compared with: ${escapeHtml(
+      competitor?.name || "Selected competitor"
+    )}</div>
+    ${
+      competitor?.address
+        ? `<div class="compare__address">${escapeHtml(competitor.address)}</div>`
+        : ""
+    }
+  `;
+}
+
+function renderCompetitorControls(data) {
+  if (!compareControlsEl || !competitorPickerEl || !changeCompetitorBtn || !resetCompetitorBtn) {
+    return;
+  }
+
+  const candidates = getCompetitorCandidates(data);
+  const selectedPlaceId = data?.selectedCompetitor?.placeId ?? null;
+  const recommendedPlaceId = pickRecommendedCompetitor(
+    data,
+    data?.placeId ?? data?.details?.placeId ?? data?.details?.place_id ?? null
+  );
+
+  if (candidates.length <= 1) {
+    compareControlsEl.classList.add("hidden");
+    competitorPickerEl.classList.add("hidden");
+    competitorPickerEl.innerHTML = "";
+    return;
+  }
+
+  compareControlsEl.classList.remove("hidden");
+  changeCompetitorBtn.textContent = competitorChooserOpen
+    ? "Hide competitor options"
+    : "Change competitor";
+  changeCompetitorBtn.disabled = competitorUpdateInFlight;
+
+  const canReset =
+    Boolean(recommendedPlaceId) && Boolean(selectedPlaceId) && recommendedPlaceId !== selectedPlaceId;
+  resetCompetitorBtn.classList.toggle("hidden", !canReset);
+  resetCompetitorBtn.disabled = competitorUpdateInFlight;
+
+  competitorPickerEl.classList.toggle("hidden", !competitorChooserOpen);
+  competitorPickerEl.innerHTML = "";
+
+  if (!competitorChooserOpen) {
+    return;
+  }
+
+  const heading = document.createElement("div");
+  heading.className = "compare__picker-title";
+  heading.textContent = "Choose a competitor for this report";
+  competitorPickerEl.appendChild(heading);
+
+  const list = document.createElement("div");
+  list.className = "compare__options";
+
+  candidates.forEach((candidate) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = `compare__option${
+      candidate.placeId === selectedPlaceId ? " compare__option--selected" : ""
+    }`;
+    option.dataset.competitorId = candidate.placeId;
+    option.disabled = competitorUpdateInFlight;
+    option.innerHTML = `
+      <span class="compare__option-name">${escapeHtml(candidate.name)}</span>
+      ${
+        candidate.address
+          ? `<span class="compare__option-address">${escapeHtml(candidate.address)}</span>`
+          : ""
+      }
+      <span class="compare__option-state">${
+        candidate.placeId === selectedPlaceId
+          ? "Selected"
+          : candidate.placeId === recommendedPlaceId
+            ? "Recommended"
+            : "Use this competitor"
+      }</span>
+    `;
+    list.appendChild(option);
+  });
+
+  competitorPickerEl.appendChild(list);
+}
+
+function renderInsight(data) {
+  const insightEl = document.getElementById("insight");
+  if (!insightEl) return;
+
+  insightEl.textContent = buildInsight(data?.diagnosis ?? {}, data?.compare ?? {}, {
+    selectedCompetitor: data?.selectedCompetitor,
+    savedListing: data?.savedListing,
+    photoAnalysis: data?.photoAnalysis,
+  });
+}
+
+async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
+  if (!currentResult?.placeId || !competitorPlaceId || competitorUpdateInFlight) return;
+  if (currentResult?.selectedCompetitor?.placeId === competitorPlaceId) {
+    competitorChooserOpen = false;
+    renderCompetitorControls(currentResult);
+    return;
+  }
+
+  competitorUpdateInFlight = true;
+  if (compareListEl) compareListEl.innerHTML = "<li>Updating competitor comparison...</li>";
+  if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>Updating weekly report...</li>";
+  renderCompetitorControls(currentResult);
+
+  try {
+    const placeId = currentResult.placeId;
+    await ensureComparisonReady(placeId, competitorPlaceId);
+
+    const [compare, weeklyReport] = await Promise.all([
+      fetchCompare(placeId),
+      fetchWeeklyReport(placeId),
+    ]);
+
+    if (!compare?.ok) {
+      throw new Error(getApiMessage(compare, "Could not update competitor comparison."));
+    }
+
+    if (!weeklyReport?.ok) {
+      throw new Error(getApiMessage(weeklyReport, "Could not update weekly report."));
+    }
+
+    const compareCompetitorPlaceId = compare?.competitor?.placeId ?? null;
+    const weeklyCompetitorPlaceId = weeklyReport?.competitor?.placeId ?? null;
+    if (
+      compareCompetitorPlaceId !== competitorPlaceId ||
+      weeklyCompetitorPlaceId !== competitorPlaceId
+    ) {
+      throw new Error("Could not confirm the selected competitor. Please try again.");
+    }
+
+    const selectedCompetitor = getSelectedCompetitor(currentResult, competitorPlaceId);
+    const nextSavedListing = currentResult?.savedListing
+      ? {
+          ...currentResult.savedListing,
+          competitorPlaceId,
+          competitorName: selectedCompetitor?.name ?? currentResult.savedListing?.competitorName ?? null,
+          competitorAddress:
+            selectedCompetitor?.address ?? currentResult.savedListing?.competitorAddress ?? null,
+        }
+      : currentResult?.savedListing;
+
+    currentResult = {
+      ...currentResult,
+      compare,
+      weeklyReport,
+      selectedCompetitor,
+      savedListing: nextSavedListing,
+    };
+
+    renderCompare(compare, selectedCompetitor);
+    renderWeeklyReport(weeklyReport);
+    renderInsight(currentResult);
+    competitorChooserOpen = options.keepOpen === true;
+    renderCompetitorControls(currentResult);
+    msg.textContent = "Competitor updated for this report.";
+    setSavedMessage("Competitor updated. Save Current Listing to keep this selection.");
+  } catch (error) {
+    renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
+    renderWeeklyReport(currentResult?.weeklyReport);
+    renderInsight(currentResult);
+    renderCompetitorControls(currentResult);
+    setSavedMessage(error?.message || String(error), true);
+  } finally {
+    competitorUpdateInFlight = false;
+    renderCompetitorControls(currentResult);
+  }
+}
+
+function appendListRow(listEl, label, value) {
+  if (!listEl) return;
+
+  const li = document.createElement("li");
+  li.textContent = label ? `${label}: ${value}` : value;
+  listEl.appendChild(li);
+}
+
+function compareTrackingCopy(compare) {
+  switch (compare?.status) {
+    case "setup_required":
+    case "collecting_daily_data":
+      return "Available after two daily snapshots are saved.";
+    case "collecting_history":
+      return "Available after the next daily snapshot is saved.";
+    case "cached_only":
+      return "Not available in this saved report.";
+    default:
+      return "Currently unavailable.";
+  }
+}
+
+function weeklyTrackingCopy(report) {
+  switch (report?.status) {
+    case "setup_required":
+    case "collecting_daily_data":
+      return "Meaningful trends usually appear after about 7 days of daily snapshots.";
+    case "collecting_history":
+      return "Tracking now. Meaningful trends usually appear after about 7 days of daily snapshots.";
+    case "cached_only":
+      return "Not available in this saved report.";
+    default:
+      return "Currently unavailable.";
+  }
 }
 
 async function ensureComparisonReady(placeId, competitorPlaceId) {
@@ -281,10 +735,11 @@ async function ensureComparisonReady(placeId, competitorPlaceId) {
   await runDaily(placeId);
 }
 
-function renderCompare(compare) {
+function renderCompare(compare, competitor) {
   if (!compareListEl) return;
 
   compareListEl.innerHTML = "";
+  renderCompareMeta(competitor);
 
   if (!compare?.ok) {
     compareListEl.innerHTML = `<li>${escapeHtml(getApiMessage(compare, "Comparison data is unavailable."))}</li>`;
@@ -292,24 +747,58 @@ function renderCompare(compare) {
   }
 
   if (compare?.message) {
-    const statusItem = document.createElement("li");
-    statusItem.textContent = compare.message;
-    compareListEl.appendChild(statusItem);
+    appendListRow(compareListEl, "", compare.message);
   }
 
-  const rows = [
-    `Your total reviews: ${valueOrFallback(compare.my?.todayTotal, "-")}`,
-    `Competitor total reviews: ${valueOrFallback(compare.competitor?.todayTotal, "-")}`,
-    `Total review difference: ${valueOrFallback(compare.total_diff, "-")}`,
-    `Your daily change: ${valueOrFallback(compare.my?.delta)}`,
-    `Competitor daily change: ${valueOrFallback(compare.competitor?.delta)}`,
-    `Growth difference: ${valueOrFallback(compare.delta_diff)}`,
-  ];
+  const hasReviewTotals =
+    Number.isFinite(compare.my?.todayTotal) ||
+    Number.isFinite(compare.competitor?.todayTotal) ||
+    Number.isFinite(compare.total_diff);
 
-  for (const row of rows) {
-    const li = document.createElement("li");
-    li.textContent = row;
-    compareListEl.appendChild(li);
+  if (hasReviewTotals) {
+    appendListRow(
+      compareListEl,
+      "Your total reviews",
+      valueOrFallback(compare.my?.todayTotal, "-")
+    );
+    appendListRow(
+      compareListEl,
+      "Competitor total reviews",
+      valueOrFallback(compare.competitor?.todayTotal, "-")
+    );
+    appendListRow(
+      compareListEl,
+      "Total review difference",
+      valueOrFallback(compare.total_diff, "-")
+    );
+  } else {
+    appendListRow(
+      compareListEl,
+      "Current review totals",
+      compare?.status === "cached_only"
+        ? "Not available in this saved report."
+        : "Available after the first daily snapshot is saved."
+    );
+  }
+
+  if (compare?.status === "ready") {
+    appendListRow(
+      compareListEl,
+      "Your daily change",
+      valueOrFallback(compare.my?.delta)
+    );
+    appendListRow(
+      compareListEl,
+      "Competitor daily change",
+      valueOrFallback(compare.competitor?.delta)
+    );
+    appendListRow(
+      compareListEl,
+      "Growth difference",
+      valueOrFallback(compare.delta_diff)
+    );
+  } else {
+    appendListRow(compareListEl, "Daily changes", compareTrackingCopy(compare));
   }
 }
 
@@ -357,11 +846,11 @@ function renderPhotoAdvice(photoAdvice) {
     el.appendChild(li);
   });
 
-shots.forEach((s) => {
-  const li = document.createElement("li");
-  li.textContent = `Recommended shot: ${s}`;
-  el.appendChild(li);
-});
+  shots.forEach((s) => {
+    const li = document.createElement("li");
+    li.textContent = `Recommended shot: ${s}`;
+    el.appendChild(li);
+  });
 }
 
 // ===== result rendering =====
@@ -409,9 +898,9 @@ function renderBreakdown(diagnosis) {
   penaltyEl.textContent = `Total penalty: -${p}`;
 }
 
-function renderSummary(details, placeId) {
+function renderSummary(details) {
   const name = details?.name ?? "-";
-  const address = details?.formatted_address ?? "-";
+  const address = details?.formatted_address ?? details?.address ?? "-";
   const phone = details?.international_phone_number ?? "Not available";
   const website = details?.website ?? null;
   const photos = details?.photos?.length ?? 0;
@@ -440,24 +929,56 @@ function renderWeeklyReport(report) {
   }
 
   if (report?.message) {
-    const statusItem = document.createElement("li");
-    statusItem.textContent = report.message;
-    weeklyReportListEl.appendChild(statusItem);
+    appendListRow(weeklyReportListEl, "", report.message);
   }
 
-  const rows = [
-    `Your weekly review growth: ${valueOrFallback(report.my?.weeklyGain)}`,
-    `Competitor weekly review growth: ${valueOrFallback(report.competitor?.weeklyGain)}`,
-    `Weekly growth difference: ${valueOrFallback(report.weeklyGainDiff)}`,
-    `Total review difference: ${valueOrFallback(report.totalDiff, "-")}`,
-    `Report period: ${report.weekAgo ?? "-"} → ${report.today ?? "-"}`,
-    `Weekly insight: ${report.insight ?? "-"}`,
-  ];
+  const hasTotalDiff = Number.isFinite(report.totalDiff);
 
-  for (const row of rows) {
-    const li = document.createElement("li");
-    li.textContent = row;
-    weeklyReportListEl.appendChild(li);
+  if (hasTotalDiff) {
+    appendListRow(
+      weeklyReportListEl,
+      "Total review difference",
+      valueOrFallback(report.totalDiff, "-")
+    );
+  } else {
+    appendListRow(
+      weeklyReportListEl,
+      "Total review difference",
+      report?.status === "cached_only"
+        ? "Not available in this saved report."
+        : "Available after the first daily snapshot is saved."
+    );
+  }
+
+  appendListRow(
+    weeklyReportListEl,
+    "Report period",
+    `${report.weekAgo ?? "-"} → ${report.today ?? "-"}`
+  );
+
+  if (report?.status === "ready") {
+    appendListRow(
+      weeklyReportListEl,
+      "Your weekly review growth",
+      valueOrFallback(report.my?.weeklyGain)
+    );
+    appendListRow(
+      weeklyReportListEl,
+      "Competitor weekly review growth",
+      valueOrFallback(report.competitor?.weeklyGain)
+    );
+    appendListRow(
+      weeklyReportListEl,
+      "Weekly growth difference",
+      valueOrFallback(report.weeklyGainDiff)
+    );
+    appendListRow(
+      weeklyReportListEl,
+      "Weekly insight",
+      report.insight ?? "-"
+    );
+  } else {
+    appendListRow(weeklyReportListEl, "Weekly changes", weeklyTrackingCopy(report));
   }
 }
 
@@ -485,14 +1006,21 @@ async function showResult(data, options = {}) {
 
   let compare;
   let weeklyReport;
+  let selectedCompetitor;
+  const recommendedCompetitorPlaceId = pickRecommendedCompetitor(data, placeId);
 
   if (allowNetwork && placeId) {
     const competitorPlaceId = pickDefaultCompetitor(data, placeId);
+    selectedCompetitor = getSelectedCompetitor(data, competitorPlaceId);
     await ensureComparisonReady(placeId, competitorPlaceId);
 
     compare = data?.compare ?? await fetchCompare(placeId);
     weeklyReport = data?.weeklyReport ?? await fetchWeeklyReport(placeId);
   } else {
+    selectedCompetitor = getSelectedCompetitor(
+      data,
+      data?.compare?.competitor?.placeId ?? data?.weeklyReport?.competitor?.placeId ?? null
+    );
     compare = data?.compare ?? {
       ok: true,
       status: "cached_only",
@@ -516,62 +1044,406 @@ async function showResult(data, options = {}) {
     };
   }
 
-  renderCompare(compare);
-  renderWeeklyReport(weeklyReport);
-
-  const insightEl = document.getElementById("insight");
-  if (insightEl) {
-    insightEl.textContent = buildInsight(diagnosis, compare);
+  if (!selectedCompetitor) {
+    selectedCompetitor = getSelectedCompetitor(
+      data,
+      compare?.competitor?.placeId ?? weeklyReport?.competitor?.placeId ?? null
+    );
   }
 
-  return {
+  renderCompare(compare, selectedCompetitor);
+  renderWeeklyReport(weeklyReport);
+
+  const hydrated = {
     ...data,
     generatedAt,
     compare,
     weeklyReport,
+    selectedCompetitor,
+    recommendedCompetitorPlaceId,
+  };
+
+  currentResult = hydrated;
+  renderInsight(hydrated);
+  renderCompetitorControls(hydrated);
+  if (saveListingBtn) saveListingBtn.disabled = false;
+
+  return hydrated;
+}
+
+function buildInsight(diagnosis, compare, options = {}) {
+  const missing = Array.isArray(diagnosis?.missing) ? diagnosis.missing : [];
+  const totalDiff = compare?.total_diff;
+  const deltaDiff = compare?.delta_diff;
+  const competitorName =
+    options?.selectedCompetitor?.name ||
+    options?.savedListing?.competitorName ||
+    "the selected competitor";
+  const missingPhotos = options?.photoAnalysis?.missingPhotos;
+  const candidates = [];
+
+  function addCandidate(bucket, key, priority, text) {
+    if (!text) return;
+    candidates.push({ bucket, key, priority, text });
+  }
+
+  if (missing.includes("website")) {
+    addCandidate(
+      "system",
+      "website",
+      120,
+      "Your listing is missing a website, which weakens trust for customers comparing nearby options."
+    );
+  }
+
+  if (!missing.includes("website") && missing.includes("phone")) {
+    addCandidate(
+      "system",
+      "phone",
+      98,
+      "Missing phone details make the listing feel harder to trust at a glance."
+    );
+  }
+
+  if (Number.isFinite(missingPhotos) && missingPhotos > 0) {
+    addCandidate(
+      "system",
+      "photo-gap",
+      missingPhotos >= 8 ? 94 : 82,
+      missingPhotos >= 8
+        ? `You have about ${missingPhotos} fewer photos than nearby listings, so customers get less context before choosing.`
+        : `Add about ${missingPhotos} more photos to keep pace with nearby listings and give customers more confidence.`
+    );
+  } else if (missing.includes("photos")) {
+    addCandidate(
+      "system",
+      "photos",
+      76,
+      "Photo coverage is still thin, which gives customers less confidence when comparing options."
+    );
+  }
+
+  if (!missing.includes("website") && !missing.includes("phone")) {
+    const missingCount = missing.length;
+    if (Number.isFinite(diagnosis?.score) && diagnosis.score < 80 && missingCount >= 2) {
+      addCandidate(
+        "system",
+        "completeness",
+        90,
+        "Core listing details still look incomplete, which can make the business feel less established."
+      );
+    }
+  }
+
+  if (Number.isFinite(totalDiff) && totalDiff < 0) {
+    const gap = Math.abs(totalDiff);
+    addCandidate(
+      "competitor",
+      "review-gap",
+      gap >= 200 ? 108 : gap >= 50 ? 94 : 82,
+      `Compared with ${competitorName}, your review count is behind by ${gap}, which may make the listing feel less established.`
+    );
+  } else if (Number.isFinite(totalDiff) && totalDiff > 0) {
+    addCandidate(
+      "competitor",
+      "review-lead",
+      totalDiff >= 200 ? 62 : totalDiff >= 50 ? 58 : 56,
+      totalDiff >= 200
+        ? `Compared with ${competitorName}, your review position already looks much more established.`
+        : totalDiff <= 50
+          ? `Compared with ${competitorName}, your review lead is still narrow, so steady review growth matters.`
+          : `Compared with ${competitorName}, your review position looks stronger right now.`
+    );
+  } else if (Number.isFinite(totalDiff) && totalDiff === 0) {
+    addCandidate(
+      "competitor",
+      "parity",
+      60,
+      `You are close to ${competitorName} on reviews, so small changes could quickly affect how established the listing looks.`
+    );
+  }
+
+  if (compare?.status === "ready" && Number.isFinite(deltaDiff) && deltaDiff < 0) {
+    addCandidate(
+      "competitor",
+      "growth-gap",
+      Math.abs(deltaDiff) >= 2 ? 88 : 74,
+      `Compared with ${competitorName}, recent review growth is slower right now, so the gap could widen.`
+    );
+  } else if (
+    compare?.status === "ready" &&
+    Number.isFinite(totalDiff) &&
+    totalDiff > 0 &&
+    Number.isFinite(deltaDiff) &&
+    deltaDiff > 0
+  ) {
+    addCandidate(
+      "strength",
+      "review-lead",
+      52,
+      `Compared with ${competitorName}, your review position looks strong right now.`
+    );
+  }
+
+  if (!candidates.length && compare?.status && compare.status !== "ready") {
+    return "Tracking competitor changes now. Check back after more daily snapshots are saved.";
+  }
+
+  if (!candidates.length) {
+    return "Core listing details look solid, and the profile is in a healthy position right now.";
+  }
+
+  const sorted = candidates.sort((a, b) => b.priority - a.priority);
+  const selected = [sorted[0]];
+  const secondary =
+    sorted.find((item) => item.bucket !== sorted[0].bucket && item.key !== sorted[0].key) ||
+    sorted.find((item) => item.key !== sorted[0].key);
+
+  if (secondary) selected.push(secondary);
+
+  return selected
+    .slice(0, 2)
+    .map((item) => item.text)
+    .join(" ");
+}
+
+// ===== saved listings =====
+function renderSavedListings(listings) {
+  if (!savedListingsEl) return;
+
+  savedListingsEl.innerHTML = "";
+
+  if (!Array.isArray(listings) || !listings.length) {
+    savedListingsEl.innerHTML = `<li class="muted">No saved listings yet</li>`;
+    return;
+  }
+
+  listings.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "saved__item";
+
+    const content = document.createElement("div");
+    content.className = "saved__content";
+
+    const title = document.createElement("div");
+    title.className = "saved__title";
+    title.textContent = item.name || item.q || item.placeId || "Saved Listing";
+
+    const meta = document.createElement("div");
+    meta.className = "saved__meta";
+    meta.innerHTML = `
+      <div>${escapeHtml(item.address || "Address not available")}</div>
+      <div>Updated: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || "Just now")}</div>
+      <div>Saved for quick re-open from this dashboard.</div>
+    `;
+
+    let competitorBlock = null;
+    if (item?.competitorName || item?.competitorAddress) {
+      competitorBlock = document.createElement("div");
+      competitorBlock.className = "saved__competitor";
+      competitorBlock.innerHTML = `
+        <div>Compared with: ${escapeHtml(item?.competitorName || "Selected competitor")}</div>
+        ${
+          item?.competitorAddress
+            ? `<div class="saved__competitor-address">${escapeHtml(item.competitorAddress)}</div>`
+            : ""
+        }
+      `;
+    }
+
+    let statusBlock = null;
+    if (item?.statusSummary?.label) {
+      statusBlock = document.createElement("div");
+      statusBlock.className = "saved__status";
+      statusBlock.innerHTML = `
+        <span class="saved__badge saved__badge--${escapeAttr(
+          item?.statusSummary?.tone || "quiet"
+        )}">${escapeHtml(item.statusSummary.label)}</span>
+        ${
+          item?.statusSummary?.reason
+            ? `<span class="saved__status-copy">${escapeHtml(item.statusSummary.reason)}</span>`
+            : ""
+        }
+      `;
+    }
+
+    const changeSummary = document.createElement("div");
+    changeSummary.className = "saved__changes";
+
+    const summaryLines = Array.isArray(item?.changeSummary?.lines)
+      ? item.changeSummary.lines.slice(0, 3)
+      : ["Tracking changes from your next check"];
+
+    summaryLines.forEach((line) => {
+      const tag = document.createElement("div");
+      tag.className = `saved__change ${
+        item?.changeSummary?.hasChange ? "" : "saved__change--quiet"
+      }`.trim();
+      tag.textContent = line;
+      changeSummary.appendChild(tag);
+    });
+
+    content.appendChild(title);
+    content.appendChild(meta);
+    if (statusBlock) content.appendChild(statusBlock);
+    if (competitorBlock) content.appendChild(competitorBlock);
+    content.appendChild(changeSummary);
+
+    const actions = document.createElement("div");
+    actions.className = "saved__actions";
+
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "btn";
+    openBtn.dataset.action = "open";
+    openBtn.dataset.savedId = item.id;
+    openBtn.textContent = "Open Latest Report";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "btn";
+    deleteBtn.dataset.action = "delete";
+    deleteBtn.dataset.savedId = item.id;
+    deleteBtn.textContent = "Delete";
+
+    actions.appendChild(openBtn);
+    actions.appendChild(deleteBtn);
+
+    li.appendChild(content);
+    li.appendChild(actions);
+    savedListingsEl.appendChild(li);
+  });
+}
+
+async function fetchSavedListings(email) {
+  return fetchApiJson(`/api/saved-listings?email=${encodeURIComponent(email)}`);
+}
+
+async function saveListingSubscription(payload) {
+  return fetchApiJson("/api/saved-listings", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function removeSavedListing(id, email) {
+  return fetchApiJson(
+    `/api/saved-listings?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`,
+    { method: "DELETE" }
+  );
+}
+
+async function fetchSavedReport(id) {
+  return fetchApiJson(`/api/saved-report?id=${encodeURIComponent(id)}`);
+}
+
+function buildSavePayload() {
+  const email = getSubscriberEmail();
+  const details = currentResult?.details ?? {};
+  const diagnosis = currentResult?.diagnosis ?? {};
+  const placeId =
+    currentResult?.placeId ??
+    currentResult?.details?.placeId ??
+    currentResult?.details?.place_id ??
+    null;
+  const competitorPlaceId = pickDefaultCompetitor(currentResult, placeId);
+  const selectedCompetitor =
+    currentResult?.selectedCompetitor ?? getSelectedCompetitor(currentResult, competitorPlaceId);
+
+  return {
+    email,
+    placeId,
+    competitorPlaceId,
+    competitorName:
+      selectedCompetitor?.name || currentResult?.savedListing?.competitorName || "",
+    competitorAddress:
+      selectedCompetitor?.address || currentResult?.savedListing?.competitorAddress || "",
+    q: input?.value?.trim() || currentResult?.savedListing?.q || details?.name || "",
+    name: details?.name || currentResult?.savedListing?.name || "",
+    address:
+      details?.formatted_address ||
+      details?.address ||
+      currentResult?.savedListing?.address ||
+      "",
+    analysisScore: Number.isFinite(diagnosis?.score) ? diagnosis.score : null,
+    analysisMissing: Array.isArray(diagnosis?.missing) ? diagnosis.missing : [],
+    compareTotalDiff: Number.isFinite(currentResult?.compare?.total_diff)
+      ? currentResult.compare.total_diff
+      : null,
+    compareDeltaDiff: Number.isFinite(currentResult?.compare?.delta_diff)
+      ? currentResult.compare.delta_diff
+      : null,
+    photoMissingCount: Number.isFinite(currentResult?.photoAnalysis?.missingPhotos)
+      ? currentResult.photoAnalysis.missingPhotos
+      : null,
+    timezone: currentTimezone(),
   };
 }
 
-function buildInsight(diagnosis, compare) {
-  const todos = Array.isArray(diagnosis?.todos) ? diagnosis.todos : [];
-  const totalDiff = compare?.total_diff;
-  const deltaDiff = compare?.delta_diff;
-
-  const reasons = [];
-
-  if (Number.isFinite(totalDiff)) {
-    if (totalDiff < 0) {
-      reasons.push(`Competitors have ${Math.abs(totalDiff)} more total reviews`);
-    } else if (totalDiff > 0) {
-      reasons.push(`Your business has ${totalDiff} more total reviews`);
-    } else {
-      reasons.push("Total review count is similar");
+async function refreshSavedListings(options = {}) {
+  const email = getSubscriberEmail();
+  if (!isLikelyEmail(email)) {
+    renderSavedListings([]);
+    if (!options.quiet) {
+      setSavedMessage("Enter your email to load saved listings.");
     }
+    return;
   }
 
-  if (Number.isFinite(deltaDiff)) {
-    if (deltaDiff < 0) {
-      reasons.push(`Competitors have stronger recent review growth by ${Math.abs(deltaDiff)}`);
-    } else if (deltaDiff > 0) {
-      reasons.push(`Your business has stronger recent review growth by ${deltaDiff}`);
-    } else {
-      reasons.push("Recent review growth is similar");
+  persistSubscriberEmail(email);
+  const response = await fetchSavedListings(email);
+  if (!response?.ok) {
+    throw new Error(getApiMessage(response, "Could not load saved listings."));
+  }
+
+  renderSavedListings(response.listings);
+  if (!options.quiet) {
+    setSavedMessage("Saved listings loaded.");
+  }
+}
+
+async function openSavedListing(id, options = {}) {
+  resetUI();
+  setLoading(true);
+  msg.textContent = "Loading saved listing...";
+
+  try {
+    const data = await fetchSavedReport(id);
+    if (!data?.ok) throw new Error(getApiMessage(data, "Could not load saved listing."));
+
+    if (data?.savedListing?.q) {
+      input.value = data.savedListing.q;
+    } else if (data?.details?.name) {
+      input.value = data.details.name;
     }
-  }
 
-  if (todos.length) {
-    reasons.push(`Priority improvements: ${todos.slice(0, 2).join(" / ")}`);
-  }
+    if (options.ensureSavedListingVisible && data?.savedListing) {
+      renderSavedListings([data.savedListing]);
+    }
 
-  return reasons.length
-    ? reasons.join(". ") + "."
-    : "Comparison data is not sufficient yet.";
+    const hydrated = await showResult(data);
+    currentResult = hydrated;
+    if (options.pushState !== false) {
+      setUrlSavedParam(id);
+    }
+    msg.textContent = "Saved listing loaded.";
+    setSavedMessage(
+      options.ensureSavedListingVisible && !isLikelyEmail(getSubscriberEmail())
+        ? "Showing this saved listing from a direct link. Enter your email to load all saved listings."
+        : "Saved listing loaded."
+    );
+  } catch (error) {
+    showError(error?.message || String(error));
+    setSavedMessage(error?.message || String(error), true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 // ===== history =====
-const HISTORY_KEY = "gbp_history_v2";
-const HISTORY_MAX = 10;
-
 function loadHistory() {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
@@ -644,6 +1516,118 @@ if (input) {
   });
 }
 
+if (emailInput) {
+  emailInput.value = loadSubscriberEmail();
+  emailInput.addEventListener("change", () => {
+    persistSubscriberEmail(getSubscriberEmail());
+  });
+}
+
+if (loadSavedBtn) {
+  loadSavedBtn.addEventListener("click", async () => {
+    try {
+      await refreshSavedListings();
+    } catch (error) {
+      setSavedMessage(error?.message || String(error), true);
+    }
+  });
+}
+
+if (saveListingBtn) {
+  saveListingBtn.addEventListener("click", async () => {
+    try {
+      const payload = buildSavePayload();
+
+      if (!currentResult || !payload.placeId) {
+        throw new Error("Analyze a listing before saving it.");
+      }
+
+      if (!isLikelyEmail(payload.email)) {
+        throw new Error("Enter a valid email address before saving a listing.");
+      }
+
+      if (!payload.competitorPlaceId) {
+        throw new Error("A competitor must be selected before weekly reports can be created.");
+      }
+
+      persistSubscriberEmail(payload.email);
+      setSavedMessage("Saving listing...");
+      const response = await saveListingSubscription(payload);
+      if (!response?.ok) {
+        throw new Error(getApiMessage(response, "Could not save this listing."));
+      }
+
+      setSavedMessage(
+        "Listing saved. You can reopen it anytime from Saved Listings."
+      );
+      await refreshSavedListings({ quiet: true });
+    } catch (error) {
+      setSavedMessage(error?.message || String(error), true);
+    }
+  });
+}
+
+if (changeCompetitorBtn) {
+  changeCompetitorBtn.addEventListener("click", () => {
+    if (!currentResult) return;
+    competitorChooserOpen = !competitorChooserOpen;
+    renderCompetitorControls(currentResult);
+  });
+}
+
+if (resetCompetitorBtn) {
+  resetCompetitorBtn.addEventListener("click", async () => {
+    if (!currentResult) return;
+    const recommendedPlaceId = pickRecommendedCompetitor(currentResult, currentResult.placeId);
+    if (!recommendedPlaceId) return;
+    await updateSelectedCompetitor(recommendedPlaceId);
+  });
+}
+
+if (competitorPickerEl) {
+  competitorPickerEl.addEventListener("click", async (e) => {
+    const option = e.target.closest("button[data-competitor-id]");
+    if (!option) return;
+    const competitorId = option.dataset.competitorId;
+    if (!competitorId) return;
+    await updateSelectedCompetitor(competitorId);
+  });
+}
+
+if (savedListingsEl) {
+  savedListingsEl.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-saved-id][data-action]");
+    if (!button) return;
+
+    const id = button.dataset.savedId;
+    const action = button.dataset.action;
+
+    if (action === "open") {
+      await openSavedListing(id);
+      return;
+    }
+
+    if (action === "delete") {
+      try {
+        const email = getSubscriberEmail();
+        if (!isLikelyEmail(email)) {
+          throw new Error("Enter the same email address used to save this listing.");
+        }
+
+        const removed = await removeSavedListing(id, email);
+        if (!removed?.ok) {
+          throw new Error(getApiMessage(removed, "Could not delete this saved listing."));
+        }
+
+        setSavedMessage("Saved listing deleted.");
+        await refreshSavedListings({ quiet: true });
+      } catch (error) {
+        setSavedMessage(error?.message || String(error), true);
+      }
+    }
+  });
+}
+
 if (historyEl) {
   historyEl.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-index][data-action]");
@@ -658,9 +1642,14 @@ if (historyEl) {
     if (action === "show") {
       input.value = item.q;
       if (item.data) {
-        showResult(item.data, { allowNetwork: false }).catch((e) =>
-          showError(e?.message || String(e))
-        );
+        showResult(item.data, { allowNetwork: false })
+          .then((hydrated) => {
+            currentResult = hydrated;
+            if (saveListingBtn) saveListingBtn.disabled = false;
+            setUrlSavedParam(null);
+            msg.textContent = "Loaded history item.";
+          })
+          .catch((e) => showError(e?.message || String(e)));
       }
       return;
     }
@@ -680,6 +1669,7 @@ if (clearHistoryBtn) {
     renderHistory([]);
     resetUI();
     hideCard();
+    setUrlSavedParam(null);
   });
 }
 
@@ -716,6 +1706,7 @@ btn.addEventListener("click", async () => {
         null,
       data: hydrated,
     });
+    setUrlSavedParam(null);
     msg.textContent = "Analysis complete.";
   } catch (e) {
     showError(e?.message || String(e));
@@ -726,6 +1717,26 @@ btn.addEventListener("click", async () => {
 
 // init
 renderHistory(loadHistory());
+renderSavedListings([]);
+
+(async () => {
+  const savedId = new URL(window.location.href).searchParams.get("saved");
+
+  if (savedId) {
+    await openSavedListing(savedId, {
+      pushState: false,
+      ensureSavedListingVisible: true,
+    });
+  }
+
+  if (isLikelyEmail(getSubscriberEmail())) {
+    try {
+      await refreshSavedListings({ quiet: true });
+    } catch {
+      // noop
+    }
+  }
+})();
 
 const pdfBtn = document.getElementById("pdfBtn");
 

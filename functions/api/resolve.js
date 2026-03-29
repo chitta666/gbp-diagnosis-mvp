@@ -1,3 +1,8 @@
+import {
+  mapGooglePlacesApiError,
+  mapGooglePlacesTransportError,
+} from "../_lib/utils.js";
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -26,19 +31,79 @@ export async function onRequest(context) {
   if (!placeId) {
     const text = looksLikeUrl(final) ? extractPlaceText(final) : query;
     if (!text) return json({ error: "Place text not found. 店名+住所でもOK" }, 400);
-    placeId = await findPlaceIdFromText(text, key);
+    const resolved = await findPlaceIdFromText(text, key);
+    if (!resolved.ok) {
+      return json(
+        {
+          ok: false,
+          error: resolved.code,
+          code: resolved.code,
+          message: resolved.message,
+          hint: resolved.hint,
+          upstreamStatus: resolved.upstreamStatus,
+          upstreamErrorMessage: resolved.upstreamErrorMessage ?? null,
+        },
+        resolved.httpStatus
+      );
+    }
+    placeId = resolved.placeId;
   }
-  if (!placeId) return json({ error: "Could not resolve place_id" }, 400);
+  if (!placeId) {
+    return json(
+      {
+        ok: false,
+        error: "PLACE_NOT_FOUND",
+        code: "PLACE_NOT_FOUND",
+        message: "We couldn't find that business. Try the business name with the full address.",
+        hint: "Try the business name with the full address.",
+      },
+      404
+    );
+  }
 
   // 4) nameだけ取る（軽く）
-  const detailsRes = await fetchJson(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
-      placeId
-    )}&fields=name,formatted_address&language=ja&key=${encodeURIComponent(key)}`
-  );
+  let detailsRes;
+  try {
+    detailsRes = await fetchJson(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
+        placeId
+      )}&fields=name,formatted_address&language=ja&key=${encodeURIComponent(key)}`
+    );
+  } catch (error) {
+    const mapped = mapGooglePlacesTransportError(error);
+    return json(
+      {
+        ok: false,
+        error: mapped.code,
+        code: mapped.code,
+        message: mapped.message,
+        hint: mapped.hint,
+        upstreamStatus: mapped.upstreamStatus,
+        upstreamErrorMessage: mapped.upstreamErrorMessage,
+      },
+      mapped.httpStatus
+    );
+  }
 
-  if (detailsRes.status !== "OK") {
-    return json({ error: "Place Details failed", detailsRes }, 400);
+  const detailsError = mapGooglePlacesApiError({
+    status: detailsRes?.status,
+    errorMessage: detailsRes?.error_message,
+  });
+  if (detailsError || detailsRes.status !== "OK") {
+    return json(
+      {
+        ok: false,
+        error: detailsError?.code || "PLACE_DETAILS_FAILED",
+        code: detailsError?.code || "PLACE_DETAILS_FAILED",
+        message:
+          detailsError?.message || "We couldn't load the business details for that listing.",
+        hint: detailsError?.hint || "Check the Google Maps project configuration for this API key.",
+        upstreamStatus: detailsError?.upstreamStatus ?? detailsRes?.status ?? null,
+        upstreamErrorMessage:
+          detailsError?.upstreamErrorMessage ?? detailsRes?.error_message ?? null,
+      },
+      detailsError?.httpStatus || 502
+    );
   }
 
   const details = detailsRes.result ?? {};
@@ -103,9 +168,43 @@ async function findPlaceIdFromText(text, key) {
     `&language=ja` +
     `&key=${encodeURIComponent(key)}`;
 
-  const r = await fetchJson(endpoint);
-  if (r.status === "OK" && r.candidates?.length) return r.candidates[0].place_id;
-  return null;
+  let r;
+  try {
+    r = await fetchJson(endpoint);
+  } catch (error) {
+    return {
+      ok: false,
+      ...mapGooglePlacesTransportError(error),
+    };
+  }
+
+  const mapped = mapGooglePlacesApiError({
+    status: r?.status,
+    errorMessage: r?.error_message,
+  });
+  if (mapped) {
+    return {
+      ok: false,
+      ...mapped,
+    };
+  }
+
+  if (r.candidates?.length) {
+    return {
+      ok: true,
+      placeId: r.candidates[0].place_id,
+    };
+  }
+
+  return {
+    ok: false,
+    code: "PLACE_NOT_FOUND",
+    message: "We couldn't find that business. Try the business name with the full address.",
+    hint: "Try the business name with the full address.",
+    httpStatus: 404,
+    upstreamStatus: r?.status ?? null,
+    upstreamErrorMessage: r?.error_message ?? null,
+  };
 }
 
 async function fetchJson(u) {

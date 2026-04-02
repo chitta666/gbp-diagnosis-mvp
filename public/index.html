@@ -1208,6 +1208,46 @@ function buildInsight(diagnosis, compare, options = {}) {
 }
 
 // ===== saved listings =====
+function buildSavedListingMilestoneBlock(progress) {
+  if (!progress?.visible) return null;
+
+  const milestoneBlock = document.createElement("div");
+  milestoneBlock.className = "saved__milestone";
+
+  const label = document.createElement("div");
+  label.className = "saved__milestone-label";
+  label.textContent = "Next rating milestone";
+
+  const main = document.createElement("div");
+  main.className = "saved__milestone-main";
+  const nextMilestone = Number.isFinite(progress?.nextMilestone)
+    ? Number(progress.nextMilestone).toFixed(1)
+    : "the next milestone";
+  const estimate = Number.isFinite(progress?.estimatedFiveStarReviewsNeeded)
+    ? Math.round(progress.estimatedFiveStarReviewsNeeded)
+    : null;
+  main.textContent =
+    estimate === null
+      ? `Estimated 5-star reviews to ${nextMilestone}`
+      : `Estimated 5-star reviews to ${nextMilestone}: ${estimate}`;
+
+  const support = document.createElement("div");
+  support.className = "saved__milestone-support";
+  support.textContent = progress?.supportingCopy || "Tracking from your next check";
+
+  const note = document.createElement("div");
+  note.className = "saved__milestone-note";
+  note.textContent =
+    progress?.note || "Estimate based on current displayed rating and total reviews";
+
+  milestoneBlock.appendChild(label);
+  milestoneBlock.appendChild(main);
+  milestoneBlock.appendChild(support);
+  milestoneBlock.appendChild(note);
+
+  return milestoneBlock;
+}
+
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
 
@@ -1287,6 +1327,8 @@ function renderSavedListings(listings) {
     content.appendChild(meta);
     if (statusBlock) content.appendChild(statusBlock);
     if (competitorBlock) content.appendChild(competitorBlock);
+    const milestoneBlock = buildSavedListingMilestoneBlock(item?.ratingMilestoneProgress);
+    if (milestoneBlock) content.appendChild(milestoneBlock);
     content.appendChild(changeSummary);
 
     const actions = document.createElement("div");

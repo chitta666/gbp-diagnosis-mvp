@@ -54,6 +54,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
 
   const changeSummary = buildSavedListingChangeSummary(record);
   const statusSummary = buildSavedListingStatusSummary(record, changeSummary);
+  const ratingMilestoneProgress = buildRatingMilestoneProgress(record);
 
   const view = {
     id: record.id,
@@ -74,6 +75,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
     lastCheckedAt: record.lastCheckedAt ?? record.latestMetrics?.capturedAt ?? null,
     changeSummary,
     statusSummary,
+    ratingMilestoneProgress,
   };
 
   if (origin) {
@@ -140,6 +142,131 @@ function formatSummaryDate(value) {
     day: "numeric",
     timeZone: "UTC",
   });
+}
+
+const RATING_MILESTONE_NOTE =
+  "Estimate based on current displayed rating and total reviews";
+
+function toSingleDecimal(value) {
+  if (!Number.isFinite(value)) return null;
+  return Math.round(Number(value) * 10) / 10;
+}
+
+function hasPreviousSavedMetrics(record) {
+  const latestCapturedAt = record?.latestMetrics?.capturedAt ?? null;
+  const previousCapturedAt = record?.previousMetrics?.capturedAt ?? null;
+
+  if (!latestCapturedAt || !previousCapturedAt) return false;
+  return String(latestCapturedAt) !== String(previousCapturedAt);
+}
+
+function milestoneDisplayThreshold(milestone) {
+  if (!Number.isFinite(milestone)) return null;
+  return Math.round((Number(milestone) - 0.05) * 100) / 100;
+}
+
+function nextDisplayRatingMilestone(rating) {
+  const currentRating = toSingleDecimal(rating);
+  if (!Number.isFinite(currentRating) || currentRating >= 5) return null;
+  return Math.min(5, Number((currentRating + 0.1).toFixed(1)));
+}
+
+function estimateReviewsNeededForMilestone({ rating, reviewCount, milestone, futureAverage = 5 }) {
+  const currentRating = toSingleDecimal(rating);
+  const currentReviewCount = Number.isFinite(reviewCount) ? Number(reviewCount) : null;
+  const threshold = milestoneDisplayThreshold(milestone);
+
+  if (
+    !Number.isFinite(currentRating) ||
+    !Number.isFinite(currentReviewCount) ||
+    currentReviewCount <= 0 ||
+    !Number.isFinite(threshold) ||
+    !Number.isFinite(futureAverage) ||
+    futureAverage <= threshold
+  ) {
+    return null;
+  }
+
+  const rawEstimate =
+    (currentReviewCount * (threshold - currentRating)) / (futureAverage - threshold);
+  if (!Number.isFinite(rawEstimate)) return null;
+
+  const roundedEstimate = Math.ceil(rawEstimate);
+  return roundedEstimate > 0 ? roundedEstimate : null;
+}
+
+export function buildRatingMilestoneProgress(record) {
+  const latest = record?.latestMetrics ?? null;
+  const latestRating = toSingleDecimal(latest?.rating);
+  const latestReviewCount = Number.isFinite(latest?.reviewCount) ? Number(latest.reviewCount) : null;
+
+  if (!Number.isFinite(latestRating)) {
+    return { visible: false, reason: "missing_rating" };
+  }
+
+  if (!Number.isFinite(latestReviewCount)) {
+    return { visible: false, reason: "missing_review_count" };
+  }
+
+  if (latestRating >= 5) {
+    return { visible: false, reason: "top_rating_reached" };
+  }
+
+  const nextMilestone = nextDisplayRatingMilestone(latestRating);
+  const estimatedFiveStarReviewsNeeded = estimateReviewsNeededForMilestone({
+    rating: latestRating,
+    reviewCount: latestReviewCount,
+    milestone: nextMilestone,
+    futureAverage: 5,
+  });
+
+  if (!Number.isFinite(estimatedFiveStarReviewsNeeded)) {
+    return { visible: false, reason: "invalid_estimate" };
+  }
+
+  let previousEstimatedFiveStarReviewsNeeded = null;
+  let deltaToPreviousEstimate = null;
+  let trend = "tracking";
+  let supportingCopy = "Tracking from your next check";
+
+  if (hasPreviousSavedMetrics(record)) {
+    previousEstimatedFiveStarReviewsNeeded = estimateReviewsNeededForMilestone({
+      rating: record?.previousMetrics?.rating,
+      reviewCount: record?.previousMetrics?.reviewCount,
+      milestone: nextMilestone,
+      futureAverage: 5,
+    });
+
+    if (Number.isFinite(previousEstimatedFiveStarReviewsNeeded)) {
+      deltaToPreviousEstimate =
+        estimatedFiveStarReviewsNeeded - previousEstimatedFiveStarReviewsNeeded;
+
+      if (deltaToPreviousEstimate < 0) {
+        trend = "closer";
+        supportingCopy = `${Math.abs(deltaToPreviousEstimate)} fewer than last check`;
+      } else if (deltaToPreviousEstimate > 0) {
+        trend = "farther";
+        supportingCopy = `${deltaToPreviousEstimate} more than last check`;
+      } else {
+        trend = "unchanged";
+        supportingCopy = "Unchanged since last check";
+      }
+    }
+  }
+
+  return {
+    visible: true,
+    nextMilestone,
+    threshold: milestoneDisplayThreshold(nextMilestone),
+    currentRating: latestRating,
+    currentReviewCount: latestReviewCount,
+    estimatedFiveStarReviewsNeeded,
+    previousEstimatedFiveStarReviewsNeeded,
+    deltaToPreviousEstimate,
+    trend,
+    supportingCopy,
+    note: RATING_MILESTONE_NOTE,
+  };
 }
 
 export function buildSavedListingChangeSummary(record) {

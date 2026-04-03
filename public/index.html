@@ -41,14 +41,17 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <h2 class="section__title">Google Maps Analysis Report</h2>
     <p id="reportDate" class="muted"></p>
 
-<div class="kpi">
-  <div class="kpi__value" id="score">-</div>
-  <div class="kpi__unit">/100</div>
-</div>
+    <div id="diagnosisHero" class="diagnosis-hero">
+      <div id="diagnosisHeadline" class="diagnosis-hero__headline"></div>
+      <div id="diagnosisSummary" class="diagnosis-hero__summary"></div>
+      <div id="diagnosisMeta" class="diagnosis-hero__meta muted"></div>
+    </div>
+
+    <div id="priorityRow" class="priority-row"></div>
 
     <div class="section">
-      <h2 class="section__title">Quick Insight</h2>
-      <div id="insight" class="muted"></div>
+      <h2 class="section__title">Next Actions</h2>
+      <ul id="primaryActionsList" class="list"></ul>
     </div>
 
     <div class="section">
@@ -69,6 +72,29 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
+      <h2 class="section__title">Customer Choice View</h2>
+      <div id="customerChoice" class="muted"></div>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Google Basics</h2>
+      <div class="foundation-card">
+        <div class="foundation-card__header">
+          <div class="foundation-card__status">
+            <div class="foundation-card__eyebrow">Google basics</div>
+            <div id="foundationSummary" class="foundation-card__summary"></div>
+            <div id="foundationStatusCopy" class="foundation-card__copy muted"></div>
+          </div>
+          <div class="kpi kpi--supporting">
+            <div class="kpi__value" id="score">-</div>
+            <div class="kpi__unit">/100</div>
+          </div>
+        </div>
+        <ul id="foundationDetails" class="list foundation-card__details"></ul>
+      </div>
+    </div>
+
+    <div class="section">
       <h2 class="section__title">Weekly Report</h2>
       <ul id="weeklyReportList" class="list"></ul>
     </div>
@@ -84,12 +110,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Improvement Tasks</h2>
+      <h2 class="section__title">Google Basics Tasks</h2>
       <ul id="todos" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Score Breakdown</h2>
+      <h2 class="section__title">Google Basics Breakdown</h2>
       <ul id="breakdown" class="list"></ul>
       <div id="penalty" class="muted" style="margin-top:8px;"></div>
     </div>
@@ -97,15 +123,6 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="section">
       <h2 class="section__title">Business Details</h2>
       <div id="summary"></div>
-    </div>
-
-    <div class="section">
-      <h2 class="section__title">Recommended Actions</h2>
-      <ul class="list">
-      <li>Add a website to your Google listing</li>
-      <li>Add photos of exterior, food, menu, interior, and staff</li>
-      <li>Create a system to encourage customers to leave reviews</li>
-      </ul>
     </div>
 
     <button id="pdfBtn" class="btn">Export PDF</button>
@@ -132,6 +149,15 @@ const savedListingsEl = document.getElementById("savedListings");
 const msg = document.getElementById("msg");
 const card = document.getElementById("card");
 
+const diagnosisHeadlineEl = document.getElementById("diagnosisHeadline");
+const diagnosisSummaryEl = document.getElementById("diagnosisSummary");
+const diagnosisMetaEl = document.getElementById("diagnosisMeta");
+const priorityRowEl = document.getElementById("priorityRow");
+const primaryActionsListEl = document.getElementById("primaryActionsList");
+const customerChoiceEl = document.getElementById("customerChoice");
+const foundationSummaryEl = document.getElementById("foundationSummary");
+const foundationStatusCopyEl = document.getElementById("foundationStatusCopy");
+const foundationDetailsEl = document.getElementById("foundationDetails");
 const scoreEl = document.getElementById("score");
 const todosEl = document.getElementById("todos");
 const breakdownEl = document.getElementById("breakdown");
@@ -288,13 +314,20 @@ function resetUI() {
   if (saveListingBtn) saveListingBtn.disabled = true;
   msg.textContent = "";
   setReportDate(null);
+  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "";
+  if (diagnosisSummaryEl) diagnosisSummaryEl.innerHTML = "";
+  if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
+  if (priorityRowEl) priorityRowEl.innerHTML = "";
+  if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
+  if (customerChoiceEl) customerChoiceEl.textContent = "";
+  if (foundationSummaryEl) foundationSummaryEl.textContent = "";
+  if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
+  if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
   scoreEl.textContent = "-";
   todosEl.innerHTML = "";
   breakdownEl.innerHTML = "";
   penaltyEl.textContent = "";
   summaryEl.innerHTML = "";
-  const insightEl = document.getElementById("insight");
-  if (insightEl) insightEl.textContent = "";
   if (compareListEl) compareListEl.innerHTML = "";
   if (compareMetaEl) compareMetaEl.innerHTML = "";
   if (compareControlsEl) compareControlsEl.classList.add("hidden");
@@ -331,6 +364,17 @@ function setLoading(isLoading) {
   if (isLoading) {
     msg.textContent = "Analyzing listing...";
     showCard();
+    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Building the first diagnosis...";
+    if (diagnosisSummaryEl) {
+      diagnosisSummaryEl.innerHTML = "<p>Checking foundation, customer choice, and competitor context.</p>";
+    }
+    if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
+    if (priorityRowEl) priorityRowEl.innerHTML = "";
+    if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Preparing next actions...</li>";
+    if (customerChoiceEl) customerChoiceEl.textContent = "Loading customer-choice view...";
+    if (foundationSummaryEl) foundationSummaryEl.textContent = "Checking Google basics";
+    if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
+    if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
     scoreEl.textContent = "-";
     setReportDate(new Date().toISOString());
     todosEl.innerHTML = "<li>Loading...</li>";
@@ -349,6 +393,17 @@ function setLoading(isLoading) {
 function showError(message) {
   msg.textContent = message;
   showCard();
+  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Diagnosis unavailable";
+  if (diagnosisSummaryEl) {
+    diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(message)}</p>`;
+  }
+  if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
+  if (priorityRowEl) priorityRowEl.innerHTML = "";
+  if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Try again with a more specific business name and address.</li>";
+  if (customerChoiceEl) customerChoiceEl.textContent = "";
+  if (foundationSummaryEl) foundationSummaryEl.textContent = "Could not load Google basics";
+  if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
+  if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
   scoreEl.textContent = "0";
   todosEl.innerHTML = "<li>—</li>";
   breakdownEl.innerHTML = "<li>—</li>";
@@ -602,15 +657,358 @@ function renderCompetitorControls(data) {
   competitorPickerEl.appendChild(list);
 }
 
-function renderInsight(data) {
-  const insightEl = document.getElementById("insight");
-  if (!insightEl) return;
+function uniqueStrings(values) {
+  return [...new Set((Array.isArray(values) ? values : []).filter(Boolean))];
+}
 
-  insightEl.textContent = buildInsight(data?.diagnosis ?? {}, data?.compare ?? {}, {
-    selectedCompetitor: data?.selectedCompetitor,
-    savedListing: data?.savedListing,
-    photoAnalysis: data?.photoAnalysis,
+function getDiagnosisContext(data) {
+  const diagnosis = data?.diagnosis ?? {};
+  const compare = data?.compare ?? {};
+  const weeklyReport = data?.weeklyReport ?? {};
+  const missing = Array.isArray(diagnosis?.missing) ? diagnosis.missing : [];
+  const missingPhotos = Number.isFinite(data?.photoAnalysis?.missingPhotos)
+    ? Number(data.photoAnalysis.missingPhotos)
+    : null;
+  const totalDiff = Number.isFinite(compare?.total_diff)
+    ? Number(compare.total_diff)
+    : Number.isFinite(compare?.totalDiff)
+      ? Number(compare.totalDiff)
+      : null;
+  const deltaDiff = Number.isFinite(compare?.delta_diff) ? Number(compare.delta_diff) : null;
+  const weeklyGainDiff = Number.isFinite(weeklyReport?.weeklyGainDiff)
+    ? Number(weeklyReport.weeklyGainDiff)
+    : null;
+  const competitorName =
+    data?.selectedCompetitor?.name ||
+    data?.savedListing?.competitorName ||
+    "the selected competitor";
+  const foundationNeedsWork =
+    missing.includes("website") ||
+    missing.includes("phone") ||
+    (Number.isFinite(diagnosis?.score) && diagnosis.score < 80);
+
+  let competitiveGapStatus = "tracking";
+  if (Number.isFinite(totalDiff)) {
+    if (totalDiff <= -50) competitiveGapStatus = "behind";
+    else if (totalDiff >= 50) competitiveGapStatus = "ahead";
+    else competitiveGapStatus = "close";
+  } else if (Number.isFinite(deltaDiff) && deltaDiff < 0) {
+    competitiveGapStatus = "behind";
+  } else if (compare?.status === "ready") {
+    competitiveGapStatus = "close";
+  }
+
+  let riskPoints = 0;
+  if (foundationNeedsWork) riskPoints += 3;
+  if (Number.isFinite(missingPhotos) && missingPhotos > 0) {
+    riskPoints += missingPhotos >= 8 ? 2 : 1;
+  }
+  if (Number.isFinite(totalDiff) && totalDiff < 0) {
+    riskPoints += Math.abs(totalDiff) >= 200 ? 2 : 1;
+  }
+  if (Number.isFinite(deltaDiff) && deltaDiff < 0) riskPoints += 1;
+  if (Number.isFinite(weeklyGainDiff) && weeklyGainDiff < 0) riskPoints += 1;
+
+  const customerChoiceRisk =
+    riskPoints >= 4 ? "high" : riskPoints >= 2 ? "medium" : "low";
+
+  let primaryPriority = "maintain_strengths";
+  if (foundationNeedsWork) primaryPriority = "foundation";
+  else if (competitiveGapStatus === "behind") primaryPriority = "competitive_gap";
+  else if (customerChoiceRisk !== "low" || (Number.isFinite(missingPhotos) && missingPhotos > 0)) {
+    primaryPriority = "customer_choice";
+  }
+
+  return {
+    diagnosis,
+    compare,
+    weeklyReport,
+    missing,
+    missingPhotos,
+    totalDiff,
+    deltaDiff,
+    weeklyGainDiff,
+    competitorName,
+    foundationStatus: foundationNeedsWork ? "needs_work" : "in_place",
+    competitiveGapStatus,
+    customerChoiceRisk,
+    primaryPriority,
+  };
+}
+
+function sentence(text) {
+  return String(text || "").trim().replace(/\s+/g, " ");
+}
+
+function buildCompetitiveDetail(context) {
+  if (Number.isFinite(context.totalDiff) && context.totalDiff < 0) {
+    return sentence(
+      `Compared with ${context.competitorName}, the review count gap is ${Math.abs(
+        context.totalDiff
+      )}, which can make the listing feel less established during comparison.`
+    );
+  }
+
+  if (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0) {
+    return sentence(
+      `Compared with ${context.competitorName}, recent review growth is slower right now, so the comparison gap could widen.`
+    );
+  }
+
+  if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
+    return sentence(
+      `Photo coverage still looks thinner than nearby listings, which reduces visual trust before a visit.`
+    );
+  }
+
+  return sentence(
+    `The selected competitor does not currently show a strong visible advantage over this listing.`
+  );
+}
+
+function buildCustomerChoiceCopy(context) {
+  if (context.primaryPriority === "foundation") {
+    return sentence(
+      "Customers may hesitate before the real comparison even starts because key details still feel incomplete or less trustworthy."
+    );
+  }
+
+  if (context.primaryPriority === "competitive_gap") {
+    return sentence(
+      `When customers compare this listing with ${context.competitorName}, the competitor can look more established at a glance because the visible proof is stronger.`
+    );
+  }
+
+  if (context.primaryPriority === "customer_choice") {
+    return sentence(
+      "Nothing looks fundamentally broken, but the reason to choose this listing is still weaker than it could be in a quick side-by-side scan."
+    );
+  }
+
+  return sentence(
+    "Customers already have enough visible proof to feel comfortable choosing this listing, so the main job is keeping that confidence visible."
+  );
+}
+
+function buildPrimaryActions(context) {
+  const actions = [];
+
+  if (context.primaryPriority === "foundation") {
+    actions.push(...(Array.isArray(context.diagnosis?.todos) ? context.diagnosis.todos : []));
+    if (!actions.length && Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
+      actions.push("Add enough photos to give customers basic visual trust.");
+    }
+    actions.push("Revisit competitor comparison after the basics are fixed.");
+    return uniqueStrings(actions).slice(0, 3);
+  }
+
+  if (context.primaryPriority === "competitive_gap") {
+    if (
+      (Number.isFinite(context.totalDiff) && context.totalDiff < 0) ||
+      (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0)
+    ) {
+      actions.push("Strengthen your review acquisition flow.");
+    }
+    if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
+      actions.push("Improve photo coverage so the listing looks more trustworthy at a glance.");
+    }
+    actions.push(`Re-compare against ${context.competitorName} after improvements.`);
+    return uniqueStrings(actions).slice(0, 3);
+  }
+
+  if (context.primaryPriority === "customer_choice") {
+    if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
+      actions.push("Improve photo coverage and visual trust.");
+    }
+    actions.push("Make the main reason to choose this business clearer before a visit.");
+    actions.push(`Re-check the same competitor after the first-impression signals improve.`);
+    return uniqueStrings(actions).slice(0, 3);
+  }
+
+  actions.push("Keep your strongest review and photo signals active.");
+  actions.push("Maintain steady recent review momentum.");
+  actions.push("Check the same competitor again after more tracking data is collected.");
+  return uniqueStrings(actions).slice(0, 3);
+}
+
+function buildFoundationStatusView(context) {
+  const details = [];
+
+  if (context.missing.includes("website")) details.push("Website is still missing.");
+  else details.push("Website is in place.");
+
+  if (context.missing.includes("phone")) details.push("Phone details are still missing.");
+  else details.push("Phone details are in place.");
+
+  if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
+    details.push(
+      context.missingPhotos >= 8
+        ? "Photo coverage still trails nearby listings."
+        : "Photo coverage is still a little thin."
+    );
+  } else {
+    details.push("Photo baseline looks healthy.");
+  }
+
+  return {
+    summary:
+      context.foundationStatus === "needs_work"
+        ? "Needs work before deeper competitor diagnosis"
+        : "In place as a supporting status check",
+    copy:
+      context.foundationStatus === "needs_work"
+        ? "Missing basics are still limiting trust, so foundation comes before deeper comparison."
+        : "Core Google basics look mostly fine, so this is a quieter status check rather than the headline result.",
+    details: uniqueStrings(details).slice(0, 3),
+  };
+}
+
+function buildDiagnosisFirstView(data) {
+  const context = getDiagnosisContext(data);
+
+  let headline = "";
+  let summaryLines = [];
+
+  if (context.primaryPriority === "foundation") {
+    headline = "Fix the Google basics before going deeper on competitor comparison.";
+    summaryLines = [
+      "Missing foundation details are still limiting trust before customers compare more deeply.",
+      "Right now the bigger issue is not winning a score battle. It is making sure this business stays in the shortlist.",
+      "Once the basics are in place, the competitor view becomes more useful."
+    ];
+  } else if (context.primaryPriority === "competitive_gap") {
+    headline = "The basics are in place, but this listing is still weaker in side-by-side comparison.";
+    summaryLines = [
+      "Core Google basics look mostly fine, so checklist completion is not the main issue.",
+      buildCompetitiveDetail(context),
+      `The next priority is improving why a customer would choose this listing over ${context.competitorName}.`
+    ];
+  } else if (context.primaryPriority === "customer_choice") {
+    headline = "The listing is not dramatically behind, but the reason to choose it is still weak.";
+    summaryLines = [
+      "Nothing looks fundamentally broken in the Google basics.",
+      buildCompetitiveDetail(context),
+      "The next step is making the strongest proof more visible before customers decide."
+    ];
+  } else {
+    headline = "The basics look healthy, and there is no urgent comparison problem right now.";
+    summaryLines = [
+      "The current snapshot does not show a major foundation problem or a large competitor gap.",
+      "This is a maintenance case rather than a rescue case.",
+      "The next step is keeping recent proof active and checking that the position holds over time."
+    ];
+  }
+
+  const priorityItems = [
+    {
+      label: "GBP foundation",
+      value: context.foundationStatus === "needs_work" ? "Needs work" : "In place",
+      tone: context.foundationStatus === "needs_work" ? "warning" : "good",
+    },
+    {
+      label: "Customer choice risk",
+      value:
+        context.customerChoiceRisk.charAt(0).toUpperCase() +
+        context.customerChoiceRisk.slice(1),
+      tone:
+        context.customerChoiceRisk === "high"
+          ? "warning"
+          : context.customerChoiceRisk === "medium"
+            ? "accent"
+            : "good",
+    },
+    {
+      label: "Competitive gap",
+      value:
+        context.competitiveGapStatus === "behind"
+          ? "Behind"
+          : context.competitiveGapStatus === "ahead"
+            ? "Ahead"
+            : context.competitiveGapStatus === "close"
+              ? "Close"
+              : "Tracking",
+      tone:
+        context.competitiveGapStatus === "behind"
+          ? "warning"
+          : context.competitiveGapStatus === "ahead"
+            ? "good"
+            : context.competitiveGapStatus === "close"
+              ? "accent"
+              : "quiet",
+    },
+  ];
+
+  const competitorMeta =
+    context.competitorName && context.competitorName !== "the selected competitor"
+      ? `Compared with ${context.competitorName}`
+      : "Tracking the selected competitor context";
+
+  return {
+    headline,
+    summaryLines: summaryLines.map((line) => sentence(line)).filter(Boolean),
+    meta: competitorMeta,
+    priorityItems,
+    actions: buildPrimaryActions(context),
+    customerChoice: buildCustomerChoiceCopy(context),
+    foundation: buildFoundationStatusView(context),
+  };
+}
+
+function renderSimpleList(listEl, items) {
+  if (!listEl) return;
+  listEl.innerHTML = "";
+
+  const safeItems = uniqueStrings(items);
+  if (!safeItems.length) {
+    listEl.innerHTML = "<li>No immediate actions required.</li>";
+    return;
+  }
+
+  safeItems.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    listEl.appendChild(li);
   });
+}
+
+function renderPriorityRow(items) {
+  if (!priorityRowEl) return;
+  priorityRowEl.innerHTML = "";
+
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const pill = document.createElement("div");
+    pill.className = `priority-pill priority-pill--${escapeAttr(item?.tone || "quiet")}`;
+
+    const label = document.createElement("div");
+    label.className = "priority-pill__label";
+    label.textContent = item?.label || "";
+
+    const value = document.createElement("div");
+    value.className = "priority-pill__value";
+    value.textContent = item?.value || "";
+
+    pill.appendChild(label);
+    pill.appendChild(value);
+    priorityRowEl.appendChild(pill);
+  });
+}
+
+function renderInsight(data) {
+  const firstView = buildDiagnosisFirstView(data);
+
+  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = firstView.headline;
+  if (diagnosisSummaryEl) {
+    diagnosisSummaryEl.innerHTML = firstView.summaryLines
+      .map((line) => `<p>${escapeHtml(line)}</p>`)
+      .join("");
+  }
+  if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
+  renderPriorityRow(firstView.priorityItems);
+  renderSimpleList(primaryActionsListEl, firstView.actions);
+  if (customerChoiceEl) customerChoiceEl.textContent = firstView.customerChoice;
+  if (foundationSummaryEl) foundationSummaryEl.textContent = firstView.foundation.summary;
+  if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = firstView.foundation.copy;
+  renderSimpleList(foundationDetailsEl, firstView.foundation.details);
 }
 
 async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
@@ -862,7 +1260,7 @@ function renderTodos(todosArr, missingArr) {
     (Array.isArray(missingArr) && missingArr.length ? missingArr : []);
 
   if (!list.length) {
-    todosEl.innerHTML = "<li>No immediate improvements required</li>";
+    todosEl.innerHTML = "<li>No additional Google basics tasks right now</li>";
     return;
   }
 
@@ -879,7 +1277,7 @@ function renderBreakdown(diagnosis) {
 
   const missingOnly = bd.filter((r) => r?.missing);
   if (!missingOnly.length) {
-    breakdownEl.innerHTML = "<li>No penalties</li>";
+    breakdownEl.innerHTML = "<li>No Google basics penalties</li>";
     penaltyEl.textContent = "";
     return;
   }

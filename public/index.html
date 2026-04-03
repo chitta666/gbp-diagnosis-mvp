@@ -55,7 +55,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Review Comparison</h2>
+      <h2 class="section__title">Competitive Gap</h2>
       <div id="compareMeta" class="compare__meta"></div>
       <div id="compareControls" class="compare__controls hidden">
         <div class="compare__actions">
@@ -72,12 +72,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Customer Choice View</h2>
+      <h2 class="section__title">Customer Choice</h2>
       <div id="customerChoice" class="muted"></div>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics</h2>
+      <h2 class="section__title">Google Basics Check</h2>
       <div class="foundation-card">
         <div class="foundation-card__header">
           <div class="foundation-card__status">
@@ -364,15 +364,15 @@ function setLoading(isLoading) {
   if (isLoading) {
     msg.textContent = "Analyzing listing...";
     showCard();
-    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Building the first diagnosis...";
+    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Summarizing what matters first...";
     if (diagnosisSummaryEl) {
       diagnosisSummaryEl.innerHTML = "<p>Checking foundation, customer choice, and competitor context.</p>";
     }
     if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
     if (priorityRowEl) priorityRowEl.innerHTML = "";
-    if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Preparing next actions...</li>";
-    if (customerChoiceEl) customerChoiceEl.textContent = "Loading customer-choice view...";
-    if (foundationSummaryEl) foundationSummaryEl.textContent = "Checking Google basics";
+    if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Prioritizing the first actions...</li>";
+    if (customerChoiceEl) customerChoiceEl.textContent = "Checking first-impression risk...";
+    if (foundationSummaryEl) foundationSummaryEl.textContent = "Checking profile basics";
     if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
     if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
     scoreEl.textContent = "-";
@@ -401,7 +401,7 @@ function showError(message) {
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Try again with a more specific business name and address.</li>";
   if (customerChoiceEl) customerChoiceEl.textContent = "";
-  if (foundationSummaryEl) foundationSummaryEl.textContent = "Could not load Google basics";
+  if (foundationSummaryEl) foundationSummaryEl.textContent = "Could not load profile basics";
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
   if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
   scoreEl.textContent = "0";
@@ -743,50 +743,50 @@ function sentence(text) {
 function buildCompetitiveDetail(context) {
   if (Number.isFinite(context.totalDiff) && context.totalDiff < 0) {
     return sentence(
-      `Compared with ${context.competitorName}, the review count gap is ${Math.abs(
+      `Against ${context.competitorName}, the review count gap is ${Math.abs(
         context.totalDiff
-      )}, which can make the listing feel less established during comparison.`
+      )}, which can make this listing feel less proven in a quick comparison.`
     );
   }
 
   if (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0) {
     return sentence(
-      `Compared with ${context.competitorName}, recent review growth is slower right now, so the comparison gap could widen.`
+      `Against ${context.competitorName}, recent review momentum is slower right now, so the gap could widen.`
     );
   }
 
   if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
     return sentence(
-      `Photo coverage still looks thinner than nearby listings, which reduces visual trust before a visit.`
+      `Photo coverage is still thinner than nearby listings, which weakens first impressions before a visit.`
     );
   }
 
   return sentence(
-    `The selected competitor does not currently show a strong visible advantage over this listing.`
+    `This competitor does not currently show a clear visible advantage.`
   );
 }
 
 function buildCustomerChoiceCopy(context) {
   if (context.primaryPriority === "foundation") {
     return sentence(
-      "Customers may hesitate before the real comparison even starts because key details still feel incomplete or less trustworthy."
+      "Customers may hesitate before any deeper comparison because key details still feel incomplete or less trustworthy."
     );
   }
 
   if (context.primaryPriority === "competitive_gap") {
     return sentence(
-      `When customers compare this listing with ${context.competitorName}, the competitor can look more established at a glance because the visible proof is stronger.`
+      `When someone compares this listing with ${context.competitorName}, the competitor can feel more established at a glance because the visible proof is stronger.`
     );
   }
 
   if (context.primaryPriority === "customer_choice") {
     return sentence(
-      "Nothing looks fundamentally broken, but the reason to choose this listing is still weaker than it could be in a quick side-by-side scan."
+      "Nothing looks broken, but the first impression is not yet strong enough to make this listing the obvious pick."
     );
   }
 
   return sentence(
-    "Customers already have enough visible proof to feel comfortable choosing this listing, so the main job is keeping that confidence visible."
+    "Customers already have enough visible proof to feel comfortable choosing this listing. The job now is keeping that confidence visible."
   );
 }
 
@@ -796,9 +796,9 @@ function buildPrimaryActions(context) {
   if (context.primaryPriority === "foundation") {
     actions.push(...(Array.isArray(context.diagnosis?.todos) ? context.diagnosis.todos : []));
     if (!actions.length && Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Add enough photos to give customers basic visual trust.");
+      actions.push("Add enough photos to make the listing feel complete at a glance.");
     }
-    actions.push("Revisit competitor comparison after the basics are fixed.");
+    actions.push("Re-check competitor comparison after the basics are fixed.");
     return uniqueStrings(actions).slice(0, 3);
   }
 
@@ -807,38 +807,38 @@ function buildPrimaryActions(context) {
       (Number.isFinite(context.totalDiff) && context.totalDiff < 0) ||
       (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0)
     ) {
-      actions.push("Strengthen your review acquisition flow.");
+      actions.push("Strengthen your review request flow.");
     }
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Improve photo coverage so the listing looks more trustworthy at a glance.");
+      actions.push("Improve photo coverage so the listing feels more proven at a glance.");
     }
-    actions.push(`Re-compare against ${context.competitorName} after improvements.`);
+    actions.push(`Re-check against ${context.competitorName} after the first improvements.`);
     return uniqueStrings(actions).slice(0, 3);
   }
 
   if (context.primaryPriority === "customer_choice") {
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Improve photo coverage and visual trust.");
+      actions.push("Improve photo coverage and other first-impression proof.");
     }
-    actions.push("Make the main reason to choose this business clearer before a visit.");
+    actions.push("Make your strongest trust signals easier to notice before a visit.");
     actions.push(`Re-check the same competitor after the first-impression signals improve.`);
     return uniqueStrings(actions).slice(0, 3);
   }
 
-  actions.push("Keep your strongest review and photo signals active.");
-  actions.push("Maintain steady recent review momentum.");
-  actions.push("Check the same competitor again after more tracking data is collected.");
+  actions.push("Keep review and photo momentum steady.");
+  actions.push("Watch for any slowdown in recent review growth.");
+  actions.push("Check the same competitor again after more data comes in.");
   return uniqueStrings(actions).slice(0, 3);
 }
 
 function buildFoundationStatusView(context) {
   const details = [];
 
-  if (context.missing.includes("website")) details.push("Website is still missing.");
-  else details.push("Website is in place.");
+  if (context.missing.includes("website")) details.push("Website link is missing.");
+  else details.push("Website link is in place.");
 
-  if (context.missing.includes("phone")) details.push("Phone details are still missing.");
-  else details.push("Phone details are in place.");
+  if (context.missing.includes("phone")) details.push("Phone number is missing.");
+  else details.push("Phone number is in place.");
 
   if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
     details.push(
@@ -853,12 +853,12 @@ function buildFoundationStatusView(context) {
   return {
     summary:
       context.foundationStatus === "needs_work"
-        ? "Needs work before deeper competitor diagnosis"
-        : "In place as a supporting status check",
+        ? "Needs work before deeper comparison"
+        : "Stable enough to stay in the background",
     copy:
       context.foundationStatus === "needs_work"
-        ? "Missing basics are still limiting trust, so foundation comes before deeper comparison."
-        : "Core Google basics look mostly fine, so this is a quieter status check rather than the headline result.",
+        ? "Missing basics are still weakening trust, so fix those before reading too much into the competitor gap."
+        : "The core profile basics look healthy, so this stays in the background while you focus on choice and comparison.",
     details: uniqueStrings(details).slice(0, 3),
   };
 }
@@ -870,43 +870,43 @@ function buildDiagnosisFirstView(data) {
   let summaryLines = [];
 
   if (context.primaryPriority === "foundation") {
-    headline = "Fix the Google basics before going deeper on competitor comparison.";
+    headline = "Fix the profile basics before you over-focus on competitors.";
     summaryLines = [
-      "Missing foundation details are still limiting trust before customers compare more deeply.",
-      "Right now the bigger issue is not winning a score battle. It is making sure this business stays in the shortlist.",
+      "Missing basics are still weakening trust before most customers even compare options.",
+      "The immediate job is staying credible and easy to choose, not optimizing for a score.",
       "Once the basics are in place, the competitor view becomes more useful."
     ];
   } else if (context.primaryPriority === "competitive_gap") {
-    headline = "The basics are in place, but this listing is still weaker in side-by-side comparison.";
+    headline = "The profile basics are solid, but the side-by-side comparison is still weak.";
     summaryLines = [
-      "Core Google basics look mostly fine, so checklist completion is not the main issue.",
+      "Core profile basics look mostly healthy, so checklist completion is not the bottleneck.",
       buildCompetitiveDetail(context),
-      `The next priority is improving why a customer would choose this listing over ${context.competitorName}.`
+      `The next job is strengthening why someone would choose this listing over ${context.competitorName}.`
     ];
   } else if (context.primaryPriority === "customer_choice") {
-    headline = "The listing is not dramatically behind, but the reason to choose it is still weak.";
+    headline = "The listing is decent, but the reason to choose it is still not obvious.";
     summaryLines = [
       "Nothing looks fundamentally broken in the Google basics.",
       buildCompetitiveDetail(context),
-      "The next step is making the strongest proof more visible before customers decide."
+      "The next step is making the strongest proof visible in the first few seconds."
     ];
   } else {
-    headline = "The basics look healthy, and there is no urgent comparison problem right now.";
+    headline = "The listing looks healthy, and there is no urgent first-view problem right now.";
     summaryLines = [
-      "The current snapshot does not show a major foundation problem or a large competitor gap.",
-      "This is a maintenance case rather than a rescue case.",
-      "The next step is keeping recent proof active and checking that the position holds over time."
+      "This snapshot does not show a major foundation issue or a large competitor gap.",
+      "The job now is maintenance, not rescue.",
+      "Keep visible proof active and re-check the same competitor over time."
     ];
   }
 
   const priorityItems = [
     {
-      label: "GBP foundation",
+      label: "Google basics",
       value: context.foundationStatus === "needs_work" ? "Needs work" : "In place",
       tone: context.foundationStatus === "needs_work" ? "warning" : "good",
     },
     {
-      label: "Customer choice risk",
+      label: "Customer choice",
       value:
         context.customerChoiceRisk.charAt(0).toUpperCase() +
         context.customerChoiceRisk.slice(1),

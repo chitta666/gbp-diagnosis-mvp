@@ -1,6 +1,7 @@
 import { buildWeeklyEmail, sendEmailNotification } from "../_lib/email.js";
 import { runDailyForPlace } from "../_lib/runDaily.js";
 import {
+  buildReviewDropSignal,
   buildDeepLink,
   listAllSavedListings,
   patchSavedListing,
@@ -24,6 +25,20 @@ function makeSummaryLines(report) {
     `Weekly growth difference: ${report.weeklyGainDiff ?? "Collecting data"}`,
     `Total review difference: ${report.totalDiff ?? "Collecting data"}`,
   ];
+}
+
+function buildEmailInsight({ report, reviewDropSignal }) {
+  if (reviewDropSignal?.visible && Number.isFinite(reviewDropSignal?.dropCount)) {
+    return [
+      `Review count dropped by ${reviewDropSignal.dropCount} since the last saved check.`,
+      reviewDropSignal.customerImpact || "Visible trust may be weaker than before.",
+      report?.insight || "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return report?.insight || "Your weekly GBP report is ready.";
 }
 
 export async function onRequest({ request, env }) {
@@ -89,6 +104,7 @@ export async function onRequest({ request, env }) {
     dryRun,
     processed: 0,
     snapshotsSaved: 0,
+    reviewDropsDetected: 0,
     emailsSent: 0,
     emailSkipped: 0,
     waitingForHistory: 0,
@@ -147,6 +163,11 @@ export async function onRequest({ request, env }) {
         });
       }
 
+      const reviewDropSignal = buildReviewDropSignal(listing);
+      if (reviewDropSignal?.visible) {
+        summary.reviewDropsDetected += 1;
+      }
+
       let weeklyReport = weeklyCache.get(listing.placeId);
       if (!weeklyReport) {
         weeklyReport = await getWeeklyReport({ KV, myPlaceId: listing.placeId });
@@ -170,7 +191,7 @@ export async function onRequest({ request, env }) {
 
       const emailPayload = buildWeeklyEmail({
         listingName: listing.name || weeklyReport.my?.placeId || "Saved Listing",
-        insight: weeklyReport.insight,
+        insight: buildEmailInsight({ report: weeklyReport, reviewDropSignal }),
         summaryLines: makeSummaryLines(weeklyReport),
         deepLink: buildDeepLink({ origin, id: listing.id }),
         weekAgo: weeklyReport.weekAgo,

@@ -665,6 +665,7 @@ function getDiagnosisContext(data) {
   const diagnosis = data?.diagnosis ?? {};
   const compare = data?.compare ?? {};
   const weeklyReport = data?.weeklyReport ?? {};
+  const reviewDropSignal = data?.savedListing?.reviewDropSignal ?? null;
   const missing = Array.isArray(diagnosis?.missing) ? diagnosis.missing : [];
   const missingPhotos = Number.isFinite(data?.photoAnalysis?.missingPhotos)
     ? Number(data.photoAnalysis.missingPhotos)
@@ -686,6 +687,10 @@ function getDiagnosisContext(data) {
     missing.includes("website") ||
     missing.includes("phone") ||
     (Number.isFinite(diagnosis?.score) && diagnosis.score < 80);
+  const reviewDropCount = Number.isFinite(reviewDropSignal?.dropCount)
+    ? Number(reviewDropSignal.dropCount)
+    : null;
+  const materialReviewDrop = reviewDropSignal?.visible === true && Number.isFinite(reviewDropCount);
 
   let competitiveGapStatus = "tracking";
   if (Number.isFinite(totalDiff)) {
@@ -706,6 +711,9 @@ function getDiagnosisContext(data) {
   if (Number.isFinite(totalDiff) && totalDiff < 0) {
     riskPoints += Math.abs(totalDiff) >= 200 ? 2 : 1;
   }
+  if (materialReviewDrop) {
+    riskPoints += reviewDropCount >= 5 ? 3 : 2;
+  }
   if (Number.isFinite(deltaDiff) && deltaDiff < 0) riskPoints += 1;
   if (Number.isFinite(weeklyGainDiff) && weeklyGainDiff < 0) riskPoints += 1;
 
@@ -714,6 +722,7 @@ function getDiagnosisContext(data) {
 
   let primaryPriority = "maintain_strengths";
   if (foundationNeedsWork) primaryPriority = "foundation";
+  else if (materialReviewDrop) primaryPriority = "customer_choice";
   else if (competitiveGapStatus === "behind") primaryPriority = "competitive_gap";
   else if (customerChoiceRisk !== "low" || (Number.isFinite(missingPhotos) && missingPhotos > 0)) {
     primaryPriority = "customer_choice";
@@ -729,6 +738,9 @@ function getDiagnosisContext(data) {
     deltaDiff,
     weeklyGainDiff,
     competitorName,
+    reviewDropSignal,
+    reviewDropCount,
+    materialReviewDrop,
     foundationStatus: foundationNeedsWork ? "needs_work" : "in_place",
     competitiveGapStatus,
     customerChoiceRisk,
@@ -770,6 +782,12 @@ function buildCustomerChoiceCopy(context) {
   if (context.primaryPriority === "foundation") {
     return sentence(
       "Customers may hesitate before any deeper comparison because key details still feel incomplete or less trustworthy."
+    );
+  }
+
+  if (context.materialReviewDrop) {
+    return sentence(
+      `Review count dropped by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
     );
   }
 
@@ -817,6 +835,13 @@ function buildPrimaryActions(context) {
   }
 
   if (context.primaryPriority === "customer_choice") {
+    if (context.materialReviewDrop) {
+      actions.push("Confirm whether the review count drop persists on the next saved check.");
+      actions.push("Keep review request flow steady to rebuild visible proof.");
+      actions.push(`Re-check against ${context.competitorName} to see whether the gap changed.`);
+      return uniqueStrings(actions).slice(0, 3);
+    }
+
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
       actions.push("Improve photo coverage and other first-impression proof.");
     }
@@ -876,6 +901,15 @@ function buildDiagnosisFirstView(data) {
       "The immediate job is staying credible and easy to choose, not optimizing for a score.",
       "Once the basics are in place, the competitor view becomes more useful."
     ];
+  } else if (context.materialReviewDrop) {
+    headline = "Visible trust dropped since the last saved check.";
+    summaryLines = [
+      `Your review count is down by ${context.reviewDropCount} since the last saved check.`,
+      Number.isFinite(context.totalDiff) && context.totalDiff < 0
+        ? buildCompetitiveDetail(context)
+        : "A sudden review drop can make the listing feel less established in a quick comparison.",
+      "Confirm whether the drop persists and re-check the same competitor."
+    ];
   } else if (context.primaryPriority === "competitive_gap") {
     headline = "The profile basics are solid, but the side-by-side comparison is still weak.";
     summaryLines = [
@@ -907,11 +941,12 @@ function buildDiagnosisFirstView(data) {
     },
     {
       label: "Customer choice",
-      value:
-        context.customerChoiceRisk.charAt(0).toUpperCase() +
-        context.customerChoiceRisk.slice(1),
+      value: context.materialReviewDrop
+        ? "Trust dropped"
+        : context.customerChoiceRisk.charAt(0).toUpperCase() +
+          context.customerChoiceRisk.slice(1),
       tone:
-        context.customerChoiceRisk === "high"
+        context.materialReviewDrop || context.customerChoiceRisk === "high"
           ? "warning"
           : context.customerChoiceRisk === "medium"
             ? "accent"
@@ -1646,6 +1681,38 @@ function buildSavedListingMilestoneBlock(progress) {
   return milestoneBlock;
 }
 
+function buildSavedListingRevisitBlock(signal) {
+  if (!signal?.visible) return null;
+
+  const revisitBlock = document.createElement("div");
+  revisitBlock.className = `saved__revisit saved__revisit--${escapeAttr(signal?.tone || "warning")}`;
+
+  const label = document.createElement("div");
+  label.className = "saved__revisit-label";
+  label.textContent = "Revisit reason";
+
+  const main = document.createElement("div");
+  main.className = "saved__revisit-main";
+  main.textContent = signal?.reason || "Review count dropped since the last check";
+
+  const support = document.createElement("div");
+  support.className = "saved__revisit-support";
+  support.textContent = signal?.customerImpact || "Visible trust may be weaker than before.";
+
+  const nextCheck = document.createElement("div");
+  nextCheck.className = "saved__revisit-note";
+  nextCheck.textContent = signal?.nextCheck
+    ? `Next check: ${signal.nextCheck}`
+    : "Next check: confirm whether the drop persists.";
+
+  revisitBlock.appendChild(label);
+  revisitBlock.appendChild(main);
+  revisitBlock.appendChild(support);
+  revisitBlock.appendChild(nextCheck);
+
+  return revisitBlock;
+}
+
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
 
@@ -1725,6 +1792,8 @@ function renderSavedListings(listings) {
     content.appendChild(meta);
     if (statusBlock) content.appendChild(statusBlock);
     if (competitorBlock) content.appendChild(competitorBlock);
+    const revisitBlock = buildSavedListingRevisitBlock(item?.reviewDropSignal);
+    if (revisitBlock) content.appendChild(revisitBlock);
     const milestoneBlock = buildSavedListingMilestoneBlock(item?.ratingMilestoneProgress);
     if (milestoneBlock) content.appendChild(milestoneBlock);
     content.appendChild(changeSummary);

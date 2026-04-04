@@ -53,7 +53,12 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
   if (!record) return null;
 
   const changeSummary = buildSavedListingChangeSummary(record);
-  const statusSummary = buildSavedListingStatusSummary(record, changeSummary);
+  const reviewDropSignal = buildReviewDropSignal(record);
+  const statusSummary = buildSavedListingStatusSummary(
+    record,
+    changeSummary,
+    reviewDropSignal
+  );
   const ratingMilestoneProgress = buildRatingMilestoneProgress(record);
 
   const view = {
@@ -75,6 +80,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
     lastCheckedAt: record.lastCheckedAt ?? record.latestMetrics?.capturedAt ?? null,
     changeSummary,
     statusSummary,
+    reviewDropSignal,
     ratingMilestoneProgress,
   };
 
@@ -146,6 +152,7 @@ function formatSummaryDate(value) {
 
 const RATING_MILESTONE_NOTE =
   "Estimate based on current displayed rating and total reviews";
+const REVIEW_DROP_ALERT_MIN = 2;
 
 function toSingleDecimal(value) {
   if (!Number.isFinite(value)) return null;
@@ -269,6 +276,35 @@ export function buildRatingMilestoneProgress(record) {
   };
 }
 
+export function buildReviewDropSignal(record) {
+  const latest = record?.latestMetrics ?? null;
+  const previous = hasPreviousSavedMetrics(record) ? record?.previousMetrics ?? null : null;
+  const latestReviewCount = Number.isFinite(latest?.reviewCount) ? Number(latest.reviewCount) : null;
+  const previousReviewCount = Number.isFinite(previous?.reviewCount)
+    ? Number(previous.reviewCount)
+    : null;
+
+  if (!Number.isFinite(previousReviewCount) || !Number.isFinite(latestReviewCount)) {
+    return { visible: false, reason: "insufficient_history" };
+  }
+
+  const dropCount = previousReviewCount - latestReviewCount;
+  if (!Number.isFinite(dropCount) || dropCount < REVIEW_DROP_ALERT_MIN) {
+    return { visible: false, reason: "not_material" };
+  }
+
+  return {
+    visible: true,
+    tone: "warning",
+    dropCount,
+    previousReviewCount,
+    currentReviewCount: latestReviewCount,
+    reason: `Review count dropped by ${dropCount} since last check`,
+    customerImpact: "Visible trust may be weaker than the last saved check.",
+    nextCheck: "Confirm whether the drop persists and how the competitor gap changed.",
+  };
+}
+
 export function buildSavedListingChangeSummary(record) {
   const latest = record?.latestMetrics ?? null;
   const previous = record?.previousMetrics ?? latest;
@@ -330,10 +366,15 @@ function buildStatusSummary(label, tone, reason) {
   };
 }
 
-export function buildSavedListingStatusSummary(record, changeSummary = null) {
+export function buildSavedListingStatusSummary(
+  record,
+  changeSummary = null,
+  reviewDropSignal = null
+) {
   const latest = record?.latestMetrics ?? null;
   const previous = record?.previousMetrics ?? latest;
   const summary = changeSummary ?? buildSavedListingChangeSummary(record);
+  const reviewDrop = reviewDropSignal ?? buildReviewDropSignal(record);
   const missing = Array.isArray(record?.analysisMissing) ? record.analysisMissing : [];
   const ratingDelta =
     Number.isFinite(previous?.rating) && Number.isFinite(latest?.rating)
@@ -358,6 +399,10 @@ export function buildSavedListingStatusSummary(record, changeSummary = null) {
       "warning",
       `Rating ${formatSignedNumber(ratingDelta, 1)} since last check`
     );
+  }
+
+  if (reviewDrop?.visible) {
+    return buildStatusSummary("Needs attention", "warning", reviewDrop.reason);
   }
 
   if (missing.includes("website")) {

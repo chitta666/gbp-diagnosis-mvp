@@ -787,7 +787,7 @@ function buildCustomerChoiceCopy(context) {
 
   if (context.materialReviewDrop) {
     return sentence(
-      `Review count dropped by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
+      `Review count is down by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
     );
   }
 
@@ -836,7 +836,7 @@ function buildPrimaryActions(context) {
 
   if (context.primaryPriority === "customer_choice") {
     if (context.materialReviewDrop) {
-      actions.push("Confirm whether the review count drop persists on the next saved check.");
+      actions.push("Confirm whether the lower review count persists on the next saved check.");
       actions.push("Keep review request flow steady to rebuild visible proof.");
       actions.push(`Re-check against ${context.competitorName} to see whether the gap changed.`);
       return uniqueStrings(actions).slice(0, 3);
@@ -902,7 +902,7 @@ function buildDiagnosisFirstView(data) {
       "Once the basics are in place, the competitor view becomes more useful."
     ];
   } else if (context.materialReviewDrop) {
-    headline = "Visible trust dropped since the last saved check.";
+    headline = "Visible trust may have weakened since the last saved check.";
     summaryLines = [
       `Your review count is down by ${context.reviewDropCount} since the last saved check.`,
       Number.isFinite(context.totalDiff) && context.totalDiff < 0
@@ -1661,12 +1661,13 @@ function buildSavedListingMilestoneBlock(progress) {
     : null;
   main.textContent =
     estimate === null
-      ? `Estimated 5-star reviews to ${nextMilestone}`
-      : `Estimated 5-star reviews to ${nextMilestone}: ${estimate}`;
+      ? `Estimated 5-star reviews needed to reach ${nextMilestone}`
+      : `Estimated 5-star reviews needed to reach ${nextMilestone}: ${estimate}`;
 
   const support = document.createElement("div");
   support.className = "saved__milestone-support";
-  support.textContent = progress?.supportingCopy || "Tracking from your next check";
+  support.textContent =
+    progress?.supportingCopy || "We'll compare progress again after your next check";
 
   const note = document.createElement("div");
   note.className = "saved__milestone-note";
@@ -1693,11 +1694,12 @@ function buildSavedListingRevisitBlock(signal) {
 
   const main = document.createElement("div");
   main.className = "saved__revisit-main";
-  main.textContent = signal?.reason || "Review count dropped since the last check";
+  main.textContent = signal?.reason || "Review count is down since the last saved check";
 
   const support = document.createElement("div");
   support.className = "saved__revisit-support";
-  support.textContent = signal?.customerImpact || "Visible trust may be weaker than before.";
+  support.textContent =
+    signal?.customerImpact || "Visible trust may be weaker than it was before.";
 
   const nextCheck = document.createElement("div");
   nextCheck.className = "saved__revisit-note";
@@ -1777,7 +1779,7 @@ function renderSavedListings(listings) {
 
     const summaryLines = Array.isArray(item?.changeSummary?.lines)
       ? item.changeSummary.lines.slice(0, 3)
-      : ["Tracking changes from your next check"];
+      : ["We'll compare changes after your next check"];
 
     summaryLines.forEach((line) => {
       const tag = document.createElement("div");

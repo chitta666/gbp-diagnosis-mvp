@@ -234,7 +234,7 @@ export function buildRatingMilestoneProgress(record) {
   let previousEstimatedFiveStarReviewsNeeded = null;
   let deltaToPreviousEstimate = null;
   let trend = "tracking";
-  let supportingCopy = "Tracking from your next check";
+  let supportingCopy = "We'll compare progress again after your next check";
 
   if (hasPreviousSavedMetrics(record)) {
     previousEstimatedFiveStarReviewsNeeded = estimateReviewsNeededForMilestone({
@@ -299,9 +299,9 @@ export function buildReviewDropSignal(record) {
     dropCount,
     previousReviewCount,
     currentReviewCount: latestReviewCount,
-    reason: `Review count dropped by ${dropCount} since last check`,
-    customerImpact: "Visible trust may be weaker than the last saved check.",
-    nextCheck: "Confirm whether the drop persists and how the competitor gap changed.",
+    reason: `Review count is down by ${dropCount} since the last saved check`,
+    customerImpact: "Visible trust may be weaker than it was at the last saved check.",
+    nextCheck: "Confirm whether the drop persists and whether the competitor gap changed.",
   };
 }
 
@@ -314,7 +314,7 @@ export function buildSavedListingChangeSummary(record) {
     return {
       status: "pending",
       hasChange: false,
-      lines: ["Tracking changes from your next check"],
+      lines: ["We'll compare changes after your next check"],
     };
   }
 

@@ -484,6 +484,14 @@ function clearReviewDisputeOutputs() {
   if (reviewDisputePublicResponseEl) reviewDisputePublicResponseEl.value = "";
 }
 
+function resetReviewDisputeForm() {
+  if (reviewDisputeFormEl) reviewDisputeFormEl.reset();
+  if (reviewDisputeBusinessNameEl) reviewDisputeBusinessNameEl.value = "";
+  if (reviewDisputeDesiredHelpEl) {
+    reviewDisputeDesiredHelpEl.value = "Guidance on how to present this clearly";
+  }
+}
+
 function renderReviewSupportCta(result) {
   if (!reviewSupportCtaEl) return;
 
@@ -637,6 +645,7 @@ function resetUI() {
   const photoAdviceEl = document.getElementById("photoAdviceList");
   if (photoAdviceEl) photoAdviceEl.innerHTML = "";
   closeReviewDisputeAssistant();
+  resetReviewDisputeForm();
   clearReviewDisputeOutputs();
 }
 

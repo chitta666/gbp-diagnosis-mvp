@@ -99,6 +99,16 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
       <ul id="weeklyReportList" class="list"></ul>
     </div>
 
+    <div id="reviewSupportCta" class="section review-support-cta hidden">
+      <h2 class="section__title">Review Support</h2>
+      <div id="reviewSupportCtaCopy" class="review-support-cta__copy muted">
+        Organize a suspicious review and generate calm, factual draft text before you escalate.
+      </div>
+      <button id="openReviewDisputeAssistantBtn" class="btn" type="button">
+        Open Review Dispute Assistant
+      </button>
+    </div>
+
     <div class="section">
       <h2 class="section__title">Photo Comparison</h2>
       <ul id="photoCompare" class="list"></ul>
@@ -134,6 +144,137 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
         <div class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
       </div>
       <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
+    </div>
+  </div>
+
+  <div id="reviewDisputeAssistant" class="assistant-modal hidden" aria-hidden="true">
+    <div id="reviewDisputeBackdrop" class="assistant-modal__backdrop"></div>
+    <div class="assistant-modal__panel" role="dialog" aria-modal="true" aria-labelledby="reviewDisputeTitle">
+      <div class="assistant-modal__header">
+        <div>
+          <div class="assistant-modal__eyebrow">Review support utility</div>
+          <h2 id="reviewDisputeTitle" class="section__title">Review Dispute Assistant</h2>
+          <div class="assistant-modal__intro muted">
+            Keep your explanation short, factual, and calm. This tool does not guarantee review removal.
+          </div>
+        </div>
+        <button id="closeReviewDisputeAssistantBtn" class="btn assistant-modal__close" type="button">
+          Close
+        </button>
+      </div>
+
+      <div id="reviewDisputeMsg" class="muted"></div>
+
+      <form id="reviewDisputeForm" class="assistant-form">
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Review snapshot</h3>
+          <div class="assistant-grid">
+            <label class="assistant-field">
+              <span>Business name</span>
+              <input id="reviewDisputeBusinessName" class="input" type="text" placeholder="Example Dental" />
+            </label>
+            <label class="assistant-field">
+              <span>Reviewer name</span>
+              <input id="reviewDisputeReviewerName" class="input" type="text" placeholder="Optional" />
+            </label>
+            <label class="assistant-field">
+              <span>Review date</span>
+              <input id="reviewDisputeReviewDate" class="input" type="date" />
+            </label>
+            <label class="assistant-field">
+              <span>Star rating</span>
+              <input id="reviewDisputeReviewRating" class="input" type="number" min="1" max="5" step="1" placeholder="1-5" />
+            </label>
+            <label class="assistant-field">
+              <span>Business launch date</span>
+              <input id="reviewDisputeBusinessLaunchDate" class="input" type="date" />
+            </label>
+            <label class="assistant-field">
+              <span>Service launch date</span>
+              <input id="reviewDisputeServiceLaunchDate" class="input" type="date" />
+            </label>
+          </div>
+          <label class="assistant-field">
+            <span>Review text</span>
+            <textarea id="reviewDisputeReviewText" class="input assistant-textarea" rows="5" placeholder="Paste the suspicious review text here"></textarea>
+          </label>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Possible issue type</h3>
+          <div class="assistant-checklist assistant-checklist--compact">
+            <label><input type="checkbox" name="reviewDisputeCategory" value="not_a_real_customer" /> Not a real customer</label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="conflict_of_interest" /> Conflict of interest</label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="harassment_or_abuse" /> Harassment or abuse</label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="factually_impossible_claim" /> Factually impossible claim</label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="off_topic_or_irrelevant" /> Off-topic or irrelevant</label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="other" /> Other</label>
+          </div>
+          <div class="muted assistant-note">Try to keep this to 1-2 issue types.</div>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Evidence checklist</h3>
+          <div class="assistant-checklist">
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="crm_no_customer_record" /> Reviewer is not found in CRM</label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="no_transaction_record" /> No transaction record exists</label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="service_not_launched_yet" /> Service was not launched yet</label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="timeline_documented" /> Relevant timeline is documented</label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="supporting_screenshots_ready" /> Supporting screenshots are ready</label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="only_relevant_evidence_selected" /> Only directly relevant evidence is included</label>
+          </div>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Actions already taken</h3>
+          <div class="assistant-checklist assistant-checklist--compact">
+            <label><input type="checkbox" name="reviewDisputeAction" value="flagged_in_gbp" /> Flagged in GBP</label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_removal_request" /> Submitted removal request</label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_appeal" /> Submitted appeal</label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="posted_help_community" /> Posted to Help Community</label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="drafting_public_reply" /> Drafting a public reply</label>
+          </div>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Desired help</h3>
+          <label class="assistant-field">
+            <span>What guidance are you looking for?</span>
+            <textarea id="reviewDisputeDesiredHelp" class="input assistant-textarea" rows="3" placeholder="Optional"></textarea>
+          </label>
+        </div>
+
+        <div class="assistant-actions">
+          <button id="reviewDisputeGenerateBtn" class="btn btn--primary" type="submit">
+            Generate drafts
+          </button>
+          <div class="muted assistant-note">
+            Avoid unnecessary accusations. Mention only what you can confirm directly.
+          </div>
+        </div>
+      </form>
+
+      <div class="assistant-output">
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Guidance</h3>
+          <ul id="reviewDisputeGuidance" class="list"></ul>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Removal summary</h3>
+          <textarea id="reviewDisputeSummary" class="input assistant-output__text" rows="7" readonly></textarea>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Community post</h3>
+          <textarea id="reviewDisputeCommunity" class="input assistant-output__text" rows="9" readonly></textarea>
+        </div>
+
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">Public response</h3>
+          <textarea id="reviewDisputePublicResponse" class="input assistant-output__text" rows="7" readonly></textarea>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -174,6 +315,27 @@ const reportDateEl = document.getElementById("reportDate");
 const historyEl = document.getElementById("history");
 const clearHistoryBtn = document.getElementById("clearHistory");
 const weeklyReportListEl = document.getElementById("weeklyReportList");
+const reviewSupportCtaEl = document.getElementById("reviewSupportCta");
+const reviewSupportCtaCopyEl = document.getElementById("reviewSupportCtaCopy");
+const openReviewDisputeAssistantBtn = document.getElementById("openReviewDisputeAssistantBtn");
+const reviewDisputeAssistantEl = document.getElementById("reviewDisputeAssistant");
+const reviewDisputeBackdropEl = document.getElementById("reviewDisputeBackdrop");
+const closeReviewDisputeAssistantBtn = document.getElementById("closeReviewDisputeAssistantBtn");
+const reviewDisputeFormEl = document.getElementById("reviewDisputeForm");
+const reviewDisputeMsgEl = document.getElementById("reviewDisputeMsg");
+const reviewDisputeBusinessNameEl = document.getElementById("reviewDisputeBusinessName");
+const reviewDisputeReviewerNameEl = document.getElementById("reviewDisputeReviewerName");
+const reviewDisputeReviewDateEl = document.getElementById("reviewDisputeReviewDate");
+const reviewDisputeReviewRatingEl = document.getElementById("reviewDisputeReviewRating");
+const reviewDisputeBusinessLaunchDateEl = document.getElementById("reviewDisputeBusinessLaunchDate");
+const reviewDisputeServiceLaunchDateEl = document.getElementById("reviewDisputeServiceLaunchDate");
+const reviewDisputeReviewTextEl = document.getElementById("reviewDisputeReviewText");
+const reviewDisputeDesiredHelpEl = document.getElementById("reviewDisputeDesiredHelp");
+const reviewDisputeGenerateBtn = document.getElementById("reviewDisputeGenerateBtn");
+const reviewDisputeGuidanceEl = document.getElementById("reviewDisputeGuidance");
+const reviewDisputeSummaryEl = document.getElementById("reviewDisputeSummary");
+const reviewDisputeCommunityEl = document.getElementById("reviewDisputeCommunity");
+const reviewDisputePublicResponseEl = document.getElementById("reviewDisputePublicResponse");
 
 const HISTORY_KEY = "gbp_history_v2";
 const HISTORY_MAX = 10;
@@ -307,6 +469,131 @@ async function fetchApiJson(url, options = {}) {
   return data;
 }
 
+function setReviewDisputeMessage(text = "", isError = false) {
+  if (!reviewDisputeMsgEl) return;
+  reviewDisputeMsgEl.textContent = text;
+  reviewDisputeMsgEl.classList.toggle("error", Boolean(isError));
+}
+
+function clearReviewDisputeOutputs() {
+  if (reviewDisputeGuidanceEl) {
+    reviewDisputeGuidanceEl.innerHTML = "<li>No draft generated yet.</li>";
+  }
+  if (reviewDisputeSummaryEl) reviewDisputeSummaryEl.value = "";
+  if (reviewDisputeCommunityEl) reviewDisputeCommunityEl.value = "";
+  if (reviewDisputePublicResponseEl) reviewDisputePublicResponseEl.value = "";
+}
+
+function renderReviewSupportCta(result) {
+  if (!reviewSupportCtaEl) return;
+
+  if (!result) {
+    reviewSupportCtaEl.classList.add("hidden");
+    return;
+  }
+
+  const reviewDropVisible = result?.savedListing?.reviewDropSignal?.visible === true;
+  reviewSupportCtaEl.classList.remove("hidden");
+
+  if (reviewSupportCtaCopyEl) {
+    reviewSupportCtaCopyEl.textContent = reviewDropVisible
+      ? "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate."
+      : "Organize a suspicious review and generate calm, factual draft text before you escalate.";
+  }
+}
+
+function prefillReviewDisputeAssistant(result) {
+  const businessName =
+    result?.details?.name ||
+    result?.savedListing?.name ||
+    input?.value?.trim() ||
+    "";
+
+  if (reviewDisputeBusinessNameEl && businessName && !reviewDisputeBusinessNameEl.value.trim()) {
+    reviewDisputeBusinessNameEl.value = businessName;
+  }
+
+  if (reviewDisputeDesiredHelpEl && !reviewDisputeDesiredHelpEl.value.trim()) {
+    reviewDisputeDesiredHelpEl.value = "Guidance on how to present this clearly";
+  }
+}
+
+function openReviewDisputeAssistant() {
+  if (!reviewDisputeAssistantEl) return;
+  prefillReviewDisputeAssistant(currentResult);
+  reviewDisputeAssistantEl.classList.remove("hidden");
+  reviewDisputeAssistantEl.setAttribute("aria-hidden", "false");
+  document.body.classList.add("assistant-open");
+  clearReviewDisputeOutputs();
+  setReviewDisputeMessage("");
+  if (reviewDisputeReviewTextEl && !reviewDisputeReviewTextEl.value.trim()) {
+    reviewDisputeReviewTextEl.focus();
+  }
+}
+
+function closeReviewDisputeAssistant() {
+  if (!reviewDisputeAssistantEl) return;
+  reviewDisputeAssistantEl.classList.add("hidden");
+  reviewDisputeAssistantEl.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("assistant-open");
+  setReviewDisputeMessage("");
+}
+
+function checkedValues(name) {
+  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`))
+    .map((inputEl) => inputEl.value)
+    .filter(Boolean);
+}
+
+function collectReviewDisputeInput() {
+  const parseOptionalInt = (value) => {
+    const raw = String(value ?? "").trim();
+    if (!raw) return null;
+    const n = Number(value);
+    return Number.isInteger(n) ? n : null;
+  };
+
+  const evidenceKeys = Array.from(
+    document.querySelectorAll('input[name="reviewDisputeEvidence"]')
+  ).map((inputEl) => ({
+    key: inputEl.value,
+    checked: inputEl.checked,
+  }));
+
+  return {
+    businessName: reviewDisputeBusinessNameEl?.value?.trim() || "",
+    reviewerName: reviewDisputeReviewerNameEl?.value?.trim() || "",
+    reviewDate: reviewDisputeReviewDateEl?.value || "",
+    reviewRating: parseOptionalInt(reviewDisputeReviewRatingEl?.value),
+    businessLaunchDate: reviewDisputeBusinessLaunchDateEl?.value || "",
+    serviceLaunchDate: reviewDisputeServiceLaunchDateEl?.value || "",
+    reviewText: reviewDisputeReviewTextEl?.value?.trim() || "",
+    suspectedCategories: checkedValues("reviewDisputeCategory"),
+    evidenceItems: evidenceKeys,
+    actionsTaken: checkedValues("reviewDisputeAction"),
+    desiredHelp: reviewDisputeDesiredHelpEl?.value?.trim() || "",
+  };
+}
+
+function renderReviewDisputeDrafts(payload) {
+  if (reviewDisputeSummaryEl) reviewDisputeSummaryEl.value = payload?.summary || "";
+  if (reviewDisputeCommunityEl) reviewDisputeCommunityEl.value = payload?.communityPost || "";
+  if (reviewDisputePublicResponseEl) {
+    reviewDisputePublicResponseEl.value = payload?.publicResponse || "";
+  }
+
+  if (reviewDisputeGuidanceEl) {
+    const guidance = Array.isArray(payload?.guidance) ? payload.guidance : [];
+    reviewDisputeGuidanceEl.innerHTML = "";
+
+    if (!guidance.length) {
+      reviewDisputeGuidanceEl.innerHTML = "<li>No additional guidance right now.</li>";
+    } else {
+      guidance.forEach((line) => appendListRow(reviewDisputeGuidanceEl, "", line));
+    }
+  }
+}
+
 function resetUI() {
   currentResult = null;
   competitorChooserOpen = false;
@@ -344,10 +631,13 @@ function resetUI() {
     resetCompetitorBtn.disabled = false;
   }
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
+  if (reviewSupportCtaEl) reviewSupportCtaEl.classList.add("hidden");
   const photoCompareEl = document.getElementById("photoCompare");
   if (photoCompareEl) photoCompareEl.innerHTML = "";
   const photoAdviceEl = document.getElementById("photoAdviceList");
   if (photoAdviceEl) photoAdviceEl.innerHTML = "";
+  closeReviewDisputeAssistant();
+  clearReviewDisputeOutputs();
 }
 
 function hideCard() {
@@ -414,6 +704,7 @@ function showError(message) {
   if (weeklyReportListEl) {
     weeklyReportListEl.innerHTML = `<li>${escapeHtml(message)}</li>`;
   }
+  if (reviewSupportCtaEl) reviewSupportCtaEl.classList.add("hidden");
 }
 
 // ===== compare =====
@@ -423,6 +714,16 @@ async function fetchCompare(myPlaceId) {
 
 async function fetchWeeklyReport(myPlaceId) {
   return fetchApiJson(`/api/weekly-report?my=${encodeURIComponent(myPlaceId)}`);
+}
+
+async function fetchReviewDisputeDraft(payload) {
+  return fetchApiJson("/api/review-dispute-draft", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 }
 
 async function setCompetitor(myPlaceId, competitorPlaceId) {
@@ -1499,6 +1800,7 @@ async function showResult(data, options = {}) {
   currentResult = hydrated;
   renderInsight(hydrated);
   renderCompetitorControls(hydrated);
+  renderReviewSupportCta(hydrated);
   if (saveListingBtn) saveListingBtn.disabled = false;
 
   return hydrated;
@@ -2044,6 +2346,52 @@ if (loadSavedBtn) {
   });
 }
 
+if (openReviewDisputeAssistantBtn) {
+  openReviewDisputeAssistantBtn.addEventListener("click", () => {
+    openReviewDisputeAssistant();
+  });
+}
+
+if (closeReviewDisputeAssistantBtn) {
+  closeReviewDisputeAssistantBtn.addEventListener("click", () => {
+    closeReviewDisputeAssistant();
+  });
+}
+
+if (reviewDisputeBackdropEl) {
+  reviewDisputeBackdropEl.addEventListener("click", () => {
+    closeReviewDisputeAssistant();
+  });
+}
+
+if (reviewDisputeFormEl) {
+  reviewDisputeFormEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = collectReviewDisputeInput();
+    if (!payload.reviewText) {
+      setReviewDisputeMessage("Paste the suspicious review text before generating drafts.", true);
+      return;
+    }
+
+    try {
+      setReviewDisputeMessage("Generating drafts...");
+      if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.disabled = true;
+      const response = await fetchReviewDisputeDraft(payload);
+      if (!response?.ok) {
+        throw new Error(getApiMessage(response, "Could not generate review dispute drafts."));
+      }
+
+      renderReviewDisputeDrafts(response);
+      setReviewDisputeMessage("Drafts generated.");
+    } catch (error) {
+      setReviewDisputeMessage(error?.message || String(error), true);
+    } finally {
+      if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.disabled = false;
+    }
+  });
+}
+
 if (saveListingBtn) {
   saveListingBtn.addEventListener("click", async () => {
     try {
@@ -2183,6 +2531,12 @@ if (clearHistoryBtn) {
     setUrlSavedParam(null);
   });
 }
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && reviewDisputeAssistantEl && !reviewDisputeAssistantEl.classList.contains("hidden")) {
+    closeReviewDisputeAssistant();
+  }
+});
 
 btn.addEventListener("click", async () => {
   resetUI();

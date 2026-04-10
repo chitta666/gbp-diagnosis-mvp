@@ -1,5 +1,33 @@
 import { fetchJson, clamp } from "./utils.js";
 
+function toRadians(value) {
+  return (Number(value) * Math.PI) / 180;
+}
+
+function calcDistanceMeters({ fromLat, fromLng, toLat, toLng }) {
+  if (
+    !Number.isFinite(fromLat) ||
+    !Number.isFinite(fromLng) ||
+    !Number.isFinite(toLat) ||
+    !Number.isFinite(toLng)
+  ) {
+    return null;
+  }
+
+  const earthRadiusMeters = 6371000;
+  const dLat = toRadians(toLat - fromLat);
+  const dLng = toRadians(toLng - fromLng);
+  const lat1 = toRadians(fromLat);
+  const lat2 = toRadians(toLat);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return Math.round(earthRadiusMeters * c);
+}
+
 export async function fetchCompetitors({ key, lat, lng, radius = 800, type = "restaurant" }) {
   const u =
     "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
@@ -15,15 +43,34 @@ export async function fetchCompetitors({ key, lat, lng, radius = 800, type = "re
     return { status: res.status, error_message: res.error_message ?? null, results: [] };
   }
 
-  const results = (res.results ?? []).slice(0, 10).map((p) => ({
-    place_id: p.place_id,
-    name: p.name,
-    rating: p.rating ?? null,
-    user_ratings_total: p.user_ratings_total ?? 0,
-    vicinity: p.vicinity ?? null,
-    price_level: p.price_level ?? null,
-    types: p.types ?? [],
-  }));
+  const results = (res.results ?? [])
+    .map((p) => {
+      const candidateLat = Number(p?.geometry?.location?.lat);
+      const candidateLng = Number(p?.geometry?.location?.lng);
+
+      return {
+        place_id: p.place_id,
+        name: p.name,
+        rating: p.rating ?? null,
+        user_ratings_total: p.user_ratings_total ?? 0,
+        vicinity: p.vicinity ?? null,
+        price_level: p.price_level ?? null,
+        types: p.types ?? [],
+        geometry: p.geometry ?? null,
+        distance_meters: calcDistanceMeters({
+          fromLat: lat,
+          fromLng: lng,
+          toLat: candidateLat,
+          toLng: candidateLng,
+        }),
+      };
+    })
+    .sort((a, b) => {
+      const distanceA = Number.isFinite(a?.distance_meters) ? a.distance_meters : Number.MAX_SAFE_INTEGER;
+      const distanceB = Number.isFinite(b?.distance_meters) ? b.distance_meters : Number.MAX_SAFE_INTEGER;
+      return distanceA - distanceB || (b.user_ratings_total || 0) - (a.user_ratings_total || 0);
+    })
+    .slice(0, 10);
 
   return { status: res.status, results };
 }

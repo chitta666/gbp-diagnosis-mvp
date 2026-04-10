@@ -7,57 +7,6 @@ import { fetchPlaceDetails } from "./place.js";
 import { fetchCompetitorsAutoRadius } from "./competitors.js";
 import { buildDiagnosis } from "./diagnosis.js";
 
-const GENERIC_TYPES = new Set([
-  "establishment",
-  "point_of_interest",
-  "food",
-  "store",
-]);
-
-const TYPE_FAMILIES = new Map([
-  ["bakery", "food"],
-  ["bar", "food"],
-  ["brunch_restaurant", "food"],
-  ["breakfast_restaurant", "food"],
-  ["cafe", "food"],
-  ["coffee_shop", "food"],
-  ["fast_food_restaurant", "food"],
-  ["ice_cream_shop", "food"],
-  ["meal_delivery", "food"],
-  ["meal_takeaway", "food"],
-  ["pizza_restaurant", "food"],
-  ["restaurant", "food"],
-  ["sandwich_shop", "food"],
-  ["lodging", "lodging"],
-  ["hotel", "lodging"],
-  ["hostel", "lodging"],
-  ["motel", "lodging"],
-  ["resort_hotel", "lodging"],
-  ["extended_stay_hotel", "lodging"],
-  ["bed_and_breakfast", "lodging"],
-  ["gym", "fitness"],
-  ["beauty_salon", "beauty"],
-  ["hair_care", "beauty"],
-  ["spa", "beauty"],
-  ["clothing_store", "shopping"],
-  ["convenience_store", "shopping"],
-  ["department_store", "shopping"],
-  ["electronics_store", "shopping"],
-  ["furniture_store", "shopping"],
-  ["grocery_store", "shopping"],
-  ["home_goods_store", "shopping"],
-  ["shopping_mall", "shopping"],
-  ["supermarket", "shopping"],
-  ["bank", "finance"],
-  ["atm", "finance"],
-  ["doctor", "health"],
-  ["dentist", "health"],
-  ["hospital", "health"],
-  ["pharmacy", "health"],
-  ["school", "education"],
-  ["university", "education"],
-]);
-
 export async function resolvePlaceIdFromQuery({ key, q }) {
   try {
     const findUrl =
@@ -129,81 +78,12 @@ function calcCompetitorPhotoAvg(competitors) {
   return Math.round(sum / nums.length);
 }
 
-function specificTypes(types) {
-  return (Array.isArray(types) ? types : []).filter((type) => !GENERIC_TYPES.has(type));
-}
-
-function typeFamilies(types) {
-  return new Set(
-    specificTypes(types)
-      .map((type) => TYPE_FAMILIES.get(type))
-      .filter(Boolean)
-  );
-}
-
-function sharedCount(a, b) {
-  const bSet = new Set(b);
-  return a.filter((value) => bSet.has(value)).length;
-}
-
-function scoreCompetitorMatch({ myTypes, competitor, index }) {
-  const candidateTypes = specificTypes(competitor?.types);
-  const sharedTypes = sharedCount(myTypes, candidateTypes);
-  const myPrimary = myTypes[0] ?? null;
-  const candidatePrimary = candidateTypes[0] ?? null;
-  const myFamilies = typeFamilies(myTypes);
-  const candidateFamilies = typeFamilies(candidateTypes);
-  const sharedFamilies = [...myFamilies].filter((family) => candidateFamilies.has(family));
-
-  let score = 0;
-
-  if (myPrimary && candidatePrimary && myPrimary === candidatePrimary) {
-    score += 120;
-  }
-
-  score += sharedTypes * 30;
-  score += sharedFamilies.length * 18;
-
-  if (myFamilies.has("food") && candidateFamilies.has("lodging")) {
-    score -= 140;
-  }
-
-  if (myFamilies.has("lodging") && candidateFamilies.has("food")) {
-    score -= 140;
-  }
-
-  if (myFamilies.size && candidateFamilies.size && !sharedFamilies.length) {
-    score -= 25;
-  }
-
-  score += Math.min(Number(competitor?.user_ratings_total) || 0, 500) / 100;
-  score -= index * 0.2;
-
-  return score;
-}
-
-function pickBestDefaultCompetitor({ details, competitors }) {
+function pickNearestDefaultCompetitor({ competitors }) {
   const list = Array.isArray(competitors?.results) ? competitors.results : [];
   if (!list.length) return null;
 
-  const myTypes = specificTypes(details?.types);
-  if (!myTypes.length) {
-    return list[0]?.place_id ?? null;
-  }
-
-  const scored = list
-    .map((item, index) => ({
-      item,
-      index,
-      score: scoreCompetitorMatch({
-        myTypes,
-        competitor: item,
-        index,
-      }),
-    }))
-    .sort((a, b) => b.score - a.score || a.index - b.index);
-
-  return scored[0]?.item?.place_id ?? list[0]?.place_id ?? null;
+  const nearest = list.find((item) => item?.place_id && Number.isFinite(item?.distance_meters));
+  return nearest?.place_id ?? list[0]?.place_id ?? null;
 }
 
 function buildPhotoAdvice(myPhotos, competitorPhotoAvg) {
@@ -350,8 +230,7 @@ export async function buildListingReport({ key, placeId }) {
       missingPhotos,
     },
     photoAdvice,
-    defaultCompetitorPlaceId: pickBestDefaultCompetitor({
-      details,
+    defaultCompetitorPlaceId: pickNearestDefaultCompetitor({
       competitors: enrichedCompetitors,
     }),
   };

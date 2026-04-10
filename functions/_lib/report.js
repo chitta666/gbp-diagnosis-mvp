@@ -6,6 +6,7 @@ import {
 import { fetchPlaceDetails } from "./place.js";
 import { fetchCompetitorsAutoRadius } from "./competitors.js";
 import { buildDiagnosis } from "./diagnosis.js";
+import { buildReviewClues } from "./reviewClues.js";
 
 export async function resolvePlaceIdFromQuery({ key, q }) {
   try {
@@ -202,6 +203,15 @@ export async function buildListingReport({ key, placeId }) {
     competitorPhotoAvg != null ? Math.max(competitorPhotoAvg - myPhotos, 0) : null;
 
   const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg);
+  const reviewClues = buildReviewClues({
+    reviews: details.reviews,
+    details,
+    photoAnalysis: {
+      myPhotos,
+      competitorPhotoAvg,
+      missingPhotos,
+    },
+  });
   const publicDetails = {
     ok: true,
     place_id: details.place_id,
@@ -216,6 +226,7 @@ export async function buildListingReport({ key, placeId }) {
     user_ratings_total: details.user_ratings_total,
     geometry: details.geometry,
     types: details.types,
+    reviews: Array.isArray(details.reviews) ? details.reviews : [],
   };
 
   return {
@@ -230,6 +241,7 @@ export async function buildListingReport({ key, placeId }) {
       missingPhotos,
     },
     photoAdvice,
+    reviewClues,
     defaultCompetitorPlaceId: pickNearestDefaultCompetitor({
       competitors: enrichedCompetitors,
     }),

@@ -1062,6 +1062,16 @@ function sentence(text) {
   return String(text || "").trim().replace(/\s+/g, " ");
 }
 
+function humanJoin(values) {
+  const items = uniqueStrings(
+    (Array.isArray(values) ? values : []).map((value) => sentence(value))
+  );
+  if (!items.length) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
 function buildCompetitiveDetail(context) {
   if (Number.isFinite(context.totalDiff) && context.totalDiff < 0) {
     return sentence(
@@ -1116,6 +1126,49 @@ function buildCustomerChoiceCopy(context) {
   return sentence(
     "Customers already have enough visible proof to feel comfortable choosing this listing. The job now is keeping that confidence visible."
   );
+}
+
+function buildCustomerChoiceView(data) {
+  const context = getDiagnosisContext(data);
+  const reviewClues = data?.reviewClues ?? null;
+  const actions = buildPrimaryActions(context);
+
+  if (reviewClues?.summary && Number.isFinite(reviewClues?.reviewCountInSample)) {
+    const bullets = [];
+    const strengths = humanJoin(reviewClues.strengths);
+    const frictions = humanJoin(reviewClues.frictions);
+    const blindSpots = Array.isArray(reviewClues.blindSpots) ? reviewClues.blindSpots : [];
+
+    if (strengths) {
+      bullets.push(`Recent positive reviews often mention ${strengths}.`);
+    }
+    if (frictions) {
+      bullets.push(`Some recent lower reviews mention ${frictions}.`);
+    }
+    blindSpots.forEach((item) => bullets.push(sentence(item)));
+
+    return {
+      summary: sentence(reviewClues.summary),
+      bullets: uniqueStrings(bullets).slice(0, 3),
+      priorityAction: sentence(
+        reviewClues.priorityAction ||
+          actions[0] ||
+          "Keep the strongest trust signals easier to notice before a visit."
+      ),
+      note: `Based on ${reviewClues.reviewCountInSample} recent visible review${
+        reviewClues.reviewCountInSample === 1 ? "" : "s"
+      }.`,
+    };
+  }
+
+  return {
+    summary: buildCustomerChoiceCopy(context),
+    bullets: [],
+    priorityAction: sentence(
+      actions[0] || "Keep the strongest trust signals easier to notice before a visit."
+    ),
+    note: "Review-based clues will appear here when recent visible review text is available.",
+  };
 }
 
 function buildPrimaryActions(context) {
@@ -1294,7 +1347,7 @@ function buildDiagnosisFirstView(data) {
     meta: competitorMeta,
     priorityItems,
     actions: buildPrimaryActions(context),
-    customerChoice: buildCustomerChoiceCopy(context),
+    customerChoice: buildCustomerChoiceView(data),
     foundation: buildFoundationStatusView(context),
   };
 }
@@ -1338,6 +1391,42 @@ function renderPriorityRow(items) {
   });
 }
 
+function renderCustomerChoiceView(view) {
+  if (!customerChoiceEl) return;
+
+  const bullets = Array.isArray(view?.bullets) ? view.bullets : [];
+  const note = sentence(view?.note);
+  const priorityAction = sentence(view?.priorityAction);
+
+  customerChoiceEl.innerHTML = `
+    <div class="customer-choice-card">
+      <div class="customer-choice-card__summary">${escapeHtml(view?.summary || "")}</div>
+      ${
+        bullets.length
+          ? `<ul class="customer-choice-card__list">
+              ${bullets
+                .map((item) => `<li>${escapeHtml(item)}</li>`)
+                .join("")}
+            </ul>`
+          : ""
+      }
+      ${
+        priorityAction
+          ? `<div class="customer-choice-card__priority">
+              <span class="customer-choice-card__eyebrow">Priority action</span>
+              <div>${escapeHtml(priorityAction)}</div>
+            </div>`
+          : ""
+      }
+      ${
+        note
+          ? `<div class="customer-choice-card__note muted">${escapeHtml(note)}</div>`
+          : ""
+      }
+    </div>
+  `;
+}
+
 function renderInsight(data) {
   const firstView = buildDiagnosisFirstView(data);
 
@@ -1350,7 +1439,7 @@ function renderInsight(data) {
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
   renderPriorityRow(firstView.priorityItems);
   renderSimpleList(primaryActionsListEl, firstView.actions);
-  if (customerChoiceEl) customerChoiceEl.textContent = firstView.customerChoice;
+  renderCustomerChoiceView(firstView.customerChoice);
   if (foundationSummaryEl) foundationSummaryEl.textContent = firstView.foundation.summary;
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = firstView.foundation.copy;
   renderSimpleList(foundationDetailsEl, firstView.foundation.details);

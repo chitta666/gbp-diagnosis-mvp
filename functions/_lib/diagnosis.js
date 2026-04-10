@@ -40,7 +40,7 @@ export function buildDiagnosis(details, competitors) {
       id: "website",
       weight: 20,
       isMissing: (d) => !d?.website,
-      todo: "Add a website to the listing.",
+      todo: "Add an official website or business page to the listing (for example, your homepage, booking page, or menu/services page).",
     },
     {
       id: "photos",

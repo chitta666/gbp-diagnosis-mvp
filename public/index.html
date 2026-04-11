@@ -36,6 +36,14 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <ul id="savedListings" class="saved-list"></ul>
   </div>
 
+  <div id="feedbackCta" class="card feedback-cta">
+    <h2 class="section__title">Quick Feedback</h2>
+    <div id="feedbackCtaCopy" class="feedback-cta__copy muted">
+      Tell us what felt useful, confusing, or missing. If you have a report open, we'll attach the current listing context automatically.
+    </div>
+    <button id="openFeedbackBtn" class="btn" type="button">Share Quick Feedback</button>
+  </div>
+
 
   <div id="card" class="card hidden">
     <h2 class="section__title">Google Maps Analysis Report</h2>
@@ -277,6 +285,60 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
       </div>
     </div>
   </div>
+
+  <div id="feedbackAssistant" class="assistant-modal hidden" aria-hidden="true">
+    <div id="feedbackBackdrop" class="assistant-modal__backdrop"></div>
+    <div class="assistant-modal__panel" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+      <div class="assistant-modal__header">
+        <div>
+          <div class="assistant-modal__eyebrow">Beta feedback</div>
+          <h2 id="feedbackTitle" class="section__title">Quick Feedback</h2>
+          <div class="assistant-modal__intro muted">
+            Keep it short. Useful, confusing, missing, or buggy is enough for us to learn from.
+          </div>
+        </div>
+        <button id="closeFeedbackBtn" class="btn assistant-modal__close" type="button">
+          Close
+        </button>
+      </div>
+
+      <div id="feedbackMsg" class="muted"></div>
+
+      <form id="feedbackForm" class="assistant-form">
+        <div class="assistant-section">
+          <h3 class="assistant-section__title">What kind of feedback is this?</h3>
+          <div class="assistant-checklist assistant-checklist--compact">
+            <label><input type="radio" name="feedbackType" value="useful_result" /> Useful result</label>
+            <label><input type="radio" name="feedbackType" value="confusing_output" /> Confusing output</label>
+            <label><input type="radio" name="feedbackType" value="bug_report" /> Bug or broken flow</label>
+            <label><input type="radio" name="feedbackType" value="missing_feature" /> Missing feature</label>
+            <label><input type="radio" name="feedbackType" value="other" /> Other</label>
+          </div>
+        </div>
+
+        <div class="assistant-section">
+          <label class="assistant-field">
+            <span>Short note</span>
+            <textarea id="feedbackMessage" class="input assistant-textarea" rows="5" placeholder="What felt useful, confusing, or missing?"></textarea>
+          </label>
+          <label class="assistant-field">
+            <span>Email for follow-up (optional)</span>
+            <input id="feedbackEmail" class="input" type="email" placeholder="Optional" />
+          </label>
+          <div id="feedbackContextPreview" class="feedback-context muted"></div>
+          <div class="muted assistant-note">
+            We only need enough context to understand the moment. Please avoid sensitive information.
+          </div>
+        </div>
+
+        <div class="assistant-actions">
+          <button id="feedbackSubmitBtn" class="btn btn--primary" type="submit">
+            Send Feedback
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 <script>
 const btn = document.getElementById("btn");
@@ -336,6 +398,18 @@ const reviewDisputeGuidanceEl = document.getElementById("reviewDisputeGuidance")
 const reviewDisputeSummaryEl = document.getElementById("reviewDisputeSummary");
 const reviewDisputeCommunityEl = document.getElementById("reviewDisputeCommunity");
 const reviewDisputePublicResponseEl = document.getElementById("reviewDisputePublicResponse");
+const feedbackCtaEl = document.getElementById("feedbackCta");
+const feedbackCtaCopyEl = document.getElementById("feedbackCtaCopy");
+const openFeedbackBtn = document.getElementById("openFeedbackBtn");
+const feedbackAssistantEl = document.getElementById("feedbackAssistant");
+const feedbackBackdropEl = document.getElementById("feedbackBackdrop");
+const closeFeedbackBtn = document.getElementById("closeFeedbackBtn");
+const feedbackFormEl = document.getElementById("feedbackForm");
+const feedbackMsgEl = document.getElementById("feedbackMsg");
+const feedbackMessageEl = document.getElementById("feedbackMessage");
+const feedbackEmailEl = document.getElementById("feedbackEmail");
+const feedbackContextPreviewEl = document.getElementById("feedbackContextPreview");
+const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
 
 const HISTORY_KEY = "gbp_history_v2";
 const HISTORY_MAX = 10;
@@ -478,6 +552,92 @@ function loadSubscriberEmail() {
   }
 }
 
+function selectedFeedbackType() {
+  return (
+    document.querySelector('input[name="feedbackType"]:checked')?.value || ""
+  );
+}
+
+function buildFeedbackContext(result = currentResult) {
+  const selectedCompetitor =
+    result?.selectedCompetitor ||
+    (result?.savedListing?.competitorPlaceId
+      ? {
+          placeId: result.savedListing.competitorPlaceId,
+          name: result.savedListing.competitorName || "",
+        }
+      : null);
+
+  return {
+    page:
+      result?.savedListing?.id
+        ? "saved_report"
+        : result?.placeId
+          ? "report"
+          : "general",
+    query:
+      input?.value?.trim() ||
+      result?.savedListing?.q ||
+      result?.details?.name ||
+      "",
+    placeId:
+      result?.placeId ||
+      result?.savedListing?.placeId ||
+      result?.details?.placeId ||
+      result?.details?.place_id ||
+      null,
+    placeName:
+      result?.details?.name ||
+      result?.savedListing?.name ||
+      "",
+    competitorPlaceId:
+      selectedCompetitor?.placeId ||
+      selectedCompetitor?.place_id ||
+      result?.savedListing?.competitorPlaceId ||
+      null,
+    competitorName:
+      selectedCompetitor?.name ||
+      result?.savedListing?.competitorName ||
+      "",
+    savedListingId: result?.savedListing?.id || null,
+    diagnosisHeadline: diagnosisHeadlineEl?.textContent?.trim() || "",
+    path: window.location.pathname || "/",
+    href: window.location.href,
+    reportGeneratedAt: result?.generatedAt || null,
+  };
+}
+
+function feedbackContextSummary(context) {
+  const bits = [];
+  if (context?.placeName) bits.push(context.placeName);
+  if (context?.competitorName) bits.push(`vs ${context.competitorName}`);
+  if (context?.savedListingId) bits.push("saved report context");
+  if (!bits.length && context?.query) bits.push(context.query);
+  return bits.join(" • ");
+}
+
+function renderFeedbackCta(result) {
+  if (!feedbackCtaEl) return;
+  feedbackCtaEl.classList.remove("hidden");
+
+  if (feedbackCtaCopyEl) {
+    const context = buildFeedbackContext(result);
+    feedbackCtaCopyEl.textContent = context?.placeId
+      ? "Tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
+      : "Tell us what felt useful, confusing, or missing. A short note is enough.";
+  }
+}
+
+function renderFeedbackContextPreview(result = currentResult) {
+  if (!feedbackContextPreviewEl) return;
+  const context = buildFeedbackContext(result);
+  const summary = feedbackContextSummary(context);
+
+  feedbackContextPreviewEl.textContent = summary
+    ? `Context we'll attach: ${summary}`
+    : "No current report attached. You can still send general product feedback.";
+}
+
 function setSavedMessage(message, isError = false) {
   if (!savedMsgEl) return;
   savedMsgEl.textContent = message;
@@ -534,6 +694,21 @@ function resetReviewDisputeForm() {
   }
 }
 
+function setFeedbackMessage(text = "", isError = false) {
+  if (!feedbackMsgEl) return;
+  feedbackMsgEl.textContent = text;
+  feedbackMsgEl.classList.toggle("error", Boolean(isError));
+}
+
+function resetFeedbackForm() {
+  if (feedbackFormEl) feedbackFormEl.reset();
+  if (feedbackMessageEl) feedbackMessageEl.value = "";
+  if (feedbackEmailEl) {
+    feedbackEmailEl.value = getSubscriberEmail() || loadSubscriberEmail() || "";
+  }
+  renderFeedbackContextPreview(currentResult);
+}
+
 function renderReviewSupportCta(result) {
   if (!reviewSupportCtaEl) return;
 
@@ -570,6 +745,7 @@ function prefillReviewDisputeAssistant(result) {
 
 function openReviewDisputeAssistant() {
   if (!reviewDisputeAssistantEl) return;
+  closeFeedbackAssistant();
   prefillReviewDisputeAssistant(currentResult);
   reviewDisputeAssistantEl.classList.remove("hidden");
   reviewDisputeAssistantEl.setAttribute("aria-hidden", "false");
@@ -587,6 +763,30 @@ function closeReviewDisputeAssistant() {
   reviewDisputeAssistantEl.setAttribute("aria-hidden", "true");
   document.body.classList.remove("assistant-open");
   setReviewDisputeMessage("");
+}
+
+function openFeedbackAssistant() {
+  if (!feedbackAssistantEl) return;
+  closeReviewDisputeAssistant();
+  renderFeedbackContextPreview(currentResult);
+  if (feedbackEmailEl && !feedbackEmailEl.value.trim()) {
+    feedbackEmailEl.value = getSubscriberEmail() || loadSubscriberEmail() || "";
+  }
+  feedbackAssistantEl.classList.remove("hidden");
+  feedbackAssistantEl.setAttribute("aria-hidden", "false");
+  document.body.classList.add("assistant-open");
+  setFeedbackMessage("");
+  if (feedbackMessageEl && !feedbackMessageEl.value.trim()) {
+    feedbackMessageEl.focus();
+  }
+}
+
+function closeFeedbackAssistant() {
+  if (!feedbackAssistantEl) return;
+  feedbackAssistantEl.classList.add("hidden");
+  feedbackAssistantEl.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("assistant-open");
+  setFeedbackMessage("");
 }
 
 function checkedValues(name) {
@@ -622,6 +822,15 @@ function collectReviewDisputeInput() {
     evidenceItems: evidenceKeys,
     actionsTaken: checkedValues("reviewDisputeAction"),
     desiredHelp: reviewDisputeDesiredHelpEl?.value?.trim() || "",
+  };
+}
+
+function collectFeedbackInput() {
+  return {
+    type: selectedFeedbackType(),
+    message: feedbackMessageEl?.value?.trim() || "",
+    email: feedbackEmailEl?.value?.trim() || "",
+    context: buildFeedbackContext(currentResult),
   };
 }
 
@@ -683,6 +892,8 @@ function resetUI() {
   }
   if (weeklyReportListEl) weeklyReportListEl.innerHTML = "";
   if (reviewSupportCtaEl) reviewSupportCtaEl.classList.add("hidden");
+  renderFeedbackCta(null);
+  renderFeedbackContextPreview(null);
   const photoCompareEl = document.getElementById("photoCompare");
   if (photoCompareEl) photoCompareEl.innerHTML = "";
   const photoAdviceEl = document.getElementById("photoAdviceList");
@@ -690,6 +901,8 @@ function resetUI() {
   closeReviewDisputeAssistant();
   resetReviewDisputeForm();
   clearReviewDisputeOutputs();
+  closeFeedbackAssistant();
+  resetFeedbackForm();
 }
 
 function hideCard() {
@@ -770,6 +983,16 @@ async function fetchWeeklyReport(myPlaceId) {
 
 async function fetchReviewDisputeDraft(payload) {
   return fetchApiJson("/api/review-dispute-draft", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function submitQuickFeedback(payload) {
+  return fetchApiJson("/api/feedback", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -2139,6 +2362,8 @@ async function showResult(data, options = {}) {
   renderInsight(hydrated);
   renderCompetitorControls(hydrated);
   renderReviewSupportCta(hydrated);
+  renderFeedbackCta(hydrated);
+  renderFeedbackContextPreview(hydrated);
   if (saveListingBtn) saveListingBtn.disabled = false;
 
   return hydrated;
@@ -2769,6 +2994,9 @@ if (emailInput) {
   });
 }
 
+renderFeedbackCta(null);
+resetFeedbackForm();
+
 if (loadSavedBtn) {
   loadSavedBtn.addEventListener("click", async () => {
     try {
@@ -2785,15 +3013,33 @@ if (openReviewDisputeAssistantBtn) {
   });
 }
 
+if (openFeedbackBtn) {
+  openFeedbackBtn.addEventListener("click", () => {
+    openFeedbackAssistant();
+  });
+}
+
 if (closeReviewDisputeAssistantBtn) {
   closeReviewDisputeAssistantBtn.addEventListener("click", () => {
     closeReviewDisputeAssistant();
   });
 }
 
+if (closeFeedbackBtn) {
+  closeFeedbackBtn.addEventListener("click", () => {
+    closeFeedbackAssistant();
+  });
+}
+
 if (reviewDisputeBackdropEl) {
   reviewDisputeBackdropEl.addEventListener("click", () => {
     closeReviewDisputeAssistant();
+  });
+}
+
+if (feedbackBackdropEl) {
+  feedbackBackdropEl.addEventListener("click", () => {
+    closeFeedbackAssistant();
   });
 }
 
@@ -2821,6 +3067,45 @@ if (reviewDisputeFormEl) {
       setReviewDisputeMessage(error?.message || String(error), true);
     } finally {
       if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.disabled = false;
+    }
+  });
+}
+
+if (feedbackFormEl) {
+  feedbackFormEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = collectFeedbackInput();
+    if (!payload.type) {
+      setFeedbackMessage("Choose the feedback type first.", true);
+      return;
+    }
+    if (!payload.message) {
+      setFeedbackMessage("Add a short note before sending feedback.", true);
+      return;
+    }
+
+    try {
+      setFeedbackMessage("Sending feedback...");
+      if (feedbackSubmitBtn) feedbackSubmitBtn.disabled = true;
+      const response = await submitQuickFeedback(payload);
+      if (!response?.ok) {
+        throw new Error(getApiMessage(response, "Could not send feedback right now."));
+      }
+
+      if (payload.email && isLikelyEmail(payload.email)) {
+        persistSubscriberEmail(payload.email);
+        if (emailInput && !emailInput.value.trim()) {
+          emailInput.value = payload.email.trim().toLowerCase();
+        }
+      }
+
+      resetFeedbackForm();
+      setFeedbackMessage("Feedback sent. Thank you.");
+    } catch (error) {
+      setFeedbackMessage(error?.message || String(error), true);
+    } finally {
+      if (feedbackSubmitBtn) feedbackSubmitBtn.disabled = false;
     }
   });
 }
@@ -2997,6 +3282,11 @@ if (clearHistoryBtn) {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && reviewDisputeAssistantEl && !reviewDisputeAssistantEl.classList.contains("hidden")) {
     closeReviewDisputeAssistant();
+    return;
+  }
+
+  if (event.key === "Escape" && feedbackAssistantEl && !feedbackAssistantEl.classList.contains("hidden")) {
+    closeFeedbackAssistant();
   }
 });
 

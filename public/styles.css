@@ -645,6 +645,24 @@ button {
   margin-bottom: 10px;
 }
 
+.feedback-cta {
+  margin-top: 12px;
+}
+
+.feedback-cta__copy {
+  margin-bottom: 10px;
+}
+
+.feedback-context {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.03);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .assistant-modal {
   position: fixed;
   inset: 0;

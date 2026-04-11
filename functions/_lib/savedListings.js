@@ -1,6 +1,9 @@
+import { ymdTokyo } from "./date.js";
 import { fetchPlaceDetails } from "./place.js";
+import { buildReviewClues } from "./reviewClues.js";
 
 const SAVED_INDEX_KEY = "saved:index";
+const REVIEW_THEME_HISTORY_LIMIT = 12;
 
 function safeJson(text, fallback = null) {
   try {
@@ -12,6 +15,14 @@ function safeJson(text, fallback = null) {
 
 function uniq(values) {
   return [...new Set(values.filter(Boolean))];
+}
+
+function compactStringList(values, limit = 2) {
+  return uniq(
+    (Array.isArray(values) ? values : [])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+  ).slice(0, limit);
 }
 
 async function readIdList(KV, key) {
@@ -114,6 +125,103 @@ export async function patchSavedListing({ KV, id, patch }) {
 
   await KV.put(savedKey(id), JSON.stringify(next));
   return next;
+}
+
+function normalizedReviewThemeHistory(history) {
+  return {
+    own: Array.isArray(history?.own) ? history.own.filter(Boolean) : [],
+    competitor: Array.isArray(history?.competitor) ? history.competitor.filter(Boolean) : [],
+  };
+}
+
+function snapshotDayKey(capturedAt) {
+  const ts = Date.parse(String(capturedAt || ""));
+  return Number.isFinite(ts) ? ymdTokyo(new Date(ts)) : null;
+}
+
+function reviewClueCompetitorFromDetails(details) {
+  if (!details?.ok) return null;
+  return {
+    place_id: details.placeId ?? details.place_id ?? null,
+    placeId: details.placeId ?? details.place_id ?? null,
+    name: details.name ?? null,
+    website: details.website ?? null,
+    photos: Array.isArray(details.photos) ? details.photos : [],
+    photoCount: Array.isArray(details.photos) ? details.photos.length : null,
+    user_ratings_total: Number.isFinite(details.user_ratings_total)
+      ? Number(details.user_ratings_total)
+      : null,
+  };
+}
+
+function reviewPhotoAnalysis({ details, comparedDetails }) {
+  const myPhotos = Array.isArray(details?.photos) ? details.photos.length : 0;
+  const comparedPhotos = Array.isArray(comparedDetails?.photos)
+    ? comparedDetails.photos.length
+    : myPhotos;
+
+  return {
+    myPhotos,
+    competitorPhotoAvg: comparedPhotos,
+    missingPhotos: Math.max(comparedPhotos - myPhotos, 0),
+  };
+}
+
+export function buildStoredReviewThemeSnapshot({
+  details,
+  comparedDetails,
+  capturedAt = new Date().toISOString(),
+} = {}) {
+  if (!details?.ok) return null;
+
+  const reviewClues = buildReviewClues({
+    reviews: details.reviews,
+    details,
+    photoAnalysis: reviewPhotoAnalysis({ details, comparedDetails }),
+    competitor: reviewClueCompetitorFromDetails(comparedDetails),
+  });
+
+  if (!reviewClues?.summary || !Number.isFinite(reviewClues?.reviewCountInSample)) {
+    return null;
+  }
+
+  return {
+    capturedAt,
+    placeId: details.placeId ?? details.place_id ?? null,
+    comparedAgainstPlaceId:
+      comparedDetails?.placeId ?? comparedDetails?.place_id ?? null,
+    sampleBasis: reviewClues.sampleBasis ?? "recent_visible_reviews",
+    sampleReviewCount: Number(reviewClues.reviewCountInSample),
+    summary: String(reviewClues.summary || "").trim() || null,
+    strengths: compactStringList(reviewClues.strengths),
+    frictions: compactStringList(reviewClues.frictions),
+    underSignaledStrengths: compactStringList(reviewClues.underSignaledStrengths),
+    verificationGaps: compactStringList(reviewClues.verificationGaps),
+    competitorChoiceEdges: compactStringList(reviewClues.competitorChoiceEdges),
+    priorityAction: String(reviewClues.priorityAction || "").trim() || null,
+    confidence: String(reviewClues.confidence || "low"),
+  };
+}
+
+function mergeStoredReviewThemeHistory(history, snapshot) {
+  if (!snapshot?.placeId) return Array.isArray(history) ? history : [];
+
+  const nextDay = snapshotDayKey(snapshot.capturedAt);
+  const filtered = (Array.isArray(history) ? history : []).filter((item) => {
+    if (!item) return false;
+    if (String(item.placeId || "") !== String(snapshot.placeId || "")) return true;
+    if (
+      String(item.comparedAgainstPlaceId || "") !==
+      String(snapshot.comparedAgainstPlaceId || "")
+    ) {
+      return true;
+    }
+    return snapshotDayKey(item.capturedAt) !== nextDay;
+  });
+
+  return [snapshot, ...filtered]
+    .sort((a, b) => String(b?.capturedAt || "").localeCompare(String(a?.capturedAt || "")))
+    .slice(0, REVIEW_THEME_HISTORY_LIMIT);
 }
 
 function toNumberOrNull(value) {
@@ -479,6 +587,63 @@ export function buildSavedListingMetrics(details) {
   };
 }
 
+export async function refreshSavedListingReviewThemeHistory({ KV, key, id, listing }) {
+  const current = listing ?? (id ? await getSavedListing(KV, id) : null);
+  if (!current?.placeId || !current?.competitorPlaceId || !key) {
+    return current;
+  }
+
+  const [ownDetails, competitorDetails] = await Promise.all([
+    fetchPlaceDetails({
+      key,
+      placeId: current.placeId,
+    }),
+    fetchPlaceDetails({
+      key,
+      placeId: current.competitorPlaceId,
+    }),
+  ]);
+
+  if (!ownDetails?.ok || !competitorDetails?.ok) {
+    return current;
+  }
+
+  const capturedAt = new Date().toISOString();
+  const ownSnapshot = buildStoredReviewThemeSnapshot({
+    details: ownDetails,
+    comparedDetails: competitorDetails,
+    capturedAt,
+  });
+  const competitorSnapshot = buildStoredReviewThemeSnapshot({
+    details: competitorDetails,
+    comparedDetails: ownDetails,
+    capturedAt,
+  });
+
+  if (!ownSnapshot && !competitorSnapshot) {
+    return current;
+  }
+
+  const history = normalizedReviewThemeHistory(current.reviewThemeHistory);
+  const patch = {
+    reviewThemeHistory: {
+      own: ownSnapshot
+        ? mergeStoredReviewThemeHistory(history.own, ownSnapshot)
+        : history.own,
+      competitor: competitorSnapshot
+        ? mergeStoredReviewThemeHistory(history.competitor, competitorSnapshot)
+        : history.competitor,
+    },
+    lastReviewThemeCapturedAt: capturedAt,
+  };
+
+  return patchSavedListing({
+    KV,
+    id: current.id,
+    patch,
+  });
+}
+
 export async function refreshSavedListingMetrics({ KV, key, id, listing }) {
   const current = listing ?? (id ? await getSavedListing(KV, id) : null);
   if (!current?.placeId || !key) {
@@ -559,6 +724,8 @@ export async function upsertSavedListing({ KV, payload }) {
     lastCheckedAt: existing?.lastCheckedAt ?? null,
     previousMetrics: existing?.previousMetrics ?? null,
     latestMetrics: existing?.latestMetrics ?? null,
+    reviewThemeHistory: normalizedReviewThemeHistory(existing?.reviewThemeHistory),
+    lastReviewThemeCapturedAt: existing?.lastReviewThemeCapturedAt ?? null,
   };
 
   await KV.put(savedKey(id), JSON.stringify(record));

@@ -425,6 +425,8 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor }
   return {
     sampleBasis: "recent_visible_reviews",
     reviewCountInSample: sample.length,
+    competitorContextPlaceId: competitor?.place_id ?? competitor?.placeId ?? null,
+    competitorContextName: competitor?.name ?? null,
     summary: buildSummary({
       topStrengths,
       topFrictions,

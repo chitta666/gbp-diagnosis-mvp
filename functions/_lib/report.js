@@ -204,6 +204,13 @@ export async function buildListingReport({ key, placeId }) {
     competitorPhotoAvg != null ? Math.max(competitorPhotoAvg - myPhotos, 0) : null;
 
   const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg);
+  const defaultCompetitorPlaceId = pickNearestDefaultCompetitor({
+    competitors: enrichedCompetitors,
+  });
+  const defaultCompetitor =
+    (Array.isArray(enrichedCompetitors?.results)
+      ? enrichedCompetitors.results.find((item) => item?.place_id === defaultCompetitorPlaceId)
+      : null) ?? null;
   const reviewClues = buildReviewClues({
     reviews: details.reviews,
     details,
@@ -212,6 +219,7 @@ export async function buildListingReport({ key, placeId }) {
       competitorPhotoAvg,
       missingPhotos,
     },
+    competitor: defaultCompetitor,
   });
   const publicDetails = {
     ok: true,
@@ -243,8 +251,6 @@ export async function buildListingReport({ key, placeId }) {
     },
     photoAdvice,
     reviewClues,
-    defaultCompetitorPlaceId: pickNearestDefaultCompetitor({
-      competitors: enrichedCompetitors,
-    }),
+    defaultCompetitorPlaceId,
   };
 }

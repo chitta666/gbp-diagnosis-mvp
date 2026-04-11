@@ -344,6 +344,13 @@ const SUBSCRIBER_EMAIL_KEY = "gbp_subscriber_email_v1";
 let currentResult = null;
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
+let competitorSearchInFlight = false;
+let competitorSearchState = {
+  query: "",
+  result: null,
+  message: "",
+  isError: false,
+};
 
 // ===== helpers =====
 function escapeHtml(s) {
@@ -409,6 +416,41 @@ function currentTimezone() {
   } catch {
     return "UTC";
   }
+}
+
+function reviewCountTolerance(reviewCount) {
+  if (!Number.isFinite(reviewCount) || reviewCount <= 0) return 100;
+  return Math.max(30, Math.min(150, Math.round(Number(reviewCount) * 0.35)));
+}
+
+function formatDistanceLabel(distanceMeters) {
+  if (!Number.isFinite(distanceMeters)) return "";
+  return distanceMeters < 1000
+    ? `${Math.round(distanceMeters)}m away`
+    : `${(distanceMeters / 1000).toFixed(1)}km away`;
+}
+
+function formatReviewCountLabel(reviewCount) {
+  if (!Number.isFinite(reviewCount)) return "";
+  return `${Math.round(reviewCount)} reviews`;
+}
+
+function competitorScaleLabel(reviewCount, myReviewCount) {
+  if (!Number.isFinite(reviewCount) || !Number.isFinite(myReviewCount)) return "";
+  const gap = Math.abs(Math.round(reviewCount) - Math.round(myReviewCount));
+  const tolerance = reviewCountTolerance(myReviewCount);
+  if (gap <= tolerance) return "Similar review scale";
+  return reviewCount > myReviewCount ? "Larger review scale" : "Smaller review scale";
+}
+
+function resetCompetitorSearchState() {
+  competitorSearchInFlight = false;
+  competitorSearchState = {
+    query: "",
+    result: null,
+    message: "",
+    isError: false,
+  };
 }
 
 function getSubscriberEmail() {
@@ -606,6 +648,7 @@ function resetUI() {
   currentResult = null;
   competitorChooserOpen = false;
   competitorUpdateInFlight = false;
+  resetCompetitorSearchState();
   if (saveListingBtn) saveListingBtn.disabled = true;
   msg.textContent = "";
   setReportDate(null);
@@ -735,6 +778,10 @@ async function fetchReviewDisputeDraft(payload) {
   });
 }
 
+async function fetchResolvedPlace(query) {
+  return fetchApiJson(`/api/resolve?query=${encodeURIComponent(query)}`);
+}
+
 async function setCompetitor(myPlaceId, competitorPlaceId) {
   return fetchApiJson(
     `/api/set-competitor?my=${encodeURIComponent(myPlaceId)}&competitor=${encodeURIComponent(
@@ -776,7 +823,7 @@ function competitorAddress(item) {
   return item?.vicinity ?? item?.formatted_address ?? item?.address ?? null;
 }
 
-function getSelectedCompetitor(data, competitorPlaceId) {
+function getSelectedCompetitor(data, competitorPlaceId, fallback = null) {
   const resolvedPlaceId =
     competitorPlaceId ??
     data?.selectedCompetitor?.placeId ??
@@ -797,11 +844,27 @@ function getSelectedCompetitor(data, competitorPlaceId) {
     };
   }
 
+  if (data?.selectedCompetitor?.placeId === resolvedPlaceId) {
+    return {
+      placeId: resolvedPlaceId,
+      name: data?.selectedCompetitor?.name ?? null,
+      address: data?.selectedCompetitor?.address ?? null,
+    };
+  }
+
   if (data?.savedListing?.competitorPlaceId === resolvedPlaceId) {
     return {
       placeId: resolvedPlaceId,
       name: data?.savedListing?.competitorName ?? null,
       address: data?.savedListing?.competitorAddress ?? null,
+    };
+  }
+
+  if (fallback?.placeId === resolvedPlaceId) {
+    return {
+      placeId: resolvedPlaceId,
+      name: fallback?.name ?? null,
+      address: fallback?.address ?? null,
     };
   }
 
@@ -816,6 +879,9 @@ function getCompetitorCandidates(data, limit = 5) {
   const list = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
   const seen = new Set();
   const candidates = [];
+  const myReviewCount = Number.isFinite(data?.details?.user_ratings_total)
+    ? Number(data.details.user_ratings_total)
+    : null;
   const byPlaceId = new Map(list.map((item) => [item?.place_id, item]));
   const priorityPlaceIds = [
     data?.selectedCompetitor?.placeId ?? null,
@@ -831,6 +897,11 @@ function getCompetitorCandidates(data, limit = 5) {
       placeId,
       name: item?.name || "Nearby competitor",
       address: competitorAddress(item) || "",
+      reviewCount: Number.isFinite(item?.user_ratings_total) ? Number(item.user_ratings_total) : null,
+      distanceMeters: Number.isFinite(item?.distance_meters) ? Number(item.distance_meters) : null,
+      matchLabel: competitorScaleLabel(item?.user_ratings_total, myReviewCount),
+      recommended:
+        placeId === (data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId ?? null),
     });
     return true;
   }
@@ -840,7 +911,15 @@ function getCompetitorCandidates(data, limit = 5) {
     const name = fallback?.name || "Selected competitor";
     const address = fallback?.address || "";
     seen.add(placeId);
-    candidates.push({ placeId, name, address });
+    candidates.push({
+      placeId,
+      name,
+      address,
+      reviewCount: null,
+      distanceMeters: null,
+      matchLabel: "",
+      recommended: false,
+    });
     return true;
   }
 
@@ -893,6 +972,16 @@ function renderCompareMeta(competitor) {
   `;
 }
 
+function buildCompetitorOptionMeta(candidate) {
+  const parts = [
+    formatDistanceLabel(candidate?.distanceMeters),
+    formatReviewCountLabel(candidate?.reviewCount),
+    candidate?.matchLabel || "",
+  ].filter(Boolean);
+
+  return parts.join(" • ");
+}
+
 function renderCompetitorControls(data) {
   if (!compareControlsEl || !competitorPickerEl || !changeCompetitorBtn || !resetCompetitorBtn) {
     return;
@@ -904,8 +993,11 @@ function renderCompetitorControls(data) {
     data,
     data?.placeId ?? data?.details?.placeId ?? data?.details?.place_id ?? null
   );
+  const hasSearchUtility = Boolean(
+    data?.placeId ?? data?.details?.placeId ?? data?.details?.place_id ?? null
+  );
 
-  if (candidates.length <= 1) {
+  if (!candidates.length && !hasSearchUtility) {
     compareControlsEl.classList.add("hidden");
     competitorPickerEl.classList.add("hidden");
     competitorPickerEl.innerHTML = "";
@@ -935,6 +1027,57 @@ function renderCompetitorControls(data) {
   heading.textContent = "Choose a competitor for this report";
   competitorPickerEl.appendChild(heading);
 
+  const searchBox = document.createElement("div");
+  searchBox.className = "compare__search";
+  searchBox.innerHTML = `
+    <div class="compare__search-title">Search another competitor</div>
+    <div class="compare__search-row">
+      <input
+        type="text"
+        class="input compare__search-input"
+        data-competitor-search-input
+        placeholder="Business name and address"
+        value="${escapeAttr(competitorSearchState.query || "")}"
+      />
+      <button
+        type="button"
+        class="btn compare__search-btn"
+        data-competitor-search-btn
+        ${competitorSearchInFlight ? "disabled" : ""}
+      >${competitorSearchInFlight ? "Searching..." : "Search"}</button>
+    </div>
+    ${
+      competitorSearchState.message
+        ? `<div class="compare__search-message ${
+            competitorSearchState.isError ? "error" : "muted"
+          }">${escapeHtml(competitorSearchState.message)}</div>`
+        : ""
+    }
+    ${
+      competitorSearchState.result
+        ? `<div class="compare__search-result">
+            <div class="compare__search-result-name">${escapeHtml(
+              competitorSearchState.result.name || "Resolved place"
+            )}</div>
+            ${
+              competitorSearchState.result.address
+                ? `<div class="compare__search-result-address">${escapeHtml(
+                    competitorSearchState.result.address
+                  )}</div>`
+                : ""
+            }
+            <button
+              type="button"
+              class="btn"
+              data-search-competitor-id="${escapeAttr(competitorSearchState.result.placeId)}"
+              ${competitorUpdateInFlight ? "disabled" : ""}
+            >Use searched competitor</button>
+          </div>`
+        : ""
+    }
+  `;
+  competitorPickerEl.appendChild(searchBox);
+
   const list = document.createElement("div");
   list.className = "compare__options";
 
@@ -953,16 +1096,31 @@ function renderCompetitorControls(data) {
           ? `<span class="compare__option-address">${escapeHtml(candidate.address)}</span>`
           : ""
       }
+      ${
+        buildCompetitorOptionMeta(candidate)
+          ? `<span class="compare__option-meta">${escapeHtml(buildCompetitorOptionMeta(candidate))}</span>`
+          : ""
+      }
       <span class="compare__option-state">${
         candidate.placeId === selectedPlaceId
           ? "Selected"
           : candidate.placeId === recommendedPlaceId
-            ? "Recommended"
+            ? candidate.recommended
+              ? "Recommended"
+              : "Use this competitor"
             : "Use this competitor"
       }</span>
     `;
     list.appendChild(option);
   });
+
+  if (!candidates.length) {
+    const empty = document.createElement("div");
+    empty.className = "compare__empty muted";
+    empty.textContent =
+      "Nearby auto-matched competitors were limited here. Search for a better comparison manually.";
+    list.appendChild(empty);
+  }
 
   competitorPickerEl.appendChild(list);
 }
@@ -1484,7 +1642,11 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
       throw new Error("Could not confirm the selected competitor. Please try again.");
     }
 
-    const selectedCompetitor = getSelectedCompetitor(currentResult, competitorPlaceId);
+    const selectedCompetitor = getSelectedCompetitor(
+      currentResult,
+      competitorPlaceId,
+      options.competitorInfo ?? null
+    );
     const nextSavedListing = currentResult?.savedListing
       ? {
           ...currentResult.savedListing,
@@ -1502,6 +1664,7 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
       selectedCompetitor,
       savedListing: nextSavedListing,
     };
+    resetCompetitorSearchState();
 
     renderCompare(compare, selectedCompetitor);
     renderWeeklyReport(weeklyReport);
@@ -1518,6 +1681,49 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
     setSavedMessage(error?.message || String(error), true);
   } finally {
     competitorUpdateInFlight = false;
+    renderCompetitorControls(currentResult);
+  }
+}
+
+async function handleCompetitorSearch() {
+  if (!currentResult || competitorSearchInFlight || competitorUpdateInFlight) return;
+
+  const query = String(competitorSearchState.query || "").trim();
+  if (!query) {
+    competitorSearchState.message = "Enter a business name and address to search.";
+    competitorSearchState.isError = true;
+    renderCompetitorControls(currentResult);
+    return;
+  }
+
+  competitorSearchInFlight = true;
+  competitorSearchState.message = "Searching for a competitor...";
+  competitorSearchState.isError = false;
+  competitorSearchState.result = null;
+  renderCompetitorControls(currentResult);
+
+  try {
+    const resolved = await fetchResolvedPlace(query);
+    if (!resolved?.placeId) {
+      throw new Error(getApiMessage(resolved, "Could not find that competitor."));
+    }
+    if (resolved.placeId === currentResult?.placeId) {
+      throw new Error("Choose a different business than the one you are analyzing.");
+    }
+
+    competitorSearchState.result = {
+      placeId: resolved.placeId,
+      name: resolved.name || query,
+      address: resolved.address || "",
+    };
+    competitorSearchState.message = "Review the match, then use it as the competitor.";
+    competitorSearchState.isError = false;
+  } catch (error) {
+    competitorSearchState.result = null;
+    competitorSearchState.message = error?.message || String(error);
+    competitorSearchState.isError = true;
+  } finally {
+    competitorSearchInFlight = false;
     renderCompetitorControls(currentResult);
   }
 }
@@ -2542,12 +2748,41 @@ if (resetCompetitorBtn) {
 }
 
 if (competitorPickerEl) {
+  competitorPickerEl.addEventListener("input", (e) => {
+    const inputEl = e.target.closest("input[data-competitor-search-input]");
+    if (!inputEl) return;
+    competitorSearchState.query = inputEl.value || "";
+  });
+
   competitorPickerEl.addEventListener("click", async (e) => {
+    const searchBtn = e.target.closest("button[data-competitor-search-btn]");
+    if (searchBtn) {
+      await handleCompetitorSearch();
+      return;
+    }
+
+    const searchedOption = e.target.closest("button[data-search-competitor-id]");
+    if (searchedOption) {
+      const competitorId = searchedOption.dataset.searchCompetitorId;
+      if (!competitorId) return;
+      await updateSelectedCompetitor(competitorId, {
+        competitorInfo: competitorSearchState.result,
+      });
+      return;
+    }
+
     const option = e.target.closest("button[data-competitor-id]");
     if (!option) return;
     const competitorId = option.dataset.competitorId;
     if (!competitorId) return;
     await updateSelectedCompetitor(competitorId);
+  });
+
+  competitorPickerEl.addEventListener("keydown", async (e) => {
+    const inputEl = e.target.closest("input[data-competitor-search-input]");
+    if (!inputEl || e.key !== "Enter") return;
+    e.preventDefault();
+    await handleCompetitorSearch();
   });
 }
 

@@ -6,6 +6,7 @@ import {
   listAllSavedListings,
   patchSavedListing,
   refreshSavedListingMetrics,
+  refreshSavedListingReviewThemeHistory,
 } from "../_lib/savedListings.js";
 import { getWeeklyReport } from "../_lib/weeklyReport.js";
 
@@ -104,6 +105,7 @@ export async function onRequest({ request, env }) {
     dryRun,
     processed: 0,
     snapshotsSaved: 0,
+    reviewThemeSnapshotsSaved: 0,
     reviewDropsDetected: 0,
     emailsSent: 0,
     emailSkipped: 0,
@@ -151,6 +153,32 @@ export async function onRequest({ request, env }) {
             key,
             listing,
           })) || listing;
+        const previousOwnSnapshotAt =
+          updatedListing?.reviewThemeHistory?.own?.[0]?.capturedAt ?? null;
+        const previousCompetitorSnapshotAt =
+          updatedListing?.reviewThemeHistory?.competitor?.[0]?.capturedAt ?? null;
+        const reviewThemeUpdatedListing =
+          (await refreshSavedListingReviewThemeHistory({
+            KV,
+            key,
+            listing: updatedListing,
+          })) || updatedListing;
+        const nextCapturedAt = reviewThemeUpdatedListing?.lastReviewThemeCapturedAt ?? null;
+        if (
+          nextCapturedAt &&
+          reviewThemeUpdatedListing?.reviewThemeHistory?.own?.[0]?.capturedAt === nextCapturedAt &&
+          previousOwnSnapshotAt !== nextCapturedAt
+        ) {
+          summary.reviewThemeSnapshotsSaved += 1;
+        }
+        if (
+          nextCapturedAt &&
+          reviewThemeUpdatedListing?.reviewThemeHistory?.competitor?.[0]?.capturedAt ===
+            nextCapturedAt &&
+          previousCompetitorSnapshotAt !== nextCapturedAt
+        ) {
+          summary.reviewThemeSnapshotsSaved += 1;
+        }
 
         await patchSavedListing({
           KV,
@@ -158,7 +186,7 @@ export async function onRequest({ request, env }) {
           patch: { lastDailyRunAt: new Date().toISOString() },
         });
 
-        Object.assign(listing, updatedListing, {
+        Object.assign(listing, reviewThemeUpdatedListing, {
           lastDailyRunAt: new Date().toISOString(),
         });
       }

@@ -1,6 +1,9 @@
+import { ymdTokyo } from "./date.js";
 import { fetchPlaceDetails } from "./place.js";
+import { buildReviewClues } from "./reviewClues.js";
 
 const SAVED_INDEX_KEY = "saved:index";
+const REVIEW_THEME_HISTORY_LIMIT = 12;
 
 function safeJson(text, fallback = null) {
   try {
@@ -12,6 +15,14 @@ function safeJson(text, fallback = null) {
 
 function uniq(values) {
   return [...new Set(values.filter(Boolean))];
+}
+
+function compactStringList(values, limit = 2) {
+  return uniq(
+    (Array.isArray(values) ? values : [])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+  ).slice(0, limit);
 }
 
 async function readIdList(KV, key) {
@@ -54,6 +65,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
 
   const changeSummary = buildSavedListingChangeSummary(record);
   const reviewDropSignal = buildReviewDropSignal(record);
+  const reviewThemeMonitoring = buildReviewThemeMonitoringSummary(record);
   const statusSummary = buildSavedListingStatusSummary(
     record,
     changeSummary,
@@ -81,6 +93,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
     changeSummary,
     statusSummary,
     reviewDropSignal,
+    reviewThemeMonitoring,
     ratingMilestoneProgress,
   };
 
@@ -114,6 +127,276 @@ export async function patchSavedListing({ KV, id, patch }) {
 
   await KV.put(savedKey(id), JSON.stringify(next));
   return next;
+}
+
+function normalizedReviewThemeHistory(history) {
+  return {
+    own: Array.isArray(history?.own) ? history.own.filter(Boolean) : [],
+    competitor: Array.isArray(history?.competitor) ? history.competitor.filter(Boolean) : [],
+  };
+}
+
+function snapshotDayKey(capturedAt) {
+  const ts = Date.parse(String(capturedAt || ""));
+  return Number.isFinite(ts) ? ymdTokyo(new Date(ts)) : null;
+}
+
+function reviewClueCompetitorFromDetails(details) {
+  if (!details?.ok) return null;
+  return {
+    place_id: details.placeId ?? details.place_id ?? null,
+    placeId: details.placeId ?? details.place_id ?? null,
+    name: details.name ?? null,
+    website: details.website ?? null,
+    photos: Array.isArray(details.photos) ? details.photos : [],
+    photoCount: Array.isArray(details.photos) ? details.photos.length : null,
+    user_ratings_total: Number.isFinite(details.user_ratings_total)
+      ? Number(details.user_ratings_total)
+      : null,
+  };
+}
+
+function reviewPhotoAnalysis({ details, comparedDetails }) {
+  const myPhotos = Array.isArray(details?.photos) ? details.photos.length : 0;
+  const comparedPhotos = Array.isArray(comparedDetails?.photos)
+    ? comparedDetails.photos.length
+    : myPhotos;
+
+  return {
+    myPhotos,
+    competitorPhotoAvg: comparedPhotos,
+    missingPhotos: Math.max(comparedPhotos - myPhotos, 0),
+  };
+}
+
+export function buildStoredReviewThemeSnapshot({
+  details,
+  comparedDetails,
+  capturedAt = new Date().toISOString(),
+} = {}) {
+  if (!details?.ok) return null;
+
+  const reviewClues = buildReviewClues({
+    reviews: details.reviews,
+    details,
+    photoAnalysis: reviewPhotoAnalysis({ details, comparedDetails }),
+    competitor: reviewClueCompetitorFromDetails(comparedDetails),
+  });
+
+  if (!reviewClues?.summary || !Number.isFinite(reviewClues?.reviewCountInSample)) {
+    return null;
+  }
+
+  return {
+    capturedAt,
+    placeId: details.placeId ?? details.place_id ?? null,
+    comparedAgainstPlaceId:
+      comparedDetails?.placeId ?? comparedDetails?.place_id ?? null,
+    sampleBasis: reviewClues.sampleBasis ?? "recent_visible_reviews",
+    sampleReviewCount: Number(reviewClues.reviewCountInSample),
+    summary: String(reviewClues.summary || "").trim() || null,
+    strengths: compactStringList(reviewClues.strengths),
+    frictions: compactStringList(reviewClues.frictions),
+    underSignaledStrengths: compactStringList(reviewClues.underSignaledStrengths),
+    verificationGaps: compactStringList(reviewClues.verificationGaps),
+    competitorChoiceEdges: compactStringList(reviewClues.competitorChoiceEdges),
+    priorityAction: String(reviewClues.priorityAction || "").trim() || null,
+    confidence: String(reviewClues.confidence || "low"),
+  };
+}
+
+function mergeStoredReviewThemeHistory(history, snapshot) {
+  if (!snapshot?.placeId) return Array.isArray(history) ? history : [];
+
+  const nextDay = snapshotDayKey(snapshot.capturedAt);
+  const filtered = (Array.isArray(history) ? history : []).filter((item) => {
+    if (!item) return false;
+    if (String(item.placeId || "") !== String(snapshot.placeId || "")) return true;
+    if (
+      String(item.comparedAgainstPlaceId || "") !==
+      String(snapshot.comparedAgainstPlaceId || "")
+    ) {
+      return true;
+    }
+    return snapshotDayKey(item.capturedAt) !== nextDay;
+  });
+
+  return [snapshot, ...filtered]
+    .sort((a, b) => String(b?.capturedAt || "").localeCompare(String(a?.capturedAt || "")))
+    .slice(0, REVIEW_THEME_HISTORY_LIMIT);
+}
+
+function themeFrequency(snapshots, key) {
+  const counts = new Map();
+  (Array.isArray(snapshots) ? snapshots : []).forEach((snapshot) => {
+    const values = compactStringList(snapshot?.[key], 8);
+    values.forEach((value) => {
+      counts.set(value, (counts.get(value) || 0) + 1);
+    });
+  });
+  return [...counts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
+function riskScore(snapshot) {
+  if (!snapshot) return 0;
+  return (
+    compactStringList(snapshot.frictions, 8).length * 2 +
+    compactStringList(snapshot.verificationGaps, 8).length +
+    compactStringList(snapshot.competitorChoiceEdges, 8).length
+  );
+}
+
+function buildCollectingReviewThemeMonitoring() {
+  return {
+    status: "collecting_history",
+    trend: null,
+    gapDirection: null,
+    recurringFrictions: [],
+    notableShift: "Available after two saved review-theme snapshots.",
+    nextAction: "Keep monitoring until another saved review snapshot is available.",
+    confidence: "low",
+  };
+}
+
+function buildTrendLabel({ latest, previous, recurringFrictions }) {
+  const latestScore = riskScore(latest);
+  const previousScore = riskScore(previous);
+  const delta = latestScore - previousScore;
+
+  if (delta <= -2) return "improving";
+  if (delta >= 2) return "worsening";
+  if (recurringFrictions.length || compactStringList(latest?.verificationGaps, 8).length) {
+    return "mixed";
+  }
+  return "steady";
+}
+
+function buildGapDirection({ latest, previous, competitorHistory }) {
+  if (!Array.isArray(competitorHistory) || competitorHistory.length < 2) {
+    return null;
+  }
+
+  const latestEdgeCount = compactStringList(latest?.competitorChoiceEdges, 8).length;
+  const previousEdgeCount = compactStringList(previous?.competitorChoiceEdges, 8).length;
+
+  if (latestEdgeCount < previousEdgeCount) return "narrowing";
+  if (latestEdgeCount > previousEdgeCount) return "widening";
+  return "unchanged";
+}
+
+function buildNotableShift({
+  latest,
+  previous,
+  recurringFrictions,
+  trend,
+  gapDirection,
+}) {
+  const previousFrictions = new Set(compactStringList(previous?.frictions, 8));
+  const latestFrictions = compactStringList(latest?.frictions, 8);
+
+  if (recurringFrictions[0]) {
+    return `${recurringFrictions[0]} is repeating across recent checks.`;
+  }
+
+  const newFriction = latestFrictions.find((item) => !previousFrictions.has(item));
+  if (newFriction) {
+    return `${newFriction} is appearing more clearly in the latest review snapshot.`;
+  }
+
+  if (
+    compactStringList(previous?.verificationGaps, 8).length &&
+    !compactStringList(latest?.verificationGaps, 8).length
+  ) {
+    return "Verification friction looks less central than in the previous saved check.";
+  }
+
+  if (gapDirection === "narrowing") {
+    return "The selected competitor edge looks softer than it did in the previous saved check.";
+  }
+
+  if (gapDirection === "widening") {
+    return "The selected competitor edge looks more persistent than it did in the previous saved check.";
+  }
+
+  if (trend === "improving") {
+    return "Recent review-theme pressure looks lighter than in the previous saved check.";
+  }
+
+  if (trend === "worsening") {
+    return "Recent review-theme pressure looks heavier than in the previous saved check.";
+  }
+
+  return "No major review-theme shift stands out yet.";
+}
+
+function buildTrendAwareNextAction({ latest, recurringFrictions, trend, gapDirection }) {
+  if (recurringFrictions.length && latest?.priorityAction) {
+    return latest.priorityAction;
+  }
+
+  if (gapDirection === "widening") {
+    return "Close the easiest visible competitor proof gap before comparing momentum again.";
+  }
+
+  if (trend === "improving") {
+    return "Keep the recent changes in place and watch whether the same friction stays quiet.";
+  }
+
+  return (
+    String(latest?.priorityAction || "").trim() ||
+    "Keep monitoring until one repeat friction becomes clear enough to prioritize."
+  );
+}
+
+export function buildReviewThemeMonitoringSummary(record) {
+  const history = normalizedReviewThemeHistory(record?.reviewThemeHistory);
+  const ownHistory = history.own.slice(0, 4);
+  const competitorHistory = history.competitor
+    .filter((item) => String(item?.placeId || "") === String(record?.competitorPlaceId || ""))
+    .slice(0, 4);
+
+  if (ownHistory.length < 2) {
+    return buildCollectingReviewThemeMonitoring();
+  }
+
+  const latest = ownHistory[0];
+  const previous = ownHistory[1];
+  const recurringFrictions = themeFrequency(ownHistory, "frictions")
+    .filter((item) => item.count >= 2)
+    .map((item) => item.label)
+    .slice(0, 2);
+  const trend = buildTrendLabel({ latest, previous, recurringFrictions });
+  const gapDirection = buildGapDirection({ latest, previous, competitorHistory });
+  const notableShift = buildNotableShift({
+    latest,
+    previous,
+    recurringFrictions,
+    trend,
+    gapDirection,
+  });
+  const sampleTotal = ownHistory.reduce(
+    (sum, item) => sum + (Number.isFinite(item?.sampleReviewCount) ? Number(item.sampleReviewCount) : 0),
+    0
+  );
+
+  return {
+    status: "ready",
+    trend,
+    gapDirection,
+    recurringFrictions,
+    notableShift,
+    nextAction: buildTrendAwareNextAction({
+      latest,
+      recurringFrictions,
+      trend,
+      gapDirection,
+    }),
+    confidence: ownHistory.length >= 3 && sampleTotal >= 6 ? "medium" : "low",
+    latestCapturedAt: latest?.capturedAt ?? null,
+    previousCapturedAt: previous?.capturedAt ?? null,
+  };
 }
 
 function toNumberOrNull(value) {
@@ -479,6 +762,63 @@ export function buildSavedListingMetrics(details) {
   };
 }
 
+export async function refreshSavedListingReviewThemeHistory({ KV, key, id, listing }) {
+  const current = listing ?? (id ? await getSavedListing(KV, id) : null);
+  if (!current?.placeId || !current?.competitorPlaceId || !key) {
+    return current;
+  }
+
+  const [ownDetails, competitorDetails] = await Promise.all([
+    fetchPlaceDetails({
+      key,
+      placeId: current.placeId,
+    }),
+    fetchPlaceDetails({
+      key,
+      placeId: current.competitorPlaceId,
+    }),
+  ]);
+
+  if (!ownDetails?.ok || !competitorDetails?.ok) {
+    return current;
+  }
+
+  const capturedAt = new Date().toISOString();
+  const ownSnapshot = buildStoredReviewThemeSnapshot({
+    details: ownDetails,
+    comparedDetails: competitorDetails,
+    capturedAt,
+  });
+  const competitorSnapshot = buildStoredReviewThemeSnapshot({
+    details: competitorDetails,
+    comparedDetails: ownDetails,
+    capturedAt,
+  });
+
+  if (!ownSnapshot && !competitorSnapshot) {
+    return current;
+  }
+
+  const history = normalizedReviewThemeHistory(current.reviewThemeHistory);
+  const patch = {
+    reviewThemeHistory: {
+      own: ownSnapshot
+        ? mergeStoredReviewThemeHistory(history.own, ownSnapshot)
+        : history.own,
+      competitor: competitorSnapshot
+        ? mergeStoredReviewThemeHistory(history.competitor, competitorSnapshot)
+        : history.competitor,
+    },
+    lastReviewThemeCapturedAt: capturedAt,
+  };
+
+  return patchSavedListing({
+    KV,
+    id: current.id,
+    patch,
+  });
+}
+
 export async function refreshSavedListingMetrics({ KV, key, id, listing }) {
   const current = listing ?? (id ? await getSavedListing(KV, id) : null);
   if (!current?.placeId || !key) {
@@ -559,6 +899,8 @@ export async function upsertSavedListing({ KV, payload }) {
     lastCheckedAt: existing?.lastCheckedAt ?? null,
     previousMetrics: existing?.previousMetrics ?? null,
     latestMetrics: existing?.latestMetrics ?? null,
+    reviewThemeHistory: normalizedReviewThemeHistory(existing?.reviewThemeHistory),
+    lastReviewThemeCapturedAt: existing?.lastReviewThemeCapturedAt ?? null,
   };
 
   await KV.put(savedKey(id), JSON.stringify(record));

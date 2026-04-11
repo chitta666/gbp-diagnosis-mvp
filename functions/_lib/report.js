@@ -187,7 +187,8 @@ export async function buildListingReport({ key, placeId }) {
     key,
     lat,
     lng,
-    type: "restaurant",
+    listingTypes: details?.types ?? [],
+    myReviewCount: details?.user_ratings_total ?? null,
   });
   const filteredCompetitors = filterCompetitors(competitors, placeId);
   const enrichedCompetitors = await addCompetitorPhotoCounts({

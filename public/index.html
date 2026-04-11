@@ -1295,15 +1295,49 @@ function buildCustomerChoiceView(data) {
     const bullets = [];
     const strengths = humanJoin(reviewClues.strengths);
     const frictions = humanJoin(reviewClues.frictions);
+    const underSignaledStrengths = Array.isArray(reviewClues.underSignaledStrengths)
+      ? reviewClues.underSignaledStrengths
+      : [];
+    const underestimatedFrictions = Array.isArray(reviewClues.underestimatedFrictions)
+      ? reviewClues.underestimatedFrictions
+      : [];
+    const verificationGaps = Array.isArray(reviewClues.verificationGaps)
+      ? reviewClues.verificationGaps
+      : [];
+    const competitorChoiceEdges = Array.isArray(reviewClues.competitorChoiceEdges)
+      ? reviewClues.competitorChoiceEdges
+      : [];
     const blindSpots = Array.isArray(reviewClues.blindSpots) ? reviewClues.blindSpots : [];
+    const selectedCompetitorPlaceId = data?.selectedCompetitor?.placeId ?? null;
+    const competitorContextPlaceId = reviewClues?.competitorContextPlaceId ?? null;
+    const canUseCompetitorChoiceEdge =
+      !competitorChoiceEdges.length
+        ? false
+        : !selectedCompetitorPlaceId ||
+          !competitorContextPlaceId ||
+          selectedCompetitorPlaceId === competitorContextPlaceId;
 
-    if (strengths) {
+    if (underSignaledStrengths[0]) {
+      bullets.push(sentence(underSignaledStrengths[0]));
+    }
+    if (underestimatedFrictions[0]) {
+      bullets.push(sentence(underestimatedFrictions[0]));
+    }
+    if (canUseCompetitorChoiceEdge && competitorChoiceEdges[0]) {
+      bullets.push(sentence(competitorChoiceEdges[0]));
+    } else if (verificationGaps[0]) {
+      bullets.push(sentence(verificationGaps[0]));
+    }
+
+    if (!bullets.length && strengths) {
       bullets.push(`Recent positive reviews often mention ${strengths}.`);
     }
-    if (frictions) {
+    if (bullets.length < 3 && !underestimatedFrictions.length && frictions) {
       bullets.push(`Some recent lower reviews mention ${frictions}.`);
     }
-    blindSpots.forEach((item) => bullets.push(sentence(item)));
+    if (bullets.length < 3) {
+      blindSpots.forEach((item) => bullets.push(sentence(item)));
+    }
 
     return {
       summary: sentence(reviewClues.summary),

@@ -65,6 +65,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
 
   const changeSummary = buildSavedListingChangeSummary(record);
   const reviewDropSignal = buildReviewDropSignal(record);
+  const reviewThemeMonitoring = buildReviewThemeMonitoringSummary(record);
   const statusSummary = buildSavedListingStatusSummary(
     record,
     changeSummary,
@@ -92,6 +93,7 @@ export function publicSavedListing(record, { origin, includeEmail = false } = {}
     changeSummary,
     statusSummary,
     reviewDropSignal,
+    reviewThemeMonitoring,
     ratingMilestoneProgress,
   };
 
@@ -222,6 +224,179 @@ function mergeStoredReviewThemeHistory(history, snapshot) {
   return [snapshot, ...filtered]
     .sort((a, b) => String(b?.capturedAt || "").localeCompare(String(a?.capturedAt || "")))
     .slice(0, REVIEW_THEME_HISTORY_LIMIT);
+}
+
+function themeFrequency(snapshots, key) {
+  const counts = new Map();
+  (Array.isArray(snapshots) ? snapshots : []).forEach((snapshot) => {
+    const values = compactStringList(snapshot?.[key], 8);
+    values.forEach((value) => {
+      counts.set(value, (counts.get(value) || 0) + 1);
+    });
+  });
+  return [...counts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
+function riskScore(snapshot) {
+  if (!snapshot) return 0;
+  return (
+    compactStringList(snapshot.frictions, 8).length * 2 +
+    compactStringList(snapshot.verificationGaps, 8).length +
+    compactStringList(snapshot.competitorChoiceEdges, 8).length
+  );
+}
+
+function buildCollectingReviewThemeMonitoring() {
+  return {
+    status: "collecting_history",
+    trend: null,
+    gapDirection: null,
+    recurringFrictions: [],
+    notableShift: "Available after two saved review-theme snapshots.",
+    nextAction: "Keep monitoring until another saved review snapshot is available.",
+    confidence: "low",
+  };
+}
+
+function buildTrendLabel({ latest, previous, recurringFrictions }) {
+  const latestScore = riskScore(latest);
+  const previousScore = riskScore(previous);
+  const delta = latestScore - previousScore;
+
+  if (delta <= -2) return "improving";
+  if (delta >= 2) return "worsening";
+  if (recurringFrictions.length || compactStringList(latest?.verificationGaps, 8).length) {
+    return "mixed";
+  }
+  return "steady";
+}
+
+function buildGapDirection({ latest, previous, competitorHistory }) {
+  if (!Array.isArray(competitorHistory) || competitorHistory.length < 2) {
+    return null;
+  }
+
+  const latestEdgeCount = compactStringList(latest?.competitorChoiceEdges, 8).length;
+  const previousEdgeCount = compactStringList(previous?.competitorChoiceEdges, 8).length;
+
+  if (latestEdgeCount < previousEdgeCount) return "narrowing";
+  if (latestEdgeCount > previousEdgeCount) return "widening";
+  return "unchanged";
+}
+
+function buildNotableShift({
+  latest,
+  previous,
+  recurringFrictions,
+  trend,
+  gapDirection,
+}) {
+  const previousFrictions = new Set(compactStringList(previous?.frictions, 8));
+  const latestFrictions = compactStringList(latest?.frictions, 8);
+
+  if (recurringFrictions[0]) {
+    return `${recurringFrictions[0]} is repeating across recent checks.`;
+  }
+
+  const newFriction = latestFrictions.find((item) => !previousFrictions.has(item));
+  if (newFriction) {
+    return `${newFriction} is appearing more clearly in the latest review snapshot.`;
+  }
+
+  if (
+    compactStringList(previous?.verificationGaps, 8).length &&
+    !compactStringList(latest?.verificationGaps, 8).length
+  ) {
+    return "Verification friction looks less central than in the previous saved check.";
+  }
+
+  if (gapDirection === "narrowing") {
+    return "The selected competitor edge looks softer than it did in the previous saved check.";
+  }
+
+  if (gapDirection === "widening") {
+    return "The selected competitor edge looks more persistent than it did in the previous saved check.";
+  }
+
+  if (trend === "improving") {
+    return "Recent review-theme pressure looks lighter than in the previous saved check.";
+  }
+
+  if (trend === "worsening") {
+    return "Recent review-theme pressure looks heavier than in the previous saved check.";
+  }
+
+  return "No major review-theme shift stands out yet.";
+}
+
+function buildTrendAwareNextAction({ latest, recurringFrictions, trend, gapDirection }) {
+  if (recurringFrictions.length && latest?.priorityAction) {
+    return latest.priorityAction;
+  }
+
+  if (gapDirection === "widening") {
+    return "Close the easiest visible competitor proof gap before comparing momentum again.";
+  }
+
+  if (trend === "improving") {
+    return "Keep the recent changes in place and watch whether the same friction stays quiet.";
+  }
+
+  return (
+    String(latest?.priorityAction || "").trim() ||
+    "Keep monitoring until one repeat friction becomes clear enough to prioritize."
+  );
+}
+
+export function buildReviewThemeMonitoringSummary(record) {
+  const history = normalizedReviewThemeHistory(record?.reviewThemeHistory);
+  const ownHistory = history.own.slice(0, 4);
+  const competitorHistory = history.competitor
+    .filter((item) => String(item?.placeId || "") === String(record?.competitorPlaceId || ""))
+    .slice(0, 4);
+
+  if (ownHistory.length < 2) {
+    return buildCollectingReviewThemeMonitoring();
+  }
+
+  const latest = ownHistory[0];
+  const previous = ownHistory[1];
+  const recurringFrictions = themeFrequency(ownHistory, "frictions")
+    .filter((item) => item.count >= 2)
+    .map((item) => item.label)
+    .slice(0, 2);
+  const trend = buildTrendLabel({ latest, previous, recurringFrictions });
+  const gapDirection = buildGapDirection({ latest, previous, competitorHistory });
+  const notableShift = buildNotableShift({
+    latest,
+    previous,
+    recurringFrictions,
+    trend,
+    gapDirection,
+  });
+  const sampleTotal = ownHistory.reduce(
+    (sum, item) => sum + (Number.isFinite(item?.sampleReviewCount) ? Number(item.sampleReviewCount) : 0),
+    0
+  );
+
+  return {
+    status: "ready",
+    trend,
+    gapDirection,
+    recurringFrictions,
+    notableShift,
+    nextAction: buildTrendAwareNextAction({
+      latest,
+      recurringFrictions,
+      trend,
+      gapDirection,
+    }),
+    confidence: ownHistory.length >= 3 && sampleTotal >= 6 ? "medium" : "low",
+    latestCapturedAt: latest?.capturedAt ?? null,
+    previousCapturedAt: previous?.capturedAt ?? null,
+  };
 }
 
 function toNumberOrNull(value) {

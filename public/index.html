@@ -36,15 +36,6 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <ul id="savedListings" class="saved-list"></ul>
   </div>
 
-  <div id="feedbackCta" class="card feedback-cta">
-    <h2 class="section__title">Quick Feedback</h2>
-    <div id="feedbackCtaCopy" class="feedback-cta__copy muted">
-      Tell us what felt useful, confusing, or missing. If you have a report open, we'll attach the current listing context automatically.
-    </div>
-    <button id="openFeedbackBtn" class="btn" type="button">Share Quick Feedback</button>
-  </div>
-
-
   <div id="card" class="card hidden">
     <h2 class="section__title">Google Maps Analysis Report</h2>
     <p id="reportDate" class="muted"></p>
@@ -152,6 +143,14 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
         <div class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
       </div>
       <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
+    </div>
+
+    <div id="feedbackCta" class="section feedback-cta hidden">
+      <h2 class="section__title">Quick Feedback</h2>
+      <div id="feedbackCtaCopy" class="feedback-cta__copy muted">
+        After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.
+      </div>
+      <button id="openFeedbackBtn" class="btn" type="button">Share Report Feedback</button>
     </div>
   </div>
 
@@ -618,13 +617,18 @@ function feedbackContextSummary(context) {
 
 function renderFeedbackCta(result) {
   if (!feedbackCtaEl) return;
+  const context = buildFeedbackContext(result);
+  if (!context?.placeId) {
+    feedbackCtaEl.classList.add("hidden");
+    return;
+  }
+
   feedbackCtaEl.classList.remove("hidden");
 
   if (feedbackCtaCopyEl) {
-    const context = buildFeedbackContext(result);
-    feedbackCtaCopyEl.textContent = context?.placeId
-      ? "Tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
-      : "Tell us what felt useful, confusing, or missing. A short note is enough.";
+    feedbackCtaCopyEl.textContent = context?.savedListingId
+      ? "After you review this saved report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
+      : "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.";
   }
 }
 
@@ -919,6 +923,7 @@ function setLoading(isLoading) {
   if (isLoading) {
     msg.textContent = "Analyzing listing...";
     showCard();
+    renderFeedbackCta(null);
     if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Summarizing what matters first...";
     if (diagnosisSummaryEl) {
       diagnosisSummaryEl.innerHTML = "<p>Checking foundation, customer choice, and competitor context.</p>";
@@ -948,6 +953,7 @@ function setLoading(isLoading) {
 function showError(message) {
   msg.textContent = message;
   showCard();
+  renderFeedbackCta(null);
   if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Diagnosis unavailable";
   if (diagnosisSummaryEl) {
     diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(message)}</p>`;

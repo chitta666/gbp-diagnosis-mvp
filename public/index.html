@@ -2355,6 +2355,99 @@ function buildSavedListingRevisitBlock(signal) {
   return revisitBlock;
 }
 
+function savedMonitoringTone(status, value) {
+  if (status !== "ready") return "quiet";
+  if (value === "improving" || value === "narrowing") return "accent";
+  if (value === "worsening" || value === "widening") return "warning";
+  return "quiet";
+}
+
+function savedMonitoringLabel(value, fallback = "Not available yet") {
+  if (!value) return fallback;
+  return String(value).replace(/_/g, " ");
+}
+
+function buildSavedListingMonitoringBlock(monitoring) {
+  if (!monitoring?.status) return null;
+
+  const block = document.createElement("div");
+  block.className = `saved__monitoring saved__monitoring--${escapeAttr(
+    monitoring.status === "ready" ? "ready" : "collecting"
+  )}`;
+
+  const label = document.createElement("div");
+  label.className = "saved__monitoring-label";
+  label.textContent = "Review monitoring";
+  block.appendChild(label);
+
+  if (monitoring.status !== "ready") {
+    const main = document.createElement("div");
+    main.className = "saved__monitoring-main";
+    main.textContent = "Collecting review history";
+
+    const support = document.createElement("div");
+    support.className = "saved__monitoring-support";
+    support.textContent =
+      monitoring?.notableShift || "Available after two saved review-theme snapshots.";
+
+    const nextAction = document.createElement("div");
+    nextAction.className = "saved__monitoring-note";
+    nextAction.textContent = monitoring?.nextAction
+      ? `Next check: ${monitoring.nextAction}`
+      : "Next check: keep monitoring until another saved snapshot is available.";
+
+    block.appendChild(main);
+    block.appendChild(support);
+    block.appendChild(nextAction);
+    return block;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "saved__monitoring-grid";
+
+  const trendItem = document.createElement("div");
+  trendItem.className = "saved__monitoring-item";
+  trendItem.innerHTML = `
+    <div class="saved__monitoring-item-label">Theme trend</div>
+    <div class="saved__monitoring-item-value">
+      <span class="saved__badge saved__badge--${escapeAttr(
+        savedMonitoringTone(monitoring.status, monitoring?.trend)
+      )}">${escapeHtml(savedMonitoringLabel(monitoring?.trend))}</span>
+    </div>
+  `;
+
+  const gapItem = document.createElement("div");
+  gapItem.className = "saved__monitoring-item";
+  gapItem.innerHTML = `
+    <div class="saved__monitoring-item-label">Competitor gap</div>
+    <div class="saved__monitoring-item-value">
+      <span class="saved__badge saved__badge--${escapeAttr(
+        savedMonitoringTone(monitoring.status, monitoring?.gapDirection)
+      )}">${escapeHtml(savedMonitoringLabel(monitoring?.gapDirection, "Not enough competitor history yet"))}</span>
+    </div>
+  `;
+
+  grid.appendChild(trendItem);
+  grid.appendChild(gapItem);
+  block.appendChild(grid);
+
+  if (monitoring?.notableShift) {
+    const shift = document.createElement("div");
+    shift.className = "saved__monitoring-support";
+    shift.textContent = `Last notable shift: ${monitoring.notableShift}`;
+    block.appendChild(shift);
+  }
+
+  if (monitoring?.nextAction) {
+    const nextAction = document.createElement("div");
+    nextAction.className = "saved__monitoring-note";
+    nextAction.textContent = `Next action: ${monitoring.nextAction}`;
+    block.appendChild(nextAction);
+  }
+
+  return block;
+}
+
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
 
@@ -2438,6 +2531,8 @@ function renderSavedListings(listings) {
     if (revisitBlock) content.appendChild(revisitBlock);
     const milestoneBlock = buildSavedListingMilestoneBlock(item?.ratingMilestoneProgress);
     if (milestoneBlock) content.appendChild(milestoneBlock);
+    const monitoringBlock = buildSavedListingMonitoringBlock(item?.reviewThemeMonitoring);
+    if (monitoringBlock) content.appendChild(monitoringBlock);
     content.appendChild(changeSummary);
 
     const actions = document.createElement("div");

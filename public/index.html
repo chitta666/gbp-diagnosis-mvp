@@ -2320,12 +2320,20 @@ function sentence(text) {
   return String(text || "").trim().replace(/\s+/g, " ");
 }
 
+function langText(en, ja) {
+  return currentLanguage === "ja" ? ja : en;
+}
+
 function humanJoin(values) {
   const items = uniqueStrings(
     (Array.isArray(values) ? values : []).map((value) => sentence(value))
   );
   if (!items.length) return "";
   if (items.length === 1) return items[0];
+  if (currentLanguage === "ja") {
+    if (items.length === 2) return `${items[0]}と${items[1]}`;
+    return `${items.slice(0, -1).join("、")}、${items[items.length - 1]}`;
+  }
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 }
@@ -2333,56 +2341,79 @@ function humanJoin(values) {
 function buildCompetitiveDetail(context) {
   if (Number.isFinite(context.totalDiff) && context.totalDiff < 0) {
     return sentence(
-      `Against ${context.competitorName}, the review count gap is ${Math.abs(
-        context.totalDiff
-      )}, which can make this listing feel less proven in a quick comparison.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} と比べるとレビュー差は ${Math.abs(
+            context.totalDiff
+          )} 件あり、短時間の比較では信頼感で不利に見える可能性があります。`
+        : `Against ${context.competitorName}, the review count gap is ${Math.abs(
+            context.totalDiff
+          )}, which can make this listing feel less proven in a quick comparison.`
     );
   }
 
   if (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0) {
     return sentence(
-      `Against ${context.competitorName}, recent review momentum is slower right now, so the gap could widen.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} と比べると直近のレビュー増加ペースが弱く、このままだと差が広がる可能性があります。`
+        : `Against ${context.competitorName}, recent review momentum is slower right now, so the gap could widen.`
     );
   }
 
   if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
     return sentence(
-      `Photo coverage is still thinner than nearby listings, which weakens first impressions before a visit.`
+      currentLanguage === "ja"
+        ? "近隣店舗と比べて写真がまだ少なく、来店前の第一印象を弱めています。"
+        : "Photo coverage is still thinner than nearby listings, which weakens first impressions before a visit."
     );
   }
 
   return sentence(
-    `This competitor does not currently show a clear visible advantage.`
+    currentLanguage === "ja"
+      ? "この競合には、現時点で目立った可視的優位は見えていません。"
+      : "This competitor does not currently show a clear visible advantage."
   );
 }
 
 function buildCustomerChoiceCopy(context) {
   if (context.primaryPriority === "foundation") {
     return sentence(
-      "Customers may hesitate before any deeper comparison because key details still feel incomplete or less trustworthy."
+      langText(
+        "Customers may hesitate before any deeper comparison because key details still feel incomplete or less trustworthy.",
+        "基本情報がまだ十分に整っておらず、詳しく比較される前の段階でためらわれる可能性があります。"
+      )
     );
   }
 
   if (context.materialReviewDrop) {
     return sentence(
-      `Review count is down by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
+      currentLanguage === "ja"
+        ? `前回の保存チェック以降、レビュー数が ${context.reviewDropCount} 件減っていて、見た目の信頼感が以前より弱くなっている可能性があります。`
+        : `Review count is down by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
     );
   }
 
   if (context.primaryPriority === "competitive_gap") {
     return sentence(
-      `When someone compares this listing with ${context.competitorName}, the competitor can feel more established at a glance because the visible proof is stronger.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} と並べて見たとき、可視化されている根拠が強いぶん、競合のほうがひと目で安心されやすい可能性があります。`
+        : `When someone compares this listing with ${context.competitorName}, the competitor can feel more established at a glance because the visible proof is stronger.`
     );
   }
 
   if (context.primaryPriority === "customer_choice") {
     return sentence(
-      "Nothing looks broken, but the first impression is not yet strong enough to make this listing the obvious pick."
+      langText(
+        "Nothing looks broken, but the first impression is not yet strong enough to make this listing the obvious pick.",
+        "大きく壊れている点はありませんが、第一印象だけでこの店舗を選びたくなる強さはまだ足りません。"
+      )
     );
   }
 
   return sentence(
-    "Customers already have enough visible proof to feel comfortable choosing this listing. The job now is keeping that confidence visible."
+    langText(
+      "Customers already have enough visible proof to feel comfortable choosing this listing. The job now is keeping that confidence visible.",
+      "この店舗情報には、安心して選ぶための見える根拠がすでにあります。次はその信頼感を見え続ける状態で保つことです。"
+    )
   );
 }
 
@@ -2430,10 +2461,18 @@ function buildCustomerChoiceView(data) {
     }
 
     if (!bullets.length && strengths) {
-      bullets.push(`Recent positive reviews often mention ${strengths}.`);
+      bullets.push(
+        currentLanguage === "ja"
+          ? `最近の高評価レビューでは ${strengths} がよく挙がっています。`
+          : `Recent positive reviews often mention ${strengths}.`
+      );
     }
     if (bullets.length < 3 && !underestimatedFrictions.length && frictions) {
-      bullets.push(`Some recent lower reviews mention ${frictions}.`);
+      bullets.push(
+        currentLanguage === "ja"
+          ? `最近の低評価レビューでは ${frictions} に触れる声があります。`
+          : `Some recent lower reviews mention ${frictions}.`
+      );
     }
     if (bullets.length < 3) {
       blindSpots.forEach((item) => bullets.push(sentence(item)));
@@ -2445,11 +2484,17 @@ function buildCustomerChoiceView(data) {
       priorityAction: sentence(
         reviewClues.priorityAction ||
           actions[0] ||
-          "Keep the strongest trust signals easier to notice before a visit."
+          langText(
+            "Keep the strongest trust signals easier to notice before a visit.",
+            "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
+          )
       ),
-      note: `Based on ${reviewClues.reviewCountInSample} recent visible review${
-        reviewClues.reviewCountInSample === 1 ? "" : "s"
-      }.`,
+      note:
+        currentLanguage === "ja"
+          ? `直近で見えているレビュー ${reviewClues.reviewCountInSample} 件をもとにしています。`
+          : `Based on ${reviewClues.reviewCountInSample} recent visible review${
+              reviewClues.reviewCountInSample === 1 ? "" : "s"
+            }.`,
     };
   }
 
@@ -2457,9 +2502,16 @@ function buildCustomerChoiceView(data) {
     summary: buildCustomerChoiceCopy(context),
     bullets: [],
     priorityAction: sentence(
-      actions[0] || "Keep the strongest trust signals easier to notice before a visit."
+      actions[0] ||
+        langText(
+          "Keep the strongest trust signals easier to notice before a visit.",
+          "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
+        )
     ),
-    note: "Review-based clues will appear here when recent visible review text is available.",
+    note: langText(
+      "Review-based clues will appear here when recent visible review text is available.",
+      "直近で見えているレビュー本文がある場合、ここに review-based clues が表示されます。"
+    ),
   };
 }
 
@@ -2469,9 +2521,19 @@ function buildPrimaryActions(context) {
   if (context.primaryPriority === "foundation") {
     actions.push(...(Array.isArray(context.diagnosis?.todos) ? context.diagnosis.todos : []));
     if (!actions.length && Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Add enough photos to make the listing feel complete at a glance.");
+      actions.push(
+        langText(
+          "Add enough photos to make the listing feel complete at a glance.",
+          "ひと目で十分な情報量に見えるよう、写真を追加してください。"
+        )
+      );
     }
-    actions.push("Re-check competitor comparison after the basics are fixed.");
+    actions.push(
+      langText(
+        "Re-check competitor comparison after the basics are fixed.",
+        "基本情報を整えたあとで、競合比較を見直してください。"
+      )
+    );
     return uniqueStrings(actions).slice(0, 3);
   }
 
@@ -2480,65 +2542,128 @@ function buildPrimaryActions(context) {
       (Number.isFinite(context.totalDiff) && context.totalDiff < 0) ||
       (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0)
     ) {
-      actions.push("Strengthen your review request flow.");
+      actions.push(
+        langText(
+          "Strengthen your review request flow.",
+          "レビュー獲得の導線を強めてください。"
+        )
+      );
     }
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Improve photo coverage so the listing feels more proven at a glance.");
+      actions.push(
+        langText(
+          "Improve photo coverage so the listing feels more proven at a glance.",
+          "ひと目で根拠が伝わるように、写真の充実度を上げてください。"
+        )
+      );
     }
-    actions.push(`Re-check against ${context.competitorName} after the first improvements.`);
+    actions.push(
+      currentLanguage === "ja"
+        ? `最初の改善後に ${context.competitorName} ともう一度比較してください。`
+        : `Re-check against ${context.competitorName} after the first improvements.`
+    );
     return uniqueStrings(actions).slice(0, 3);
   }
 
   if (context.primaryPriority === "customer_choice") {
     if (context.materialReviewDrop) {
-      actions.push("Confirm whether the lower review count persists on the next saved check.");
-      actions.push("Keep review request flow steady to rebuild visible proof.");
-      actions.push(`Re-check against ${context.competitorName} to see whether the gap changed.`);
+      actions.push(
+        langText(
+          "Confirm whether the lower review count persists on the next saved check.",
+          "次回の保存チェックでもレビュー減少が続くか確認してください。"
+        )
+      );
+      actions.push(
+        langText(
+          "Keep review request flow steady to rebuild visible proof.",
+          "見える根拠を戻すために、レビュー獲得導線を安定して回してください。"
+        )
+      );
+      actions.push(
+        currentLanguage === "ja"
+          ? `${context.competitorName} と再比較して、差がどう変わったか見てください。`
+          : `Re-check against ${context.competitorName} to see whether the gap changed.`
+      );
       return uniqueStrings(actions).slice(0, 3);
     }
 
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Improve photo coverage and other first-impression proof.");
+      actions.push(
+        langText(
+          "Improve photo coverage and other first-impression proof.",
+          "写真やその他の第一印象の根拠を強めてください。"
+        )
+      );
     }
-    actions.push("Make your strongest trust signals easier to notice before a visit.");
-    actions.push(`Re-check the same competitor after the first-impression signals improve.`);
+    actions.push(
+      langText(
+        "Make your strongest trust signals easier to notice before a visit.",
+        "来店前に強い信頼シグナルがもっと見えるようにしてください。"
+      )
+    );
+    actions.push(
+      currentLanguage === "ja"
+        ? "第一印象のシグナルを改善したあとで、同じ競合をもう一度確認してください。"
+        : "Re-check the same competitor after the first-impression signals improve."
+    );
     return uniqueStrings(actions).slice(0, 3);
   }
 
-  actions.push("Keep review and photo momentum steady.");
-  actions.push("Watch for any slowdown in recent review growth.");
-  actions.push("Check the same competitor again after more data comes in.");
+  actions.push(
+    langText(
+      "Keep review and photo momentum steady.",
+      "レビューと写真の勢いを安定して保ってください。"
+    )
+  );
+  actions.push(
+    langText(
+      "Watch for any slowdown in recent review growth.",
+      "直近のレビュー増加が鈍らないか見てください。"
+    )
+  );
+  actions.push(
+    langText(
+      "Check the same competitor again after more data comes in.",
+      "データがもう少したまったら、同じ競合を再確認してください。"
+    )
+  );
   return uniqueStrings(actions).slice(0, 3);
 }
 
 function buildFoundationStatusView(context) {
   const details = [];
 
-  if (context.missing.includes("website")) details.push("Website link is missing.");
-  else details.push("Website link is in place.");
+  if (context.missing.includes("website")) details.push(langText("Website link is missing.", "Webサイトのリンクがありません。"));
+  else details.push(langText("Website link is in place.", "Webサイトのリンクは設定されています。"));
 
-  if (context.missing.includes("phone")) details.push("Phone number is missing.");
-  else details.push("Phone number is in place.");
+  if (context.missing.includes("phone")) details.push(langText("Phone number is missing.", "電話番号がありません。"));
+  else details.push(langText("Phone number is in place.", "電話番号は設定されています。"));
 
   if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
     details.push(
       context.missingPhotos >= 8
-        ? "Photo coverage still trails nearby listings."
-        : "Photo coverage is still a little thin."
+        ? langText("Photo coverage still trails nearby listings.", "写真の充実度はまだ近隣店舗に遅れています。")
+        : langText("Photo coverage is still a little thin.", "写真の充実度がまだ少し薄い状態です。")
     );
   } else {
-    details.push("Photo baseline looks healthy.");
+    details.push(langText("Photo baseline looks healthy.", "写真の基本ラインは問題ありません。"));
   }
 
   return {
     summary:
       context.foundationStatus === "needs_work"
-        ? "Needs work before deeper comparison"
-        : "Stable enough to stay in the background",
+        ? langText("Needs work before deeper comparison", "深い比較の前に見直しが必要")
+        : langText("Stable enough to stay in the background", "背景に回してよい安定状態"),
     copy:
       context.foundationStatus === "needs_work"
-        ? "Missing basics are still weakening trust, so fix those before reading too much into the competitor gap."
-        : "The core profile basics look healthy, so this stays in the background while you focus on choice and comparison.",
+        ? langText(
+            "Missing basics are still weakening trust, so fix those before reading too much into the competitor gap.",
+            "基本情報の不足がまだ信頼感を弱めているので、競合差を読み込みすぎる前にそこを直すべきです。"
+          )
+        : langText(
+            "The core profile basics look healthy, so this stays in the background while you focus on choice and comparison.",
+            "コアの基本情報は健全なので、ここは背景に置いて選ばれやすさと競合比較に集中できます。"
+          ),
     details: uniqueStrings(details).slice(0, 3),
   };
 }
@@ -2550,56 +2675,116 @@ function buildDiagnosisFirstView(data) {
   let summaryLines = [];
 
   if (context.primaryPriority === "foundation") {
-    headline = "Fix the profile basics before you over-focus on competitors.";
+    headline = langText(
+      "Fix the profile basics before you over-focus on competitors.",
+      "競合を気にしすぎる前に、まず基本情報を整えましょう。"
+    );
     summaryLines = [
-      "Missing basics are still weakening trust before most customers even compare options.",
-      "The immediate job is staying credible and easy to choose, not optimizing for a score.",
-      "Once the basics are in place, the competitor view becomes more useful."
+      langText(
+        "Missing basics are still weakening trust before most customers even compare options.",
+        "基本情報の不足が、比較の前段階で信頼感を弱めています。"
+      ),
+      langText(
+        "The immediate job is staying credible and easy to choose, not optimizing for a score.",
+        "いま優先すべきなのはスコア最適化より、信頼されやすく選ばれやすい状態にすることです。"
+      ),
+      langText(
+        "Once the basics are in place, the competitor view becomes more useful.",
+        "基本が整ってからのほうが、競合比較は意味のある判断材料になります。"
+      )
     ];
   } else if (context.materialReviewDrop) {
-    headline = "Visible trust may have weakened since the last saved check.";
+    headline = langText(
+      "Visible trust may have weakened since the last saved check.",
+      "前回の保存チェック以降、見た目の信頼感が弱くなっている可能性があります。"
+    );
     summaryLines = [
-      `Your review count is down by ${context.reviewDropCount} since the last saved check.`,
+      currentLanguage === "ja"
+        ? `前回の保存チェック以降、レビュー数が ${context.reviewDropCount} 件減っています。`
+        : `Your review count is down by ${context.reviewDropCount} since the last saved check.`,
       Number.isFinite(context.totalDiff) && context.totalDiff < 0
         ? buildCompetitiveDetail(context)
-        : "A sudden review drop can make the listing feel less established in a quick comparison.",
-      "Confirm whether the drop persists and re-check the same competitor."
+        : langText(
+            "A sudden review drop can make the listing feel less established in a quick comparison.",
+            "急なレビュー減少は、短時間の比較で店舗情報を弱く見せることがあります。"
+          ),
+      langText(
+        "Confirm whether the drop persists and re-check the same competitor.",
+        "減少が続くか確認し、同じ競合で再チェックしてください。"
+      )
     ];
   } else if (context.primaryPriority === "competitive_gap") {
-    headline = "The profile basics are solid, but the side-by-side comparison is still weak.";
+    headline = langText(
+      "The profile basics are solid, but the side-by-side comparison is still weak.",
+      "基本情報は整っていますが、横並び比較ではまだ弱さがあります。"
+    );
     summaryLines = [
-      "Core profile basics look mostly healthy, so checklist completion is not the bottleneck.",
+      langText(
+        "Core profile basics look mostly healthy, so checklist completion is not the bottleneck.",
+        "基本情報は概ね健全なので、いまのボトルネックは checklist の不足ではありません。"
+      ),
       buildCompetitiveDetail(context),
-      `The next job is strengthening why someone would choose this listing over ${context.competitorName}.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} よりこちらを選ぶ理由を、もっとはっきり見せるのが次の仕事です。`
+        : `The next job is strengthening why someone would choose this listing over ${context.competitorName}.`
     ];
   } else if (context.primaryPriority === "customer_choice") {
-    headline = "The listing is decent, but the reason to choose it is still not obvious.";
+    headline = langText(
+      "The listing is decent, but the reason to choose it is still not obvious.",
+      "店舗情報自体は悪くありませんが、選ぶ理由はまだ一目では伝わりません。"
+    );
     summaryLines = [
-      "Nothing looks fundamentally broken in the Google basics.",
+      langText(
+        "Nothing looks fundamentally broken in the Google basics.",
+        "Google basics に大きな破綻は見えていません。"
+      ),
       buildCompetitiveDetail(context),
-      "The next step is making the strongest proof visible in the first few seconds."
+      langText(
+        "The next step is making the strongest proof visible in the first few seconds.",
+        "次は強い根拠を最初の数秒で見えるようにすることです。"
+      )
     ];
   } else {
-    headline = "The listing looks healthy, and there is no urgent first-view problem right now.";
+    headline = langText(
+      "The listing looks healthy, and there is no urgent first-view problem right now.",
+      "店舗情報は健全に見えていて、現時点で急ぐ first-view の問題はありません。"
+    );
     summaryLines = [
-      "This snapshot does not show a major foundation issue or a large competitor gap.",
-      "The job now is maintenance, not rescue.",
-      "Keep visible proof active and re-check the same competitor over time."
+      langText(
+        "This snapshot does not show a major foundation issue or a large competitor gap.",
+        "この時点では、大きな foundation issue も大きな competitor gap も見えていません。"
+      ),
+      langText(
+        "The job now is maintenance, not rescue.",
+        "いまの仕事は rescue ではなく maintenance です。"
+      ),
+      langText(
+        "Keep visible proof active and re-check the same competitor over time.",
+        "見える根拠を維持しながら、同じ競合を継続的に見直してください。"
+      )
     ];
   }
 
   const priorityItems = [
     {
-      label: "Google basics",
-      value: context.foundationStatus === "needs_work" ? "Needs work" : "In place",
+      label: langText("Google basics", "Google basics"),
+      value: context.foundationStatus === "needs_work"
+        ? langText("Needs work", "要対応")
+        : langText("In place", "整備済み"),
       tone: context.foundationStatus === "needs_work" ? "warning" : "good",
     },
     {
-      label: "Customer choice",
+      label: langText("Customer choice", "顧客視点"),
       value: context.materialReviewDrop
-        ? "Trust dropped"
-        : context.customerChoiceRisk.charAt(0).toUpperCase() +
-          context.customerChoiceRisk.slice(1),
+        ? langText("Trust dropped", "信頼低下")
+        : currentLanguage === "ja"
+          ? context.customerChoiceRisk === "high"
+            ? "高め"
+            : context.customerChoiceRisk === "medium"
+              ? "中程度"
+              : "低め"
+          : context.customerChoiceRisk.charAt(0).toUpperCase() +
+            context.customerChoiceRisk.slice(1),
       tone:
         context.materialReviewDrop || context.customerChoiceRisk === "high"
           ? "warning"
@@ -2608,15 +2793,15 @@ function buildDiagnosisFirstView(data) {
             : "good",
     },
     {
-      label: "Competitive gap",
+      label: langText("Competitive gap", "競合差"),
       value:
         context.competitiveGapStatus === "behind"
-          ? "Behind"
+          ? langText("Behind", "後れ")
           : context.competitiveGapStatus === "ahead"
-            ? "Ahead"
+            ? langText("Ahead", "優位")
             : context.competitiveGapStatus === "close"
-              ? "Close"
-              : "Tracking",
+              ? langText("Close", "接近")
+              : langText("Tracking", "追跡中"),
       tone:
         context.competitiveGapStatus === "behind"
           ? "warning"
@@ -2630,8 +2815,13 @@ function buildDiagnosisFirstView(data) {
 
   const competitorMeta =
     context.competitorName && context.competitorName !== "the selected competitor"
-      ? `Compared with ${context.competitorName}`
-      : "Tracking the selected competitor context";
+      ? currentLanguage === "ja"
+        ? `${context.competitorName} と比較中`
+        : `Compared with ${context.competitorName}`
+      : langText(
+          "Tracking the selected competitor context",
+          "選択中の競合文脈を追跡中"
+        );
 
   return {
     headline,
@@ -2705,7 +2895,7 @@ function renderCustomerChoiceView(view) {
       ${
         priorityAction
           ? `<div class="customer-choice-card__priority">
-              <span class="customer-choice-card__eyebrow">Priority action</span>
+              <span class="customer-choice-card__eyebrow">${escapeHtml(langText("Priority action", "優先アクション"))}</span>
               <div>${escapeHtml(priorityAction)}</div>
             </div>`
           : ""

@@ -198,7 +198,7 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     lang,
   });
 
-  const diagnosis = buildDiagnosis(details, enrichedCompetitors);
+  const diagnosis = buildDiagnosis(details, enrichedCompetitors, { lang });
 
   const myPhotos = Array.isArray(details?.photos) ? details.photos.length : 0;
   const competitorPhotoAvg = calcCompetitorPhotoAvg(enrichedCompetitors);
@@ -222,6 +222,7 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
       missingPhotos,
     },
     competitor: defaultCompetitor,
+    lang,
   });
   const publicDetails = {
     ok: true,

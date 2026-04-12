@@ -8,7 +8,13 @@
 </head>
 <body>
   <div class="container">
-  <h1 class="h1">Google Maps Listing Analyzer</h1>
+  <div class="shell-header">
+    <h1 id="appTitle" class="h1">Google Maps Listing Analyzer</h1>
+    <div class="language-toggle" role="group" aria-label="Language">
+      <button id="langToggleEn" class="language-toggle__btn" data-lang-option="en" type="button">EN</button>
+      <button id="langToggleJa" class="language-toggle__btn" data-lang-option="ja" type="button">JP</button>
+    </div>
+  </div>
 
   <div class="row">
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
@@ -22,7 +28,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
   <div id="msg" class="muted"></div>
 
   <div id="savedHub" class="card">
-    <h2 class="section__title">Saved Listings</h2>
+    <h2 id="savedListingsTitle" class="section__title">Saved Listings</h2>
     <div class="row">
       <input id="emailInput" class="input" type="email" placeholder="Enter email to manage saved listings" />
       <button id="loadSavedBtn" class="btn" type="button">Load Saved Listings</button>
@@ -37,7 +43,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
   </div>
 
   <div id="card" class="card hidden">
-    <h2 class="section__title">Google Maps Analysis Report</h2>
+    <h2 id="reportTitle" class="section__title">Google Maps Analysis Report</h2>
     <p id="reportDate" class="muted"></p>
 
     <div id="diagnosisHero" class="diagnosis-hero">
@@ -49,12 +55,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div id="priorityRow" class="priority-row"></div>
 
     <div class="section">
-      <h2 class="section__title">Next Actions</h2>
+      <h2 id="nextActionsTitle" class="section__title">Next Actions</h2>
       <ul id="primaryActionsList" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Competitive Gap</h2>
+      <h2 id="competitiveGapTitle" class="section__title">Competitive Gap</h2>
       <div id="compareMeta" class="compare__meta"></div>
       <div id="compareControls" class="compare__controls hidden">
         <div class="compare__actions">
@@ -71,12 +77,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Customer Choice</h2>
+      <h2 id="customerChoiceTitle" class="section__title">Customer Choice</h2>
       <div id="customerChoice" class="muted"></div>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics Check</h2>
+      <h2 id="googleBasicsTitle" class="section__title">Google Basics Check</h2>
       <div class="foundation-card">
         <div class="foundation-card__header">
           <div class="foundation-card__status">
@@ -94,12 +100,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Weekly Report</h2>
+      <h2 id="weeklyReportTitle" class="section__title">Weekly Report</h2>
       <ul id="weeklyReportList" class="list"></ul>
     </div>
 
     <div id="reviewSupportCta" class="section review-support-cta hidden">
-      <h2 class="section__title">Review Support</h2>
+      <h2 id="reviewSupportTitle" class="section__title">Review Support</h2>
       <div id="reviewSupportCtaCopy" class="review-support-cta__copy muted">
         Organize a suspicious review and generate calm, factual draft text before you escalate.
       </div>
@@ -109,44 +115,44 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Photo Comparison</h2>
+      <h2 id="photoComparisonTitle" class="section__title">Photo Comparison</h2>
       <ul id="photoCompare" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Recommended Photos</h2>
+      <h2 id="recommendedPhotosTitle" class="section__title">Recommended Photos</h2>
       <ul id="photoAdviceList" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics Tasks</h2>
+      <h2 id="googleBasicsTasksTitle" class="section__title">Google Basics Tasks</h2>
       <ul id="todos" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics Breakdown</h2>
+      <h2 id="googleBasicsBreakdownTitle" class="section__title">Google Basics Breakdown</h2>
       <ul id="breakdown" class="list"></ul>
       <div id="penalty" class="muted" style="margin-top:8px;"></div>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Business Details</h2>
+      <h2 id="businessDetailsTitle" class="section__title">Business Details</h2>
       <div id="summary"></div>
     </div>
 
     <button id="pdfBtn" class="btn">Export PDF</button>
 
     <div class="section" id="historySection">
-      <h2 class="section__title">History</h2>
+      <h2 id="historyTitle" class="section__title">History</h2>
       <div class="row" style="justify-content:space-between;">
         <button id="clearHistory" type="button" class="btn">Clear History</button>
-        <div class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
+        <div id="historyHint" class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
       </div>
       <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
     </div>
 
     <div id="feedbackCta" class="section feedback-cta hidden">
-      <h2 class="section__title">Quick Feedback</h2>
+      <h2 id="feedbackTitle" class="section__title">Quick Feedback</h2>
       <div id="feedbackCtaCopy" class="feedback-cta__copy muted">
         After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.
       </div>
@@ -342,11 +348,31 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 <script>
 const btn = document.getElementById("btn");
 const input = document.getElementById("urlInput");
+const appTitleEl = document.getElementById("appTitle");
+const introTextEl = document.getElementById("introText");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
 const savedMsgEl = document.getElementById("savedMsg");
 const savedListingsEl = document.getElementById("savedListings");
+const savedListingsTitleEl = document.getElementById("savedListingsTitle");
+const reportTitleEl = document.getElementById("reportTitle");
+const nextActionsTitleEl = document.getElementById("nextActionsTitle");
+const competitiveGapTitleEl = document.getElementById("competitiveGapTitle");
+const customerChoiceTitleEl = document.getElementById("customerChoiceTitle");
+const googleBasicsTitleEl = document.getElementById("googleBasicsTitle");
+const weeklyReportTitleEl = document.getElementById("weeklyReportTitle");
+const reviewSupportTitleEl = document.getElementById("reviewSupportTitle");
+const photoComparisonTitleEl = document.getElementById("photoComparisonTitle");
+const recommendedPhotosTitleEl = document.getElementById("recommendedPhotosTitle");
+const googleBasicsTasksTitleEl = document.getElementById("googleBasicsTasksTitle");
+const googleBasicsBreakdownTitleEl = document.getElementById("googleBasicsBreakdownTitle");
+const businessDetailsTitleEl = document.getElementById("businessDetailsTitle");
+const historyTitleEl = document.getElementById("historyTitle");
+const historyHintEl = document.getElementById("historyHint");
+const feedbackTitleEl = document.getElementById("feedbackTitle");
+const langToggleEn = document.getElementById("langToggleEn");
+const langToggleJa = document.getElementById("langToggleJa");
 
 const msg = document.getElementById("msg");
 const card = document.getElementById("card");
@@ -413,8 +439,125 @@ const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
 const HISTORY_KEY = "gbp_history_v2";
 const HISTORY_MAX = 10;
 const SUBSCRIBER_EMAIL_KEY = "gbp_subscriber_email_v1";
+const APP_LANGUAGE_KEY = "gbp_app_language_v1";
+const DEFAULT_LANGUAGE = "en";
+
+const COPY = {
+  en: {
+    documentTitle: "Google Maps Listing Analyzer",
+    appTitle: "Google Maps Listing Analyzer",
+    analyzePlaceholder: "Enter business name and address",
+    analyzeButton: "Analyze Listing",
+    introText:
+      "Analyze your Google Maps listing, compare competitors, and discover how to improve reviews, photos, and visibility.",
+    savedListingsTitle: "Saved Listings",
+    savedEmailPlaceholder: "Enter email to manage saved listings",
+    loadSaved: "Load Saved Listings",
+    saveCurrent: "Save Current Listing",
+    savedMsgDefault:
+      "Analyze a listing, then save it so you can reopen the latest report quickly from this app.",
+    reportTitle: "Google Maps Analysis Report",
+    nextActionsTitle: "Next Actions",
+    competitiveGapTitle: "Competitive Gap",
+    customerChoiceTitle: "Customer Choice",
+    googleBasicsTitle: "Google Basics Check",
+    weeklyReportTitle: "Weekly Report",
+    reviewSupportTitle: "Review Support",
+    photoComparisonTitle: "Photo Comparison",
+    recommendedPhotosTitle: "Recommended Photos",
+    googleBasicsTasksTitle: "Google Basics Tasks",
+    googleBasicsBreakdownTitle: "Google Basics Breakdown",
+    businessDetailsTitle: "Business Details",
+    exportPdf: "Export PDF",
+    historyTitle: "History",
+    clearHistory: "Clear History",
+    historyHint: "Click a history item to display the result again (no API request)",
+    feedbackTitle: "Quick Feedback",
+    feedbackCtaCopy:
+      "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.",
+    feedbackButton: "Share Report Feedback",
+    reviewSupportButton: "Open Review Dispute Assistant",
+    changeCompetitor: "Change competitor",
+    resetCompetitor: "Reset to recommended competitor",
+    loadingListing: "Analyzing listing...",
+    loadingHeadline: "Summarizing what matters first...",
+    loadingSummary: "Checking foundation, customer choice, and competitor context.",
+    loadingPriority: "Prioritizing the first actions...",
+    loadingCustomerChoice: "Checking first-impression risk...",
+    loadingFoundation: "Checking profile basics",
+    loadingGeneric: "Loading...",
+    unavailableHeadline: "Diagnosis unavailable",
+    unavailableFoundation: "Could not load profile basics",
+    retryMoreSpecific: "Try again with a more specific business name and address.",
+    loadedHistoryItem: "Loaded history item.",
+    clearHistoryConfirm: "Clear all history and reset the display. Continue?",
+    loadingSavedListing: "Loading saved listing...",
+    savedListingLoaded: "Saved listing loaded.",
+    missingQuery: "Please enter a business name and address.",
+    analysisComplete: "Analysis complete.",
+    reportGeneratedPrefix: "Report generated: ",
+    languageToggleLabel: "Language",
+  },
+  ja: {
+    documentTitle: "Googleマップ店舗分析",
+    appTitle: "Googleマップ店舗分析",
+    analyzePlaceholder: "店舗名と住所を入力",
+    analyzeButton: "店舗を分析",
+    introText:
+      "Googleマップ上の自店舗を分析し、競合比較とレビュー・写真・見つけやすさの改善点を確認できます。",
+    savedListingsTitle: "保存した店舗",
+    savedEmailPlaceholder: "保存した店舗を管理するメールアドレス",
+    loadSaved: "保存済みを読み込む",
+    saveCurrent: "現在の店舗を保存",
+    savedMsgDefault:
+      "分析後に保存すると、このアプリから最新レポートをすぐ開き直せます。",
+    reportTitle: "Googleマップ分析レポート",
+    nextActionsTitle: "次のアクション",
+    competitiveGapTitle: "競合差分",
+    customerChoiceTitle: "顧客視点",
+    googleBasicsTitle: "Google基本情報チェック",
+    weeklyReportTitle: "週間レポート",
+    reviewSupportTitle: "レビュー対応サポート",
+    photoComparisonTitle: "写真比較",
+    recommendedPhotosTitle: "推奨写真",
+    googleBasicsTasksTitle: "Google基本タスク",
+    googleBasicsBreakdownTitle: "Google基本内訳",
+    businessDetailsTitle: "店舗詳細",
+    exportPdf: "PDFを書き出す",
+    historyTitle: "履歴",
+    clearHistory: "履歴を消去",
+    historyHint: "履歴をクリックするとAPIを使わずに結果を再表示できます",
+    feedbackTitle: "かんたんフィードバック",
+    feedbackCtaCopy:
+      "レポートを見たあとに、役立った点・分かりにくかった点・足りない点を短く教えてください。現在のレポート文脈は自動で添付します。",
+    feedbackButton: "レポートの感想を送る",
+    reviewSupportButton: "レビュー対応アシスタントを開く",
+    changeCompetitor: "競合を変更",
+    resetCompetitor: "推奨競合に戻す",
+    loadingListing: "店舗を分析しています...",
+    loadingHeadline: "まず重要なポイントを整理しています...",
+    loadingSummary: "Google基本情報・顧客視点・競合文脈を確認しています。",
+    loadingPriority: "最初に着手すべき項目を整理しています...",
+    loadingCustomerChoice: "第一印象の不安要素を確認しています...",
+    loadingFoundation: "Google基本情報を確認しています",
+    loadingGeneric: "読み込み中...",
+    unavailableHeadline: "診断結果を表示できませんでした",
+    unavailableFoundation: "プロフィール基本情報を読み込めませんでした",
+    retryMoreSpecific: "より具体的な店舗名と住所で再度お試しください。",
+    loadedHistoryItem: "履歴の結果を読み込みました。",
+    clearHistoryConfirm: "履歴をすべて消去し、表示もリセットします。続けますか？",
+    loadingSavedListing: "保存した店舗を読み込み中...",
+    savedListingLoaded: "保存した店舗を読み込みました。",
+    missingQuery: "店舗名と住所を入力してください。",
+    analysisComplete: "分析が完了しました。",
+    reportGeneratedPrefix: "レポート生成: ",
+    languageToggleLabel: "表示言語",
+  },
+};
 
 let currentResult = null;
+let currentLanguage = DEFAULT_LANGUAGE;
+let currentSavedListings = [];
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let competitorSearchInFlight = false;
@@ -446,13 +589,188 @@ function safeJsonParse(text, fallback = null) {
   }
 }
 
+function normalizeLanguage(value, fallback = DEFAULT_LANGUAGE) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (!raw) return fallback;
+  if (raw === "jp") return "ja";
+  if (raw.startsWith("ja")) return "ja";
+  if (raw.startsWith("en")) return "en";
+  return fallback;
+}
+
+function t(key) {
+  const dict = COPY[currentLanguage] || COPY.en;
+  return dict[key] ?? COPY.en[key] ?? key;
+}
+
+function loadStoredLanguage() {
+  try {
+    return normalizeLanguage(localStorage.getItem(APP_LANGUAGE_KEY), "");
+  } catch {
+    return "";
+  }
+}
+
+function saveStoredLanguage(lang) {
+  try {
+    localStorage.setItem(APP_LANGUAGE_KEY, normalizeLanguage(lang));
+  } catch {
+    // noop
+  }
+}
+
+function getUrlLanguage() {
+  const url = new URL(window.location.href);
+  return normalizeLanguage(url.searchParams.get("lang"), "");
+}
+
+function setUrlLanguage(lang) {
+  const next = normalizeLanguage(lang);
+  const url = new URL(window.location.href);
+  url.searchParams.set("lang", next);
+  window.history.replaceState({}, "", url.toString());
+}
+
+function withCurrentLanguage(url) {
+  const next = new URL(url, window.location.origin);
+  next.searchParams.set("lang", currentLanguage);
+  return `${next.pathname}${next.search}${next.hash}`;
+}
+
+function renderLanguageToggle() {
+  const label = t("languageToggleLabel");
+  document.documentElement.lang = currentLanguage;
+
+  if (langToggleEn) {
+    langToggleEn.classList.toggle("is-active", currentLanguage === "en");
+    langToggleEn.setAttribute("aria-pressed", currentLanguage === "en" ? "true" : "false");
+  }
+
+  if (langToggleJa) {
+    langToggleJa.classList.toggle("is-active", currentLanguage === "ja");
+    langToggleJa.setAttribute("aria-pressed", currentLanguage === "ja" ? "true" : "false");
+  }
+
+  const toggleContainer = document.querySelector(".language-toggle");
+  if (toggleContainer) toggleContainer.setAttribute("aria-label", label);
+}
+
+function renderStaticCopy() {
+  document.title = t("documentTitle");
+  if (appTitleEl) appTitleEl.textContent = t("appTitle");
+  if (input) input.placeholder = t("analyzePlaceholder");
+  if (btn) btn.textContent = t("analyzeButton");
+  if (introTextEl) introTextEl.textContent = t("introText");
+  if (savedListingsTitleEl) savedListingsTitleEl.textContent = t("savedListingsTitle");
+  if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");
+  if (loadSavedBtn) loadSavedBtn.textContent = t("loadSaved");
+  if (saveListingBtn) saveListingBtn.textContent = t("saveCurrent");
+  if (savedMsgEl && !savedMsgEl.classList.contains("error") && !savedListingsEl?.children?.length) {
+    savedMsgEl.textContent = t("savedMsgDefault");
+  }
+  if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
+  if (nextActionsTitleEl) nextActionsTitleEl.textContent = t("nextActionsTitle");
+  if (competitiveGapTitleEl) competitiveGapTitleEl.textContent = t("competitiveGapTitle");
+  if (customerChoiceTitleEl) customerChoiceTitleEl.textContent = t("customerChoiceTitle");
+  if (googleBasicsTitleEl) googleBasicsTitleEl.textContent = t("googleBasicsTitle");
+  if (weeklyReportTitleEl) weeklyReportTitleEl.textContent = t("weeklyReportTitle");
+  if (reviewSupportTitleEl) reviewSupportTitleEl.textContent = t("reviewSupportTitle");
+  if (photoComparisonTitleEl) photoComparisonTitleEl.textContent = t("photoComparisonTitle");
+  if (recommendedPhotosTitleEl) {
+    recommendedPhotosTitleEl.textContent = t("recommendedPhotosTitle");
+  }
+  if (googleBasicsTasksTitleEl) {
+    googleBasicsTasksTitleEl.textContent = t("googleBasicsTasksTitle");
+  }
+  if (googleBasicsBreakdownTitleEl) {
+    googleBasicsBreakdownTitleEl.textContent = t("googleBasicsBreakdownTitle");
+  }
+  if (businessDetailsTitleEl) businessDetailsTitleEl.textContent = t("businessDetailsTitle");
+  if (historyTitleEl) historyTitleEl.textContent = t("historyTitle");
+  if (historyHintEl) historyHintEl.textContent = t("historyHint");
+  if (feedbackTitleEl) feedbackTitleEl.textContent = t("feedbackTitle");
+  if (feedbackCtaCopyEl) feedbackCtaCopyEl.textContent = t("feedbackCtaCopy");
+  if (openFeedbackBtn) openFeedbackBtn.textContent = t("feedbackButton");
+  if (openReviewDisputeAssistantBtn) {
+    openReviewDisputeAssistantBtn.textContent = t("reviewSupportButton");
+  }
+  if (changeCompetitorBtn) changeCompetitorBtn.textContent = t("changeCompetitor");
+  if (resetCompetitorBtn && !resetCompetitorBtn.classList.contains("hidden")) {
+    resetCompetitorBtn.textContent = t("resetCompetitor");
+  }
+  const pdfBtnEl = document.getElementById("pdfBtn");
+  if (pdfBtnEl) pdfBtnEl.textContent = t("exportPdf");
+  const clearBtn = document.getElementById("clearHistory");
+  if (clearBtn) clearBtn.textContent = t("clearHistory");
+}
+
+function applyLanguage(lang, options = {}) {
+  const next = normalizeLanguage(lang);
+  const {
+    persist = true,
+    syncUrl = false,
+  } = options;
+
+  currentLanguage = next;
+  renderLanguageToggle();
+  renderStaticCopy();
+
+  if (persist) saveStoredLanguage(next);
+  if (syncUrl) setUrlLanguage(next);
+
+  if (currentResult?.createdAt) {
+    setReportDate(currentResult.createdAt);
+  }
+
+  renderReviewSupportCta(currentResult);
+  renderFeedbackCta(currentResult);
+  renderFeedbackContextPreview(currentResult);
+
+  if (historyEl) {
+    renderHistory(loadHistory());
+  }
+
+  renderSavedListings(currentSavedListings);
+}
+
+async function detectInitialLanguage() {
+  const urlLang = getUrlLanguage();
+  if (urlLang) {
+    applyLanguage(urlLang, { persist: true, syncUrl: false });
+    return;
+  }
+
+  const stored = loadStoredLanguage();
+  if (stored) {
+    applyLanguage(stored, { persist: false, syncUrl: false });
+    return;
+  }
+
+  const navigatorPreferred = normalizeLanguage(
+    window.navigator?.languages?.[0] || window.navigator?.language || "",
+    DEFAULT_LANGUAGE
+  );
+  applyLanguage(navigatorPreferred, { persist: false, syncUrl: false });
+
+  try {
+    const detected = await fetchApiJson("/api/app-locale", { skipLanguageParam: true });
+    if (detected?.ok && detected?.lang) {
+      applyLanguage(detected.lang, { persist: false, syncUrl: false });
+    }
+  } catch {
+    // noop
+  }
+}
+
 function formatDateTime(value) {
   if (!value) return "";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return date.toLocaleString("en-US", {
+  const locale = currentLanguage === "ja" ? "ja-JP" : "en-US";
+
+  return date.toLocaleString(locale, {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -463,7 +781,7 @@ function formatDateTime(value) {
 
 function formatReportDate(value) {
   const formatted = formatDateTime(value);
-  return formatted ? `Report generated: ${formatted}` : "";
+  return formatted ? `${t("reportGeneratedPrefix")}${formatted}` : "";
 }
 
 function setReportDate(value) {
@@ -609,8 +927,16 @@ function buildFeedbackContext(result = currentResult) {
 function feedbackContextSummary(context) {
   const bits = [];
   if (context?.placeName) bits.push(context.placeName);
-  if (context?.competitorName) bits.push(`vs ${context.competitorName}`);
-  if (context?.savedListingId) bits.push("saved report context");
+  if (context?.competitorName) {
+    bits.push(
+      currentLanguage === "ja"
+        ? `比較対象: ${context.competitorName}`
+        : `vs ${context.competitorName}`
+    );
+  }
+  if (context?.savedListingId) {
+    bits.push(currentLanguage === "ja" ? "保存済みレポートの文脈" : "saved report context");
+  }
   if (!bits.length && context?.query) bits.push(context.query);
   return bits.join(" • ");
 }
@@ -627,8 +953,10 @@ function renderFeedbackCta(result) {
 
   if (feedbackCtaCopyEl) {
     feedbackCtaCopyEl.textContent = context?.savedListingId
-      ? "After you review this saved report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
-      : "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.";
+      ? currentLanguage === "ja"
+        ? "この保存済みレポートを見たあとに、役立った点・分かりにくかった点・足りない点を短く教えてください。現在のレポート文脈は自動で添付します。"
+        : "After you review this saved report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
+      : t("feedbackCtaCopy");
   }
 }
 
@@ -638,8 +966,12 @@ function renderFeedbackContextPreview(result = currentResult) {
   const summary = feedbackContextSummary(context);
 
   feedbackContextPreviewEl.textContent = summary
-    ? `Context we'll attach: ${summary}`
-    : "No current report attached. You can still send general product feedback.";
+    ? currentLanguage === "ja"
+      ? `添付する文脈: ${summary}`
+      : `Context we'll attach: ${summary}`
+    : currentLanguage === "ja"
+      ? "現在のレポートは添付されません。一般的なプロダクトフィードバックとして送れます。"
+      : "No current report attached. You can still send general product feedback.";
 }
 
 function setSavedMessage(message, isError = false) {
@@ -656,7 +988,15 @@ function setUrlSavedParam(savedId) {
 }
 
 async function fetchApiJson(url, options = {}) {
-  const res = await fetch(url, options);
+  const { skipLanguageParam = false, headers: rawHeaders, ...fetchOptions } = options || {};
+  const requestUrl = skipLanguageParam ? url : withCurrentLanguage(url);
+  const headers = new Headers(rawHeaders || {});
+  headers.set("x-app-lang", currentLanguage);
+
+  const res = await fetch(requestUrl, {
+    ...fetchOptions,
+    headers,
+  });
   const text = await res.text();
   const data = safeJsonParse(text, {
     ok: false,
@@ -726,8 +1066,12 @@ function renderReviewSupportCta(result) {
 
   if (reviewSupportCtaCopyEl) {
     reviewSupportCtaCopyEl.textContent = reviewDropVisible
-      ? "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate."
-      : "Organize a suspicious review and generate calm, factual draft text before you escalate.";
+      ? currentLanguage === "ja"
+        ? "レビューや信頼シグナルに違和感がある場合は、エスカレーション前に事実整理と落ち着いた文面作成を進めましょう。"
+        : "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate."
+      : currentLanguage === "ja"
+        ? "怪しいレビューを整理し、エスカレーション前に落ち着いた事実ベースの文面を作れます。"
+        : "Organize a suspicious review and generate calm, factual draft text before you escalate.";
   }
 }
 
@@ -888,7 +1232,7 @@ function resetUI() {
   }
   if (changeCompetitorBtn) {
     changeCompetitorBtn.disabled = false;
-    changeCompetitorBtn.textContent = "Change competitor";
+    changeCompetitorBtn.textContent = t("changeCompetitor");
   }
   if (resetCompetitorBtn) {
     resetCompetitorBtn.classList.add("hidden");
@@ -921,32 +1265,34 @@ function setLoading(isLoading) {
   btn.disabled = isLoading;
 
   if (isLoading) {
-    msg.textContent = "Analyzing listing...";
+    msg.textContent = t("loadingListing");
     showCard();
     renderFeedbackCta(null);
-    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Summarizing what matters first...";
+    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = t("loadingHeadline");
     if (diagnosisSummaryEl) {
-      diagnosisSummaryEl.innerHTML = "<p>Checking foundation, customer choice, and competitor context.</p>";
+      diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(t("loadingSummary"))}</p>`;
     }
     if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
     if (priorityRowEl) priorityRowEl.innerHTML = "";
-    if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Prioritizing the first actions...</li>";
-    if (customerChoiceEl) customerChoiceEl.textContent = "Checking first-impression risk...";
-    if (foundationSummaryEl) foundationSummaryEl.textContent = "Checking profile basics";
+    if (primaryActionsListEl) {
+      primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("loadingPriority"))}</li>`;
+    }
+    if (customerChoiceEl) customerChoiceEl.textContent = t("loadingCustomerChoice");
+    if (foundationSummaryEl) foundationSummaryEl.textContent = t("loadingFoundation");
     if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
     if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
     scoreEl.textContent = "-";
     setReportDate(new Date().toISOString());
-    todosEl.innerHTML = "<li>Loading...</li>";
-    breakdownEl.innerHTML = "<li>Loading...</li>";
+    todosEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
+    breakdownEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
     penaltyEl.textContent = "";
-    summaryEl.innerHTML = "<div>Loading...</div>";
-    if (compareListEl) compareListEl.innerHTML = "<li>Loading...</li>";
-    if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>Loading...</li>";
+    summaryEl.innerHTML = `<div>${escapeHtml(t("loadingGeneric"))}</div>`;
+    if (compareListEl) compareListEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
+    if (weeklyReportListEl) weeklyReportListEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
     const photoCompareEl = document.getElementById("photoCompare");
-    if (photoCompareEl) photoCompareEl.innerHTML = "<li>Loading...</li>";
+    if (photoCompareEl) photoCompareEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
     const photoAdviceEl = document.getElementById("photoAdviceList");
-    if (photoAdviceEl) photoAdviceEl.innerHTML = "<li>Loading...</li>";
+    if (photoAdviceEl) photoAdviceEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
   }
 }
 
@@ -954,15 +1300,17 @@ function showError(message) {
   msg.textContent = message;
   showCard();
   renderFeedbackCta(null);
-  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Diagnosis unavailable";
+  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = t("unavailableHeadline");
   if (diagnosisSummaryEl) {
     diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(message)}</p>`;
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
   if (priorityRowEl) priorityRowEl.innerHTML = "";
-  if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Try again with a more specific business name and address.</li>";
+  if (primaryActionsListEl) {
+    primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("retryMoreSpecific"))}</li>`;
+  }
   if (customerChoiceEl) customerChoiceEl.textContent = "";
-  if (foundationSummaryEl) foundationSummaryEl.textContent = "Could not load profile basics";
+  if (foundationSummaryEl) foundationSummaryEl.textContent = t("unavailableFoundation");
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
   if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
   scoreEl.textContent = "0";
@@ -1235,13 +1583,16 @@ function renderCompetitorControls(data) {
 
   compareControlsEl.classList.remove("hidden");
   changeCompetitorBtn.textContent = competitorChooserOpen
-    ? "Hide competitor options"
-    : "Change competitor";
+    ? currentLanguage === "ja"
+      ? "競合候補を隠す"
+      : "Hide competitor options"
+    : t("changeCompetitor");
   changeCompetitorBtn.disabled = competitorUpdateInFlight;
 
   const canReset =
     Boolean(recommendedPlaceId) && Boolean(selectedPlaceId) && recommendedPlaceId !== selectedPlaceId;
   resetCompetitorBtn.classList.toggle("hidden", !canReset);
+  resetCompetitorBtn.textContent = t("resetCompetitor");
   resetCompetitorBtn.disabled = competitorUpdateInFlight;
 
   competitorPickerEl.classList.toggle("hidden", !competitorChooserOpen);
@@ -1253,7 +1604,10 @@ function renderCompetitorControls(data) {
 
   const heading = document.createElement("div");
   heading.className = "compare__picker-title";
-  heading.textContent = "Choose a competitor for this report";
+  heading.textContent =
+    currentLanguage === "ja"
+      ? "このレポートで比較する競合を選択"
+      : "Choose a competitor for this report";
   competitorPickerEl.appendChild(heading);
 
   const searchBox = document.createElement("div");
@@ -1934,7 +2288,10 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
     renderInsight(currentResult);
     competitorChooserOpen = options.keepOpen === true;
     renderCompetitorControls(currentResult);
-    msg.textContent = "Competitor updated for this report.";
+    msg.textContent =
+      currentLanguage === "ja"
+        ? "このレポートの競合を更新しました。"
+        : "Competitor updated for this report.";
     setSavedMessage("Competitor updated. Save Current Listing to keep this selection.");
   } catch (error) {
     renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
@@ -2520,7 +2877,7 @@ function buildSavedListingMilestoneBlock(progress) {
 
   const label = document.createElement("div");
   label.className = "saved__milestone-label";
-  label.textContent = "Next rating milestone";
+  label.textContent = currentLanguage === "ja" ? "次の評価マイルストーン" : "Next rating milestone";
 
   const main = document.createElement("div");
   main.className = "saved__milestone-main";
@@ -2543,7 +2900,10 @@ function buildSavedListingMilestoneBlock(progress) {
   const note = document.createElement("div");
   note.className = "saved__milestone-note";
   note.textContent =
-    progress?.note || "Estimate based on current displayed rating and total reviews";
+    progress?.note ||
+    (currentLanguage === "ja"
+      ? "現在の表示評価とレビュー総数をもとにした目安です"
+      : "Estimate based on current displayed rating and total reviews");
 
   milestoneBlock.appendChild(label);
   milestoneBlock.appendChild(main);
@@ -2561,7 +2921,7 @@ function buildSavedListingRevisitBlock(signal) {
 
   const label = document.createElement("div");
   label.className = "saved__revisit-label";
-  label.textContent = "Revisit reason";
+  label.textContent = currentLanguage === "ja" ? "再確認する理由" : "Revisit reason";
 
   const main = document.createElement("div");
   main.className = "saved__revisit-main";
@@ -2575,8 +2935,12 @@ function buildSavedListingRevisitBlock(signal) {
   const nextCheck = document.createElement("div");
   nextCheck.className = "saved__revisit-note";
   nextCheck.textContent = signal?.nextCheck
-    ? `Next check: ${signal.nextCheck}`
-    : "Next check: confirm whether the drop persists.";
+    ? currentLanguage === "ja"
+      ? `次回確認: ${signal.nextCheck}`
+      : `Next check: ${signal.nextCheck}`
+    : currentLanguage === "ja"
+      ? "次回確認: 減少が続いているかを見てください。"
+      : "Next check: confirm whether the drop persists.";
 
   revisitBlock.appendChild(label);
   revisitBlock.appendChild(main);
@@ -2608,24 +2972,31 @@ function buildSavedListingMonitoringBlock(monitoring) {
 
   const label = document.createElement("div");
   label.className = "saved__monitoring-label";
-  label.textContent = "Review monitoring";
+  label.textContent = currentLanguage === "ja" ? "レビュー監視" : "Review monitoring";
   block.appendChild(label);
 
   if (monitoring.status !== "ready") {
     const main = document.createElement("div");
     main.className = "saved__monitoring-main";
-    main.textContent = "Collecting review history";
+    main.textContent = currentLanguage === "ja" ? "レビュー履歴を収集中" : "Collecting review history";
 
     const support = document.createElement("div");
     support.className = "saved__monitoring-support";
     support.textContent =
-      monitoring?.notableShift || "Available after two saved review-theme snapshots.";
+      monitoring?.notableShift ||
+      (currentLanguage === "ja"
+        ? "保存されたレビュー傾向スナップショットが2件そろうと表示されます。"
+        : "Available after two saved review-theme snapshots.");
 
     const nextAction = document.createElement("div");
     nextAction.className = "saved__monitoring-note";
     nextAction.textContent = monitoring?.nextAction
-      ? `Next check: ${monitoring.nextAction}`
-      : "Next check: keep monitoring until another saved snapshot is available.";
+      ? currentLanguage === "ja"
+        ? `次回確認: ${monitoring.nextAction}`
+        : `Next check: ${monitoring.nextAction}`
+      : currentLanguage === "ja"
+        ? "次回確認: 次の保存済みスナップショットがたまるまで監視を続けてください。"
+        : "Next check: keep monitoring until another saved snapshot is available.";
 
     block.appendChild(main);
     block.appendChild(support);
@@ -2639,7 +3010,7 @@ function buildSavedListingMonitoringBlock(monitoring) {
   const trendItem = document.createElement("div");
   trendItem.className = "saved__monitoring-item";
   trendItem.innerHTML = `
-    <div class="saved__monitoring-item-label">Theme trend</div>
+    <div class="saved__monitoring-item-label">${currentLanguage === "ja" ? "テーマ傾向" : "Theme trend"}</div>
     <div class="saved__monitoring-item-value">
       <span class="saved__badge saved__badge--${escapeAttr(
         savedMonitoringTone(monitoring.status, monitoring?.trend)
@@ -2650,11 +3021,16 @@ function buildSavedListingMonitoringBlock(monitoring) {
   const gapItem = document.createElement("div");
   gapItem.className = "saved__monitoring-item";
   gapItem.innerHTML = `
-    <div class="saved__monitoring-item-label">Competitor gap</div>
+    <div class="saved__monitoring-item-label">${currentLanguage === "ja" ? "競合ギャップ" : "Competitor gap"}</div>
     <div class="saved__monitoring-item-value">
       <span class="saved__badge saved__badge--${escapeAttr(
         savedMonitoringTone(monitoring.status, monitoring?.gapDirection)
-      )}">${escapeHtml(savedMonitoringLabel(monitoring?.gapDirection, "Not enough competitor history yet"))}</span>
+      )}">${escapeHtml(
+        savedMonitoringLabel(
+          monitoring?.gapDirection,
+          currentLanguage === "ja" ? "競合履歴がまだ足りません" : "Not enough competitor history yet"
+        )
+      )}</span>
     </div>
   `;
 
@@ -2665,14 +3041,20 @@ function buildSavedListingMonitoringBlock(monitoring) {
   if (monitoring?.notableShift) {
     const shift = document.createElement("div");
     shift.className = "saved__monitoring-support";
-    shift.textContent = `Last notable shift: ${monitoring.notableShift}`;
+    shift.textContent =
+      currentLanguage === "ja"
+        ? `直近の大きな変化: ${monitoring.notableShift}`
+        : `Last notable shift: ${monitoring.notableShift}`;
     block.appendChild(shift);
   }
 
   if (monitoring?.nextAction) {
     const nextAction = document.createElement("div");
     nextAction.className = "saved__monitoring-note";
-    nextAction.textContent = `Next action: ${monitoring.nextAction}`;
+    nextAction.textContent =
+      currentLanguage === "ja"
+        ? `次のアクション: ${monitoring.nextAction}`
+        : `Next action: ${monitoring.nextAction}`;
     block.appendChild(nextAction);
   }
 
@@ -2681,11 +3063,14 @@ function buildSavedListingMonitoringBlock(monitoring) {
 
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
+  currentSavedListings = Array.isArray(listings) ? listings.slice() : [];
 
   savedListingsEl.innerHTML = "";
 
   if (!Array.isArray(listings) || !listings.length) {
-    savedListingsEl.innerHTML = `<li class="muted">No saved listings yet</li>`;
+    savedListingsEl.innerHTML = `<li class="muted">${
+      currentLanguage === "ja" ? "保存した店舗はまだありません" : "No saved listings yet"
+    }</li>`;
     return;
   }
 
@@ -2698,14 +3083,24 @@ function renderSavedListings(listings) {
 
     const title = document.createElement("div");
     title.className = "saved__title";
-    title.textContent = item.name || item.q || item.placeId || "Saved Listing";
+    title.textContent =
+      item.name ||
+      item.q ||
+      item.placeId ||
+      (currentLanguage === "ja" ? "保存した店舗" : "Saved Listing");
 
     const meta = document.createElement("div");
     meta.className = "saved__meta";
     meta.innerHTML = `
-      <div>${escapeHtml(item.address || "Address not available")}</div>
-      <div>Updated: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || "Just now")}</div>
-      <div>Saved for quick re-open from this dashboard.</div>
+      <div>${escapeHtml(item.address || (currentLanguage === "ja" ? "住所情報なし" : "Address not available"))}</div>
+      <div>${
+        currentLanguage === "ja" ? "更新" : "Updated"
+      }: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || (currentLanguage === "ja" ? "たった今" : "Just now"))}</div>
+      <div>${
+        currentLanguage === "ja"
+          ? "このダッシュボードからすぐ再表示できるよう保存しています。"
+          : "Saved for quick re-open from this dashboard."
+      }</div>
     `;
 
     let competitorBlock = null;
@@ -2713,7 +3108,9 @@ function renderSavedListings(listings) {
       competitorBlock = document.createElement("div");
       competitorBlock.className = "saved__competitor";
       competitorBlock.innerHTML = `
-        <div>Compared with: ${escapeHtml(item?.competitorName || "Selected competitor")}</div>
+        <div>${
+          currentLanguage === "ja" ? "比較対象" : "Compared with"
+        }: ${escapeHtml(item?.competitorName || (currentLanguage === "ja" ? "選択中の競合" : "Selected competitor"))}</div>
         ${
           item?.competitorAddress
             ? `<div class="saved__competitor-address">${escapeHtml(item.competitorAddress)}</div>`
@@ -2743,7 +3140,11 @@ function renderSavedListings(listings) {
 
     const summaryLines = Array.isArray(item?.changeSummary?.lines)
       ? item.changeSummary.lines.slice(0, 3)
-      : ["We'll compare changes after your next check"];
+      : [
+          currentLanguage === "ja"
+            ? "次回の確認後に変化を比較します"
+            : "We'll compare changes after your next check",
+        ];
 
     summaryLines.forEach((line) => {
       const tag = document.createElement("div");
@@ -2774,14 +3175,15 @@ function renderSavedListings(listings) {
     openBtn.className = "btn";
     openBtn.dataset.action = "open";
     openBtn.dataset.savedId = item.id;
-    openBtn.textContent = "Open Latest Report";
+    openBtn.textContent =
+      currentLanguage === "ja" ? "最新レポートを開く" : "Open Latest Report";
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "btn";
     deleteBtn.dataset.action = "delete";
     deleteBtn.dataset.savedId = item.id;
-    deleteBtn.textContent = "Delete";
+    deleteBtn.textContent = currentLanguage === "ja" ? "削除" : "Delete";
 
     actions.appendChild(openBtn);
     actions.appendChild(deleteBtn);
@@ -2885,7 +3287,7 @@ async function refreshSavedListings(options = {}) {
 async function openSavedListing(id, options = {}) {
   resetUI();
   setLoading(true);
-  msg.textContent = "Loading saved listing...";
+  msg.textContent = t("loadingSavedListing");
 
   try {
     const data = await fetchSavedReport(id);
@@ -2906,11 +3308,11 @@ async function openSavedListing(id, options = {}) {
     if (options.pushState !== false) {
       setUrlSavedParam(id);
     }
-    msg.textContent = "Saved listing loaded.";
+    msg.textContent = t("savedListingLoaded");
     setSavedMessage(
       options.ensureSavedListingVisible && !isLikelyEmail(getSubscriberEmail())
         ? "Showing this saved listing from a direct link. Enter your email to load all saved listings."
-        : "Saved listing loaded."
+        : t("savedListingLoaded")
     );
   } catch (error) {
     showError(error?.message || String(error));
@@ -2970,7 +3372,7 @@ function renderHistory(list) {
     delBtn.className = "btn history__delete";
     delBtn.dataset.action = "delete";
     delBtn.dataset.index = String(idx);
-    delBtn.textContent = "Delete";
+    delBtn.textContent = currentLanguage === "ja" ? "削除" : "Delete";
 
     li.appendChild(showBtn);
     li.appendChild(delBtn);
@@ -3259,7 +3661,7 @@ if (historyEl) {
             currentResult = hydrated;
             if (saveListingBtn) saveListingBtn.disabled = false;
             setUrlSavedParam(null);
-            msg.textContent = "Loaded history item.";
+            msg.textContent = t("loadedHistoryItem");
           })
           .catch((e) => showError(e?.message || String(e)));
       }
@@ -3276,7 +3678,7 @@ if (historyEl) {
 
 if (clearHistoryBtn) {
   clearHistoryBtn.addEventListener("click", () => {
-    if (!confirm("Clear all history and reset the display. Continue?")) return;
+    if (!confirm(t("clearHistoryConfirm"))) return;
     saveHistory([]);
     renderHistory([]);
     resetUI();
@@ -3296,13 +3698,25 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+if (langToggleEn) {
+  langToggleEn.addEventListener("click", () => {
+    applyLanguage("en", { persist: true, syncUrl: true });
+  });
+}
+
+if (langToggleJa) {
+  langToggleJa.addEventListener("click", () => {
+    applyLanguage("ja", { persist: true, syncUrl: true });
+  });
+}
+
 btn.addEventListener("click", async () => {
   resetUI();
 
   const q = input.value.trim();
   if (!q) {
     hideCard();
-    msg.textContent = "Please enter a business name and address.";
+    msg.textContent = t("missingQuery");
     return;
   }
 
@@ -3330,7 +3744,7 @@ btn.addEventListener("click", async () => {
       data: hydrated,
     });
     setUrlSavedParam(null);
-    msg.textContent = "Analysis complete.";
+    msg.textContent = t("analysisComplete");
   } catch (e) {
     showError(e?.message || String(e));
   } finally {
@@ -3339,10 +3753,14 @@ btn.addEventListener("click", async () => {
 });
 
 // init
+renderLanguageToggle();
+renderStaticCopy();
 renderHistory(loadHistory());
 renderSavedListings([]);
 
 (async () => {
+  await detectInitialLanguage();
+
   const savedId = new URL(window.location.href).searchParams.get("saved");
 
   if (savedId) {

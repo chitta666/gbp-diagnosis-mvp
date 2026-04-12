@@ -1,4 +1,5 @@
 import { resolvePlaceIdFromQuery, buildListingReport } from "../_lib/report.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -32,12 +33,13 @@ export async function onRequest({ request, env }) {
 
     const url = new URL(request.url);
     const q = (url.searchParams.get("q") || "").trim();
+    const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
     if (!q) {
       return publicError("BAD_INPUT", "Enter a business name and address.", 400);
     }
 
-    const resolved = await resolvePlaceIdFromQuery({ key, q });
+    const resolved = await resolvePlaceIdFromQuery({ key, q, lang });
     if (!resolved.ok) {
       console.error("diagnose resolve failed", {
         q,
@@ -52,7 +54,7 @@ export async function onRequest({ request, env }) {
       });
     }
 
-    const report = await buildListingReport({ key, placeId: resolved.placeId });
+    const report = await buildListingReport({ key, placeId: resolved.placeId, lang });
     if (!report.ok) {
       console.error("diagnose build report failed", {
         q,

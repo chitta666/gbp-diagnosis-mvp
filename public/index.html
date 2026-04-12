@@ -3665,7 +3665,18 @@ function savedMonitoringTone(status, value) {
 
 function savedMonitoringLabel(value, fallback = t("notAvailableYet")) {
   if (!value) return fallback;
-  return String(value).replace(/_/g, " ");
+
+  const labels = {
+    improving: langText("Improving", "改善中"),
+    worsening: langText("Worsening", "悪化傾向"),
+    mixed: langText("Mixed", "混在"),
+    steady: langText("Steady", "横ばい"),
+    narrowing: langText("Narrowing", "差が縮小"),
+    widening: langText("Widening", "差が拡大"),
+    unchanged: langText("Unchanged", "変化なし"),
+  };
+
+  return labels[String(value)] || String(value).replace(/_/g, " ");
 }
 
 function buildSavedListingMonitoringBlock(monitoring) {

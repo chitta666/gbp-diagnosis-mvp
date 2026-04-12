@@ -1,4 +1,5 @@
 import { runDailyForPlace } from "../_lib/runDaily.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
 import {
   deleteSavedListing,
   isValidEmail,
@@ -24,6 +25,7 @@ export async function onRequest({ request, env }) {
 
   const origin = new URL(request.url).origin;
   const url = new URL(request.url);
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
   if (request.method === "GET") {
     const email = (url.searchParams.get("email") || "").trim();
@@ -34,7 +36,7 @@ export async function onRequest({ request, env }) {
     const listings = await listSavedListingsByEmail({ KV, email });
     return json({
       ok: true,
-      listings: listings.map((item) => publicSavedListing(item, { origin })),
+      listings: listings.map((item) => publicSavedListing(item, { origin, lang })),
     });
   }
 
@@ -96,10 +98,11 @@ export async function onRequest({ request, env }) {
 
     return json({
       ok: true,
-      listing: publicSavedListing(listing, { origin }),
+      listing: publicSavedListing(listing, { origin, lang }),
       snapshotStatus,
-      message:
-        "Listing saved. You can reopen it anytime from Saved Listings.",
+      message: lang === "ja"
+        ? "リスティングを保存しました。Saved Listings からいつでも再表示できます。"
+        : "Listing saved. You can reopen it anytime from Saved Listings.",
     });
   }
 

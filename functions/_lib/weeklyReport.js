@@ -1,7 +1,46 @@
 import { ymdTokyo } from "./date.js";
 
-const WEEKLY_TRACKING_MESSAGE =
-  "Tracking weekly trends. Meaningful changes usually appear after about 7 days of daily snapshots.";
+function isJapanese(lang = "en") {
+  return String(lang || "").toLowerCase().startsWith("ja");
+}
+
+function weeklyCopy(lang = "en") {
+  const ja = isJapanese(lang);
+
+  return {
+    trackingMessage: ja
+      ? "週次の傾向を追跡しています。意味のある変化は、日次スナップショットが約7日分たまってから見えやすくなります。"
+      : "Tracking weekly trends. Meaningful changes usually appear after about 7 days of daily snapshots.",
+    moreTotalReviews: ({ count }) =>
+      ja
+        ? `あなたのビジネスはレビュー総数で${count}件リードしています。`
+        : `Your business has ${count} more total reviews.`,
+    competitorsMoreTotalReviews: ({ count }) =>
+      ja
+        ? `競合のほうがレビュー総数で${count}件多い状態です。`
+        : `Competitors have ${count} more total reviews.`,
+    totalReviewCountSimilar: ja
+      ? "レビュー総数はほぼ同水準です。"
+      : "Total review count is similar.",
+    moreReviewsThisWeek: ({ count }) =>
+      ja
+        ? `今週はあなたのビジネスのほうがレビューを${count}件多く獲得しています。`
+        : `Your business gained ${count} more reviews this week.`,
+    competitorsMoreReviewsThisWeek: ({ count }) =>
+      ja
+        ? `今週は競合のほうがレビューを${count}件多く獲得しています。`
+        : `Competitors gained ${count} more reviews this week.`,
+    weeklyGrowthSimilar: ja
+      ? "今週のレビュー増加はほぼ同水準です。"
+      : "Weekly review growth is similar.",
+    weeklyTrackingStarting: ja
+      ? "週次トラッキングを開始しています。"
+      : "Weekly tracking is starting.",
+    savingFirstDailySnapshots: ja
+      ? "週次トラッキング用の最初の日次スナップショットを保存しています。"
+      : "Saving the first daily snapshots for weekly tracking.",
+  };
+}
 
 function safeJson(s) {
   try {
@@ -20,37 +59,40 @@ export function buildWeeklyInsight({
   myWeeklyGain,
   competitorWeeklyGain,
   weeklyGainDiff,
+  lang = "en",
 }) {
+  const copy = weeklyCopy(lang);
   const parts = [];
 
   if (Number.isFinite(totalDiff)) {
-    if (totalDiff > 0) parts.push(`Your business has ${totalDiff} more total reviews.`);
+    if (totalDiff > 0) parts.push(copy.moreTotalReviews({ count: totalDiff }));
     else if (totalDiff < 0) {
-      parts.push(`Competitors have ${Math.abs(totalDiff)} more total reviews.`);
+      parts.push(copy.competitorsMoreTotalReviews({ count: Math.abs(totalDiff) }));
     } else {
-      parts.push("Total review count is similar.");
+      parts.push(copy.totalReviewCountSimilar);
     }
   }
 
   if (Number.isFinite(weeklyGainDiff)) {
     if (weeklyGainDiff > 0) {
-      parts.push(`Your business gained ${weeklyGainDiff} more reviews this week.`);
+      parts.push(copy.moreReviewsThisWeek({ count: weeklyGainDiff }));
     } else if (weeklyGainDiff < 0) {
-      parts.push(`Competitors gained ${Math.abs(weeklyGainDiff)} more reviews this week.`);
+      parts.push(copy.competitorsMoreReviewsThisWeek({ count: Math.abs(weeklyGainDiff) }));
     } else {
-      parts.push("Weekly review growth is similar.");
+      parts.push(copy.weeklyGrowthSimilar);
     }
   } else if (
     Number.isFinite(myWeeklyGain) ||
     Number.isFinite(competitorWeeklyGain)
   ) {
-    parts.push(WEEKLY_TRACKING_MESSAGE);
+    parts.push(copy.trackingMessage);
   }
 
-  return parts.length ? parts.join(" ") : WEEKLY_TRACKING_MESSAGE;
+  return parts.length ? parts.join(" ") : copy.trackingMessage;
 }
 
-export async function getWeeklyReport({ KV, myPlaceId }) {
+export async function getWeeklyReport({ KV, myPlaceId, lang = "en" }) {
+  const copy = weeklyCopy(lang);
   const today = ymdTokyo();
   const weekAgo = ymdTokyo(dateDaysAgo(7));
 
@@ -58,7 +100,7 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
     competitorPlaceId = null,
     status = "ready",
     message = null,
-    insight = WEEKLY_TRACKING_MESSAGE,
+    insight = copy.trackingMessage,
   } = {}) => ({
     ok: true,
     status,
@@ -86,8 +128,8 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
   if (!rawComp) {
     return baseResponse({
       status: "setup_required",
-      message: "Weekly tracking is starting.",
-      insight: WEEKLY_TRACKING_MESSAGE,
+      message: copy.weeklyTrackingStarting,
+      insight: copy.trackingMessage,
     });
   }
 
@@ -96,8 +138,8 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
   if (!competitorPlaceId) {
     return baseResponse({
       status: "setup_required",
-      message: "Weekly tracking is starting.",
-      insight: WEEKLY_TRACKING_MESSAGE,
+      message: copy.weeklyTrackingStarting,
+      insight: copy.trackingMessage,
     });
   }
 
@@ -112,8 +154,8 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
     return {
       ...response,
       status: "collecting_daily_data",
-      message: "Saving the first daily snapshots for weekly tracking.",
-      insight: WEEKLY_TRACKING_MESSAGE,
+      message: copy.savingFirstDailySnapshots,
+      insight: copy.trackingMessage,
     };
   }
 
@@ -152,6 +194,7 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
     myWeeklyGain,
     competitorWeeklyGain,
     weeklyGainDiff,
+    lang,
   });
 
   return {
@@ -160,7 +203,7 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
     message:
       myWeekAgoRaw && compWeekAgoRaw
         ? null
-        : "Tracking weekly trends. Meaningful changes usually appear after about 7 days of daily snapshots.",
+        : copy.trackingMessage,
     my: {
       placeId: myPlaceId,
       todayTotal: Number.isFinite(myTodayTotal) ? myTodayTotal : null,
@@ -178,6 +221,6 @@ export async function getWeeklyReport({ KV, myPlaceId }) {
     insight:
       myWeekAgoRaw && compWeekAgoRaw
         ? insight
-        : WEEKLY_TRACKING_MESSAGE,
+        : copy.trackingMessage,
   };
 }

@@ -25,6 +25,148 @@ function compactStringList(values, limit = 2) {
   ).slice(0, limit);
 }
 
+const STORED_THEME_LABELS = {
+  friendly_staff: {
+    en: "friendly staff",
+    ja: "スタッフの親切さ",
+  },
+  atmosphere: {
+    en: "the atmosphere",
+    ja: "雰囲気",
+  },
+  quality: {
+    en: "product quality",
+    ja: "商品・サービスの質",
+  },
+  professionalism: {
+    en: "professional service",
+    ja: "プロらしい対応",
+  },
+  cleanliness: {
+    en: "a clean environment",
+    ja: "清潔感",
+  },
+  slow_service: {
+    en: "slow service",
+    ja: "対応の遅さ",
+  },
+  confusing_process: {
+    en: "an unclear process",
+    ja: "分かりにくい導線",
+  },
+  rude_service: {
+    en: "unfriendly service",
+    ja: "対応の悪さ",
+  },
+  noise_crowding: {
+    en: "noise or crowding",
+    ja: "騒がしさ・混雑",
+  },
+  overpriced: {
+    en: "value concerns",
+    ja: "価格への不満",
+  },
+};
+
+const STORED_THEME_LOOKUP = Object.values(STORED_THEME_LABELS).reduce((acc, item) => {
+  acc[String(item.en || "").toLowerCase()] = item;
+  acc[String(item.ja || "").toLowerCase()] = item;
+  return acc;
+}, {});
+
+function isJapanese(lang = "en") {
+  return String(lang || "").toLowerCase().startsWith("ja");
+}
+
+function localizedString(value, lang = "en") {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const text = value.trim();
+    return text || null;
+  }
+
+  if (typeof value === "object") {
+    const preferred = isJapanese(lang) ? value?.ja : value?.en;
+    const fallback = isJapanese(lang) ? value?.en : value?.ja;
+    const text = String(preferred || fallback || "").trim();
+    return text || null;
+  }
+
+  return null;
+}
+
+function translateStoredThemeLabel(value, lang = "en") {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  const hit = STORED_THEME_LOOKUP[text.toLowerCase()];
+  if (!hit) return text;
+  return isJapanese(lang) ? hit.ja : hit.en;
+}
+
+function localizedStringList(value, lang = "en", limit = 2, { translateThemes = false } = {}) {
+  let list = [];
+
+  if (Array.isArray(value)) {
+    list = value;
+  } else if (value && typeof value === "object") {
+    const preferred = isJapanese(lang) ? value?.ja : value?.en;
+    const fallback = isJapanese(lang) ? value?.en : value?.ja;
+    list =
+      Array.isArray(preferred) && preferred.length
+        ? preferred
+        : Array.isArray(fallback)
+          ? fallback
+          : [];
+  }
+
+  const compacted = compactStringList(list, limit);
+  return translateThemes
+    ? compactStringList(compacted.map((item) => translateStoredThemeLabel(item, lang)), limit)
+    : compacted;
+}
+
+function localizedPair(enValue, jaValue) {
+  return {
+    en: typeof enValue === "string" ? String(enValue || "").trim() || null : enValue,
+    ja: typeof jaValue === "string" ? String(jaValue || "").trim() || null : jaValue,
+  };
+}
+
+function localizedListPair(enValues, jaValues, limit = 2) {
+  return {
+    en: compactStringList(Array.isArray(enValues) ? enValues : jaValues, limit),
+    ja: compactStringList(Array.isArray(jaValues) ? jaValues : enValues, limit),
+  };
+}
+
+function localizeStoredSnapshot(snapshot, lang = "en") {
+  if (!snapshot) return null;
+
+  return {
+    ...snapshot,
+    summary: localizedString(snapshot.summary, lang),
+    strengths: localizedStringList(snapshot.strengths, lang, 8, {
+      translateThemes: true,
+    }),
+    frictions: localizedStringList(snapshot.frictions, lang, 8, {
+      translateThemes: true,
+    }),
+    underSignaledStrengths: localizedStringList(
+      snapshot.underSignaledStrengths,
+      lang,
+      8
+    ),
+    verificationGaps: localizedStringList(snapshot.verificationGaps, lang, 8),
+    competitorChoiceEdges: localizedStringList(
+      snapshot.competitorChoiceEdges,
+      lang,
+      8
+    ),
+    priorityAction: localizedString(snapshot.priorityAction, lang),
+  };
+}
+
 async function readIdList(KV, key) {
   const raw = await KV.get(key);
   const list = safeJson(raw, []);
@@ -60,18 +202,22 @@ export function buildDeepLink({ origin, id }) {
   return `${cleanOrigin}/?saved=${encodeURIComponent(id)}`;
 }
 
-export function publicSavedListing(record, { origin, includeEmail = false } = {}) {
+export function publicSavedListing(
+  record,
+  { origin, includeEmail = false, lang = "en" } = {}
+) {
   if (!record) return null;
 
-  const changeSummary = buildSavedListingChangeSummary(record);
-  const reviewDropSignal = buildReviewDropSignal(record);
-  const reviewThemeMonitoring = buildReviewThemeMonitoringSummary(record);
+  const changeSummary = buildSavedListingChangeSummary(record, { lang });
+  const reviewDropSignal = buildReviewDropSignal(record, { lang });
+  const reviewThemeMonitoring = buildReviewThemeMonitoringSummary(record, { lang });
   const statusSummary = buildSavedListingStatusSummary(
     record,
     changeSummary,
-    reviewDropSignal
+    reviewDropSignal,
+    { lang }
   );
-  const ratingMilestoneProgress = buildRatingMilestoneProgress(record);
+  const ratingMilestoneProgress = buildRatingMilestoneProgress(record, { lang });
 
   const view = {
     id: record.id,
@@ -176,12 +322,15 @@ export function buildStoredReviewThemeSnapshot({
 } = {}) {
   if (!details?.ok) return null;
 
-  const reviewClues = buildReviewClues({
+  const buildArgs = {
     reviews: details.reviews,
     details,
     photoAnalysis: reviewPhotoAnalysis({ details, comparedDetails }),
     competitor: reviewClueCompetitorFromDetails(comparedDetails),
-  });
+  };
+  const reviewCluesEn = buildReviewClues({ ...buildArgs, lang: "en" });
+  const reviewCluesJa = buildReviewClues({ ...buildArgs, lang: "ja" });
+  const reviewClues = reviewCluesEn ?? reviewCluesJa;
 
   if (!reviewClues?.summary || !Number.isFinite(reviewClues?.reviewCountInSample)) {
     return null;
@@ -194,13 +343,25 @@ export function buildStoredReviewThemeSnapshot({
       comparedDetails?.placeId ?? comparedDetails?.place_id ?? null,
     sampleBasis: reviewClues.sampleBasis ?? "recent_visible_reviews",
     sampleReviewCount: Number(reviewClues.reviewCountInSample),
-    summary: String(reviewClues.summary || "").trim() || null,
-    strengths: compactStringList(reviewClues.strengths),
-    frictions: compactStringList(reviewClues.frictions),
-    underSignaledStrengths: compactStringList(reviewClues.underSignaledStrengths),
-    verificationGaps: compactStringList(reviewClues.verificationGaps),
-    competitorChoiceEdges: compactStringList(reviewClues.competitorChoiceEdges),
-    priorityAction: String(reviewClues.priorityAction || "").trim() || null,
+    summary: localizedPair(reviewCluesEn?.summary, reviewCluesJa?.summary),
+    strengths: localizedListPair(reviewCluesEn?.strengths, reviewCluesJa?.strengths),
+    frictions: localizedListPair(reviewCluesEn?.frictions, reviewCluesJa?.frictions),
+    underSignaledStrengths: localizedListPair(
+      reviewCluesEn?.underSignaledStrengths,
+      reviewCluesJa?.underSignaledStrengths
+    ),
+    verificationGaps: localizedListPair(
+      reviewCluesEn?.verificationGaps,
+      reviewCluesJa?.verificationGaps
+    ),
+    competitorChoiceEdges: localizedListPair(
+      reviewCluesEn?.competitorChoiceEdges,
+      reviewCluesJa?.competitorChoiceEdges
+    ),
+    priorityAction: localizedPair(
+      reviewCluesEn?.priorityAction,
+      reviewCluesJa?.priorityAction
+    ),
     confidence: String(reviewClues.confidence || "low"),
   };
 }
@@ -248,14 +409,18 @@ function riskScore(snapshot) {
   );
 }
 
-function buildCollectingReviewThemeMonitoring() {
+function buildCollectingReviewThemeMonitoring(lang = "en") {
   return {
     status: "collecting_history",
     trend: null,
     gapDirection: null,
     recurringFrictions: [],
-    notableShift: "Available after two saved review-theme snapshots.",
-    nextAction: "Keep monitoring until another saved review snapshot is available.",
+    notableShift: isJapanese(lang)
+      ? "保存済みの review-theme snapshot が2回分そろうと表示されます。"
+      : "Available after two saved review-theme snapshots.",
+    nextAction: isJapanese(lang)
+      ? "次の保存済み review snapshot が追加されるまで、そのまま観測を続けてください。"
+      : "Keep monitoring until another saved review snapshot is available.",
     confidence: "low",
   };
 }
@@ -292,73 +457,99 @@ function buildNotableShift({
   recurringFrictions,
   trend,
   gapDirection,
-}) {
+}, lang = "en") {
   const previousFrictions = new Set(compactStringList(previous?.frictions, 8));
   const latestFrictions = compactStringList(latest?.frictions, 8);
 
   if (recurringFrictions[0]) {
-    return `${recurringFrictions[0]} is repeating across recent checks.`;
+    return isJapanese(lang)
+      ? `${recurringFrictions[0]} が直近の確認で繰り返し出ています。`
+      : `${recurringFrictions[0]} is repeating across recent checks.`;
   }
 
   const newFriction = latestFrictions.find((item) => !previousFrictions.has(item));
   if (newFriction) {
-    return `${newFriction} is appearing more clearly in the latest review snapshot.`;
+    return isJapanese(lang)
+      ? `${newFriction} が最新の review snapshot ではよりはっきり見えるようになっています。`
+      : `${newFriction} is appearing more clearly in the latest review snapshot.`;
   }
 
   if (
     compactStringList(previous?.verificationGaps, 8).length &&
     !compactStringList(latest?.verificationGaps, 8).length
   ) {
-    return "Verification friction looks less central than in the previous saved check.";
+    return isJapanese(lang)
+      ? "確認しづらさの問題は、前回の保存チェックほど中心ではなくなっています。"
+      : "Verification friction looks less central than in the previous saved check.";
   }
 
   if (gapDirection === "narrowing") {
-    return "The selected competitor edge looks softer than it did in the previous saved check.";
+    return isJapanese(lang)
+      ? "選択中の競合優位は、前回の保存チェックより弱まって見えます。"
+      : "The selected competitor edge looks softer than it did in the previous saved check.";
   }
 
   if (gapDirection === "widening") {
-    return "The selected competitor edge looks more persistent than it did in the previous saved check.";
+    return isJapanese(lang)
+      ? "選択中の競合優位は、前回の保存チェックより根強く見えます。"
+      : "The selected competitor edge looks more persistent than it did in the previous saved check.";
   }
 
   if (trend === "improving") {
-    return "Recent review-theme pressure looks lighter than in the previous saved check.";
+    return isJapanese(lang)
+      ? "直近の review-theme 上の圧力は、前回の保存チェックより軽く見えます。"
+      : "Recent review-theme pressure looks lighter than in the previous saved check.";
   }
 
   if (trend === "worsening") {
-    return "Recent review-theme pressure looks heavier than in the previous saved check.";
+    return isJapanese(lang)
+      ? "直近の review-theme 上の圧力は、前回の保存チェックより重く見えます。"
+      : "Recent review-theme pressure looks heavier than in the previous saved check.";
   }
 
-  return "No major review-theme shift stands out yet.";
+  return isJapanese(lang)
+    ? "まだ大きな review-theme の変化は目立っていません。"
+    : "No major review-theme shift stands out yet.";
 }
 
-function buildTrendAwareNextAction({ latest, recurringFrictions, trend, gapDirection }) {
+function buildTrendAwareNextAction(
+  { latest, recurringFrictions, trend, gapDirection },
+  lang = "en"
+) {
   if (recurringFrictions.length && latest?.priorityAction) {
     return latest.priorityAction;
   }
 
   if (gapDirection === "widening") {
-    return "Close the easiest visible competitor proof gap before comparing momentum again.";
+    return isJapanese(lang)
+      ? "勢いを比較し直す前に、まず見た目で分かる競合との差を埋めてください。"
+      : "Close the easiest visible competitor proof gap before comparing momentum again.";
   }
 
   if (trend === "improving") {
-    return "Keep the recent changes in place and watch whether the same friction stays quiet.";
+    return isJapanese(lang)
+      ? "最近の改善を続けつつ、同じ friction が静かなままか確認してください。"
+      : "Keep the recent changes in place and watch whether the same friction stays quiet.";
   }
 
   return (
     String(latest?.priorityAction || "").trim() ||
-    "Keep monitoring until one repeat friction becomes clear enough to prioritize."
+    (isJapanese(lang)
+      ? "優先順位を付けられる recurring friction がはっきりするまで、そのまま観測を続けてください。"
+      : "Keep monitoring until one repeat friction becomes clear enough to prioritize.")
   );
 }
 
-export function buildReviewThemeMonitoringSummary(record) {
+export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) {
   const history = normalizedReviewThemeHistory(record?.reviewThemeHistory);
-  const ownHistory = history.own.slice(0, 4);
+  const ownHistory = history.own.slice(0, 4).map((item) => localizeStoredSnapshot(item, lang));
   const competitorHistory = history.competitor
     .filter((item) => String(item?.placeId || "") === String(record?.competitorPlaceId || ""))
-    .slice(0, 4);
+    .slice(0, 4)
+    .map((item) => localizeStoredSnapshot(item, lang));
 
   if (ownHistory.length < 2) {
-    return buildCollectingReviewThemeMonitoring();
+    return buildCollectingReviewThemeMonitoring(lang);
   }
 
   const latest = ownHistory[0];
@@ -375,7 +566,7 @@ export function buildReviewThemeMonitoringSummary(record) {
     recurringFrictions,
     trend,
     gapDirection,
-  });
+  }, lang);
   const sampleTotal = ownHistory.reduce(
     (sum, item) => sum + (Number.isFinite(item?.sampleReviewCount) ? Number(item.sampleReviewCount) : 0),
     0
@@ -392,7 +583,7 @@ export function buildReviewThemeMonitoringSummary(record) {
       recurringFrictions,
       trend,
       gapDirection,
-    }),
+    }, lang),
     confidence: ownHistory.length >= 3 && sampleTotal >= 6 ? "medium" : "low",
     latestCapturedAt: latest?.capturedAt ?? null,
     previousCapturedAt: previous?.capturedAt ?? null,
@@ -403,8 +594,10 @@ function toNumberOrNull(value) {
   return Number.isFinite(value) ? Number(value) : null;
 }
 
-function formatSignedNumber(value, digits = 0) {
-  if (!Number.isFinite(value) || value === 0) return "unchanged";
+function formatSignedNumber(value, digits = 0, lang = "en") {
+  if (!Number.isFinite(value) || value === 0) {
+    return isJapanese(lang) ? "変化なし" : "unchanged";
+  }
   const abs = Math.abs(value);
   const rounded =
     digits > 0
@@ -413,28 +606,25 @@ function formatSignedNumber(value, digits = 0) {
   return `${value > 0 ? "+" : "-"}${rounded}`;
 }
 
-function buildMetricLine(label, previousValue, currentValue, digits = 0) {
+function buildMetricLine(label, previousValue, currentValue, digits = 0, lang = "en") {
   if (!Number.isFinite(previousValue) || !Number.isFinite(currentValue)) {
-    return `${label} unavailable`;
+    return isJapanese(lang) ? `${label} は未取得です` : `${label} unavailable`;
   }
 
   const delta = currentValue - previousValue;
-  return `${label} ${formatSignedNumber(delta, digits)}`;
+  return `${label} ${formatSignedNumber(delta, digits, lang)}`;
 }
 
-function formatSummaryDate(value) {
+function formatSummaryDate(value, lang = "en") {
   const ts = Date.parse(String(value || ""));
   if (!Number.isFinite(ts)) return null;
 
-  return new Date(ts).toLocaleDateString("en-US", {
+  return new Date(ts).toLocaleDateString(isJapanese(lang) ? "ja-JP" : "en-US", {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
   });
 }
-
-const RATING_MILESTONE_NOTE =
-  "Estimate based on current displayed rating and total reviews";
 const REVIEW_DROP_ALERT_MIN = 2;
 
 function toSingleDecimal(value) {
@@ -485,7 +675,7 @@ function estimateReviewsNeededForMilestone({ rating, reviewCount, milestone, fut
   return roundedEstimate > 0 ? roundedEstimate : null;
 }
 
-export function buildRatingMilestoneProgress(record) {
+export function buildRatingMilestoneProgress(record, { lang = "en" } = {}) {
   const latest = record?.latestMetrics ?? null;
   const latestRating = toSingleDecimal(latest?.rating);
   const latestReviewCount = Number.isFinite(latest?.reviewCount) ? Number(latest.reviewCount) : null;
@@ -517,7 +707,9 @@ export function buildRatingMilestoneProgress(record) {
   let previousEstimatedFiveStarReviewsNeeded = null;
   let deltaToPreviousEstimate = null;
   let trend = "tracking";
-  let supportingCopy = "We'll compare progress again after your next check";
+  let supportingCopy = isJapanese(lang)
+    ? "次回の確認後に、進み具合をもう一度比較します"
+    : "We'll compare progress again after your next check";
 
   if (hasPreviousSavedMetrics(record)) {
     previousEstimatedFiveStarReviewsNeeded = estimateReviewsNeededForMilestone({
@@ -533,13 +725,19 @@ export function buildRatingMilestoneProgress(record) {
 
       if (deltaToPreviousEstimate < 0) {
         trend = "closer";
-        supportingCopy = `${Math.abs(deltaToPreviousEstimate)} fewer than last check`;
+        supportingCopy = isJapanese(lang)
+          ? `前回チェックより ${Math.abs(deltaToPreviousEstimate)} 件少なくなりました`
+          : `${Math.abs(deltaToPreviousEstimate)} fewer than last check`;
       } else if (deltaToPreviousEstimate > 0) {
         trend = "farther";
-        supportingCopy = `${deltaToPreviousEstimate} more than last check`;
+        supportingCopy = isJapanese(lang)
+          ? `前回チェックより ${deltaToPreviousEstimate} 件増えました`
+          : `${deltaToPreviousEstimate} more than last check`;
       } else {
         trend = "unchanged";
-        supportingCopy = "Unchanged since last check";
+        supportingCopy = isJapanese(lang)
+          ? "前回チェックから変化はありません"
+          : "Unchanged since last check";
       }
     }
   }
@@ -555,11 +753,13 @@ export function buildRatingMilestoneProgress(record) {
     deltaToPreviousEstimate,
     trend,
     supportingCopy,
-    note: RATING_MILESTONE_NOTE,
+    note: isJapanese(lang)
+      ? "現在の表示 rating と review 件数をもとにした目安です"
+      : "Estimate based on current displayed rating and total reviews",
   };
 }
 
-export function buildReviewDropSignal(record) {
+export function buildReviewDropSignal(record, { lang = "en" } = {}) {
   const latest = record?.latestMetrics ?? null;
   const previous = hasPreviousSavedMetrics(record) ? record?.previousMetrics ?? null : null;
   const latestReviewCount = Number.isFinite(latest?.reviewCount) ? Number(latest.reviewCount) : null;
@@ -582,22 +782,32 @@ export function buildReviewDropSignal(record) {
     dropCount,
     previousReviewCount,
     currentReviewCount: latestReviewCount,
-    reason: `Review count is down by ${dropCount} since the last saved check`,
-    customerImpact: "Visible trust may be weaker than it was at the last saved check.",
-    nextCheck: "Confirm whether the drop persists and whether the competitor gap changed.",
+    reason: isJapanese(lang)
+      ? `前回の保存チェック以降、レビュー件数が ${dropCount} 件減っています`
+      : `Review count is down by ${dropCount} since the last saved check`,
+    customerImpact: isJapanese(lang)
+      ? "見た目の信頼感が、前回の保存チェック時より弱くなっている可能性があります。"
+      : "Visible trust may be weaker than it was at the last saved check.",
+    nextCheck: isJapanese(lang)
+      ? "次回も減少が続くか、競合との差がどう変わったかを確認してください。"
+      : "Confirm whether the drop persists and whether the competitor gap changed.",
   };
 }
 
-export function buildSavedListingChangeSummary(record) {
+export function buildSavedListingChangeSummary(record, { lang = "en" } = {}) {
   const latest = record?.latestMetrics ?? null;
   const previous = record?.previousMetrics ?? latest;
-  const freshnessDate = formatSummaryDate(record?.lastCheckedAt ?? latest?.capturedAt);
+  const freshnessDate = formatSummaryDate(record?.lastCheckedAt ?? latest?.capturedAt, lang);
 
   if (!latest) {
     return {
       status: "pending",
       hasChange: false,
-      lines: ["We'll compare changes after your next check"],
+      lines: [
+        isJapanese(lang)
+          ? "次回の確認後に変化を比較します"
+          : "We'll compare changes after your next check",
+      ],
     };
   }
 
@@ -624,8 +834,12 @@ export function buildSavedListingChangeSummary(record) {
       hasChange: false,
       lines: [
         freshnessDate
-          ? `No major change since ${freshnessDate}`
-          : "No major change since last check",
+          ? isJapanese(lang)
+            ? `${freshnessDate} 以降、大きな変化はありません`
+            : `No major change since ${freshnessDate}`
+          : isJapanese(lang)
+            ? "前回チェック以降、大きな変化はありません"
+            : "No major change since last check",
       ],
     };
   }
@@ -634,9 +848,9 @@ export function buildSavedListingChangeSummary(record) {
     status: "changed",
     hasChange: true,
     lines: [
-      buildMetricLine("Reviews", previous?.reviewCount, latest?.reviewCount),
-      buildMetricLine("Rating", previous?.rating, latest?.rating, 1),
-      buildMetricLine("Photos", previous?.photoCount, latest?.photoCount),
+      buildMetricLine(isJapanese(lang) ? "レビュー" : "Reviews", previous?.reviewCount, latest?.reviewCount, 0, lang),
+      buildMetricLine(isJapanese(lang) ? "評価" : "Rating", previous?.rating, latest?.rating, 1, lang),
+      buildMetricLine(isJapanese(lang) ? "写真" : "Photos", previous?.photoCount, latest?.photoCount, 0, lang),
     ],
   };
 }
@@ -652,7 +866,8 @@ function buildStatusSummary(label, tone, reason) {
 export function buildSavedListingStatusSummary(
   record,
   changeSummary = null,
-  reviewDropSignal = null
+  reviewDropSignal = null,
+  { lang = "en" } = {}
 ) {
   const latest = record?.latestMetrics ?? null;
   const previous = record?.previousMetrics ?? latest;
@@ -673,38 +888,64 @@ export function buildSavedListingStatusSummary(
       : null;
 
   if (!latest) {
-    return buildStatusSummary("Tracking", "quiet", "Waiting for the first saved snapshot");
+    return buildStatusSummary(
+      isJapanese(lang) ? "観測中" : "Tracking",
+      "quiet",
+      isJapanese(lang)
+        ? "最初の保存済み snapshot を待っています"
+        : "Waiting for the first saved snapshot"
+    );
   }
 
   if (Number.isFinite(ratingDelta) && ratingDelta < 0) {
     return buildStatusSummary(
-      "Needs attention",
+      isJapanese(lang) ? "要確認" : "Needs attention",
       "warning",
-      `Rating ${formatSignedNumber(ratingDelta, 1)} since last check`
+      isJapanese(lang)
+        ? `前回チェックから評価 ${formatSignedNumber(ratingDelta, 1, lang)}`
+        : `Rating ${formatSignedNumber(ratingDelta, 1, lang)} since last check`
     );
   }
 
   if (reviewDrop?.visible) {
-    return buildStatusSummary("Needs attention", "warning", reviewDrop.reason);
+    return buildStatusSummary(
+      isJapanese(lang) ? "要確認" : "Needs attention",
+      "warning",
+      reviewDrop.reason
+    );
   }
 
   if (missing.includes("website")) {
-    return buildStatusSummary("Needs attention", "warning", "Website missing");
+    return buildStatusSummary(
+      isJapanese(lang) ? "要確認" : "Needs attention",
+      "warning",
+      isJapanese(lang) ? "Webサイト未設定" : "Website missing"
+    );
   }
 
   if (missing.includes("phone")) {
-    return buildStatusSummary("Needs attention", "warning", "Phone missing");
+    return buildStatusSummary(
+      isJapanese(lang) ? "要確認" : "Needs attention",
+      "warning",
+      isJapanese(lang) ? "電話番号未設定" : "Phone missing"
+    );
   }
 
   if (Number.isFinite(record?.analysisScore) && record.analysisScore < 80) {
-    return buildStatusSummary("Needs attention", "warning", "Profile completeness is weak");
+    return buildStatusSummary(
+      isJapanese(lang) ? "要確認" : "Needs attention",
+      "warning",
+      isJapanese(lang) ? "基本情報の整い方が弱めです" : "Profile completeness is weak"
+    );
   }
 
   if (Number.isFinite(record?.compareTotalDiff) && record.compareTotalDiff < 0) {
     return buildStatusSummary(
-      "Opportunity",
+      isJapanese(lang) ? "改善余地" : "Opportunity",
       "accent",
-      `Trail competitor by ${Math.abs(record.compareTotalDiff)} reviews`
+      isJapanese(lang)
+        ? `競合よりレビューが ${Math.abs(record.compareTotalDiff)} 件少ない状態です`
+        : `Trail competitor by ${Math.abs(record.compareTotalDiff)} reviews`
     );
   }
 
@@ -714,43 +955,61 @@ export function buildSavedListingStatusSummary(
     (!Number.isFinite(record?.compareTotalDiff) || record.compareTotalDiff <= 0)
   ) {
     return buildStatusSummary(
-      "Opportunity",
+      isJapanese(lang) ? "改善余地" : "Opportunity",
       "accent",
-      "Competitor review momentum is stronger"
+      isJapanese(lang)
+        ? "競合のレビュー増加ペースのほうが強めです"
+        : "Competitor review momentum is stronger"
     );
   }
 
   if (Number.isFinite(record?.photoMissingCount) && record.photoMissingCount > 0) {
     return buildStatusSummary(
-      "Opportunity",
+      isJapanese(lang) ? "改善余地" : "Opportunity",
       "accent",
       record.photoMissingCount >= 8
-        ? "Photo coverage trails nearby listings"
-        : `Add about ${record.photoMissingCount} more photos`
+        ? isJapanese(lang)
+          ? "近隣店舗より写真の充実度が弱めです"
+          : "Photo coverage trails nearby listings"
+        : isJapanese(lang)
+          ? `写真をあと ${record.photoMissingCount} 枚ほど増やす余地があります`
+          : `Add about ${record.photoMissingCount} more photos`
     );
   }
 
   if (Number.isFinite(reviewDelta) && reviewDelta > 0) {
     return buildStatusSummary(
-      "Opportunity",
+      isJapanese(lang) ? "改善余地" : "Opportunity",
       "accent",
-      `Reviews ${formatSignedNumber(reviewDelta)} since last check`
+      isJapanese(lang)
+        ? `前回チェックからレビュー ${formatSignedNumber(reviewDelta, 0, lang)}`
+        : `Reviews ${formatSignedNumber(reviewDelta, 0, lang)} since last check`
     );
   }
 
   if (Number.isFinite(photoDelta) && photoDelta > 0) {
     return buildStatusSummary(
-      "Opportunity",
+      isJapanese(lang) ? "改善余地" : "Opportunity",
       "accent",
-      `Photos ${formatSignedNumber(photoDelta)} since last check`
+      isJapanese(lang)
+        ? `前回チェックから写真 ${formatSignedNumber(photoDelta, 0, lang)}`
+        : `Photos ${formatSignedNumber(photoDelta, 0, lang)} since last check`
     );
   }
 
   if (summary?.status === "unchanged") {
-    return buildStatusSummary("Stable", "quiet", "No urgent changes detected");
+    return buildStatusSummary(
+      isJapanese(lang) ? "安定" : "Stable",
+      "quiet",
+      isJapanese(lang) ? "急ぎの変化は見当たりません" : "No urgent changes detected"
+    );
   }
 
-  return buildStatusSummary("Opportunity", "accent", "Worth another look");
+  return buildStatusSummary(
+    isJapanese(lang) ? "改善余地" : "Opportunity",
+    "accent",
+    isJapanese(lang) ? "もう一度見返す価値があります" : "Worth another look"
+  );
 }
 
 export function buildSavedListingMetrics(details) {

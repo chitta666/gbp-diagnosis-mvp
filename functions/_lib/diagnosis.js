@@ -1,9 +1,41 @@
-function analyzeCompetitors(competitors) {
+function isJapanese(lang = "en") {
+  return String(lang || "").toLowerCase().startsWith("ja");
+}
+
+function diagnosisCopy(lang = "en") {
+  const ja = isJapanese(lang);
+
+  return {
+    competitorUnavailable: ja
+      ? "競合分析は現在利用できません。"
+      : "Competitor analysis is unavailable right now.",
+    fewStrongCompetitorsNearby: ja
+      ? "近隣に強い競合はあまり見当たりません。"
+      : "There are few strong competitors nearby.",
+    strongCompetitorsNearby: ({ count }) =>
+      ja
+        ? `近隣に強い競合が${count}件あります（評価4.2以上・レビュー200件以上）。`
+        : `There are ${count} strong competitors nearby (rating 4.2+ and 200+ reviews).`,
+    addPhone: ja
+      ? "電話番号を掲載してください。"
+      : "Add a phone number to the listing.",
+    addWebsite: ja
+      ? "公式サイトまたは事業ページを掲載してください（例: ホームページ、予約ページ、メニュー/サービスページ）。"
+      : "Add an official website or business page to the listing (for example, your homepage, booking page, or menu/services page).",
+    addPhotos: ja
+      ? "写真を追加してください（目安: 5枚以上）。"
+      : "Add more listing photos (target: at least 5).",
+  };
+}
+
+function analyzeCompetitors(competitors, lang = "en") {
+  const copy = diagnosisCopy(lang);
+
   if (!competitors || competitors.status !== "OK") {
     return {
       penalty: 0,
       strongCount: null,
-      todo: "Competitor analysis is unavailable right now.",
+      todo: copy.competitorUnavailable,
     };
   }
 
@@ -18,35 +50,36 @@ function analyzeCompetitors(competitors) {
 
   const todo =
     penalty === 0
-      ? "There are few strong competitors nearby."
-      : `There are ${strongCount} strong competitors nearby (rating 4.2+ and 200+ reviews).`;
+      ? copy.fewStrongCompetitorsNearby
+      : copy.strongCompetitorsNearby({ count: strongCount });
 
   return { penalty, strongCount, todo };
 }
 
-export function buildDiagnosis(details, competitors) {
+export function buildDiagnosis(details, competitors, { lang = "en" } = {}) {
+  const copy = diagnosisCopy(lang);
   const missing = [];
   const todos = [];
-  const comp = analyzeCompetitors(competitors);
+  const comp = analyzeCompetitors(competitors, lang);
 
   const rules = [
     {
       id: "phone",
       weight: 30,
       isMissing: (d) => !d?.international_phone_number,
-      todo: "Add a phone number to the listing.",
+      todo: copy.addPhone,
     },
     {
       id: "website",
       weight: 20,
       isMissing: (d) => !d?.website,
-      todo: "Add an official website or business page to the listing (for example, your homepage, booking page, or menu/services page).",
+      todo: copy.addWebsite,
     },
     {
       id: "photos",
       weight: 10,
       isMissing: (d) => (d?.photos?.length ?? 0) < 5,
-      todo: "Add more listing photos (target: at least 5).",
+      todo: copy.addPhotos,
     },
   ];
 

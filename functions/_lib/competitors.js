@@ -251,13 +251,14 @@ export async function fetchCompetitors({
   type = null,
   listingTypes = [],
   myReviewCount = null,
+  lang = "en",
 }) {
   const u =
     "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
     `?location=${encodeURIComponent(`${lat},${lng}`)}` +
     `&radius=${encodeURIComponent(radius)}` +
     (type ? `&type=${encodeURIComponent(type)}` : "") +
-    `&language=en` +
+    `&language=${encodeURIComponent(lang)}` +
     `&key=${encodeURIComponent(key)}`;
 
   const res = await fetchJson(u);
@@ -300,6 +301,7 @@ export async function fetchCompetitorsAutoRadius({
   type = null,
   listingTypes = [],
   myReviewCount = null,
+  lang = "en",
   target = 12,
   tolerance = 3,
   minR = 300,
@@ -321,6 +323,7 @@ export async function fetchCompetitorsAutoRadius({
       type: searchType,
       listingTypes,
       myReviewCount,
+      lang,
     });
     let combined = primary;
 
@@ -337,6 +340,7 @@ export async function fetchCompetitorsAutoRadius({
         type: null,
         listingTypes,
         myReviewCount,
+        lang,
       });
 
       if (broader.status === "OK" || broader.status === "ZERO_RESULTS") {

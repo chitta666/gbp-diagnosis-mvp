@@ -2,10 +2,12 @@ import {
   mapGooglePlacesApiError,
   mapGooglePlacesTransportError,
 } from "../_lib/utils.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
 
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
   const headers = {
     "Content-Type": "application/json; charset=utf-8",
@@ -31,7 +33,7 @@ export async function onRequest(context) {
   if (!placeId) {
     const text = looksLikeUrl(final) ? extractPlaceText(final) : query;
     if (!text) return json({ error: "Place text not found. 店名+住所でもOK" }, 400);
-    const resolved = await findPlaceIdFromText(text, key);
+    const resolved = await findPlaceIdFromText(text, key, lang);
     if (!resolved.ok) {
       return json(
         {
@@ -67,7 +69,7 @@ export async function onRequest(context) {
     detailsRes = await fetchJson(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
         placeId
-      )}&fields=name,formatted_address&language=ja&key=${encodeURIComponent(key)}`
+      )}&fields=name,formatted_address&language=${encodeURIComponent(lang)}&key=${encodeURIComponent(key)}`
     );
   } catch (error) {
     const mapped = mapGooglePlacesTransportError(error);
@@ -159,13 +161,13 @@ function extractPlaceText(u) {
   return null;
 }
 
-async function findPlaceIdFromText(text, key) {
+async function findPlaceIdFromText(text, key, lang = "en") {
   const endpoint =
     `https://maps.googleapis.com/maps/api/place/findplacefromtext/json` +
     `?input=${encodeURIComponent(text)}` +
     `&inputtype=textquery` +
     `&fields=place_id` +
-    `&language=ja` +
+    `&language=${encodeURIComponent(lang)}` +
     `&key=${encodeURIComponent(key)}`;
 
   let r;

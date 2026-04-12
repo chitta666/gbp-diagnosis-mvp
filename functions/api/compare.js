@@ -1,4 +1,27 @@
 import { ymdTokyo } from "../_lib/date.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
+
+function compareCopy(lang = "en") {
+  const ja = String(lang || "").toLowerCase().startsWith("ja");
+
+  return {
+    placeIdRequired: ja
+      ? "place ID が必要です。"
+      : "A place ID is required.",
+    comparisonUnavailable: ja
+      ? "比較データは現在利用できません。"
+      : "Comparison data is temporarily unavailable.",
+    startingComparisonTracking: ja
+      ? "比較トラッキングを開始しています。最初の日次スナップショットが保存されたあとにもう一度確認してください。"
+      : "Starting comparison tracking. Check back after the first daily snapshot is saved.",
+    savingFirstComparisonSnapshot: ja
+      ? "最初の比較スナップショットを保存しています。保存後にレビュー総数が表示されます。"
+      : "Saving the first comparison snapshot. Review totals will appear after it is saved.",
+    trackingDailyChanges: ja
+      ? "日次の変化を追跡しています。次の日次スナップショットが保存されたあとにもう一度確認してください。"
+      : "Tracking daily changes. Check back after the next daily snapshot is saved.",
+  };
+}
 
 function safeJson(s) {
   try {
@@ -11,6 +34,8 @@ function safeJson(s) {
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const myPlaceId = (url.searchParams.get("my") || "").trim();
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
+  const copy = compareCopy(lang);
 
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -51,7 +76,7 @@ export async function onRequest({ request, env }) {
 
   if (!myPlaceId) {
     return json(
-      { ok: false, code: "BAD_REQUEST", message: "A place ID is required." },
+      { ok: false, code: "BAD_REQUEST", message: copy.placeIdRequired },
       400
     );
   }
@@ -62,7 +87,7 @@ export async function onRequest({ request, env }) {
       {
         ok: false,
         code: "SERVICE_UNAVAILABLE",
-        message: "Comparison data is temporarily unavailable.",
+        message: copy.comparisonUnavailable,
       },
       500
     );
@@ -73,8 +98,7 @@ export async function onRequest({ request, env }) {
     return json(
       baseResponse({
         status: "setup_required",
-        message:
-          "Starting comparison tracking. Check back after the first daily snapshot is saved.",
+        message: copy.startingComparisonTracking,
       })
     );
   }
@@ -85,8 +109,7 @@ export async function onRequest({ request, env }) {
     return json(
       baseResponse({
         status: "setup_required",
-        message:
-          "Starting comparison tracking. Check back after the first daily snapshot is saved.",
+        message: copy.startingComparisonTracking,
       })
     );
   }
@@ -102,8 +125,7 @@ export async function onRequest({ request, env }) {
     return json({
       ...response,
       status: "collecting_daily_data",
-      message:
-        "Saving the first comparison snapshot. Review totals will appear after it is saved.",
+      message: copy.savingFirstComparisonSnapshot,
     });
   }
 
@@ -143,7 +165,7 @@ export async function onRequest({ request, env }) {
     message:
       myYdayRaw && compYdayRaw
         ? null
-        : "Tracking daily changes. Check back after the next daily snapshot is saved.",
+        : copy.trackingDailyChanges,
     my: {
       placeId: myPlaceId,
       todayTotal: Number.isFinite(myTodayTotal) ? myTodayTotal : null,

@@ -1,4 +1,5 @@
 import { buildListingReport } from "../_lib/report.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
 import { getSavedListing, publicSavedListing } from "../_lib/savedListings.js";
 
 export async function onRequest({ request, env }) {
@@ -18,6 +19,7 @@ export async function onRequest({ request, env }) {
 
   const url = new URL(request.url);
   const id = (url.searchParams.get("id") || "").trim();
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
   if (!id) {
     return json({ ok: false, error: "id required" }, 400);
@@ -38,7 +40,7 @@ export async function onRequest({ request, env }) {
     );
   }
 
-  const report = await buildListingReport({ key, placeId: saved.placeId });
+  const report = await buildListingReport({ key, placeId: saved.placeId, lang });
   if (!report.ok) {
     return json({ ok: false, error: report.code, message: report.message }, 400);
   }
@@ -51,6 +53,7 @@ export async function onRequest({ request, env }) {
     recommendedCompetitorPlaceId: report.defaultCompetitorPlaceId || null,
     savedListing: publicSavedListing(saved, {
       origin: url.origin,
+      lang,
     }),
   });
 }

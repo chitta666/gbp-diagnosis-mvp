@@ -8,6 +8,10 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function isJapanese(lang = "en") {
+  return String(lang || "").toLowerCase().startsWith("ja");
+}
+
 export function buildWeeklyEmail({
   listingName,
   insight,
@@ -15,32 +19,40 @@ export function buildWeeklyEmail({
   deepLink,
   weekAgo,
   today,
+  lang = "en",
 }) {
+  const ja = isJapanese(lang);
   const safeLines = Array.isArray(summaryLines)
     ? summaryLines.filter(Boolean).slice(0, 4)
     : [];
-  const subject = `Your weekly GBP report is ready: ${listingName}`;
+  const subject = ja
+    ? `週次GBPレポートの準備ができました: ${listingName}`
+    : `Your weekly GBP report is ready: ${listingName}`;
   const text = [
     `${listingName}`,
-    `Report period: ${weekAgo} -> ${today}`,
+    ja ? `レポート期間: ${weekAgo} -> ${today}` : `Report period: ${weekAgo} -> ${today}`,
     "",
     insight,
     "",
     ...safeLines.map((line) => `- ${line}`),
     "",
-    `Open report: ${deepLink}`,
+    ja ? `レポートを開く: ${deepLink}` : `Open report: ${deepLink}`,
   ].join("\n");
 
   const html = `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6;">
       <h2 style="margin:0 0 12px;">${escapeHtml(listingName)}</h2>
-      <p style="margin:0 0 12px;color:#4b5563;">Report period: ${escapeHtml(weekAgo)} -> ${escapeHtml(today)}</p>
+      <p style="margin:0 0 12px;color:#4b5563;">${
+        ja ? "レポート期間" : "Report period"
+      }: ${escapeHtml(weekAgo)} -> ${escapeHtml(today)}</p>
       <p style="margin:0 0 12px;">${escapeHtml(insight)}</p>
       <ul style="padding-left:18px;margin:0 0 16px;">
         ${safeLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
       </ul>
       <p style="margin:0;">
-        <a href="${escapeHtml(deepLink)}" style="display:inline-block;padding:10px 14px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;">Open report</a>
+        <a href="${escapeHtml(deepLink)}" style="display:inline-block;padding:10px 14px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;">${
+          ja ? "レポートを開く" : "Open report"
+        }</a>
       </p>
     </div>
   `;

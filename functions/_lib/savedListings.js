@@ -78,6 +78,10 @@ function isJapanese(lang = "en") {
   return String(lang || "").toLowerCase().startsWith("ja");
 }
 
+function normalizePreferredLanguage(value, fallback = "en") {
+  return isJapanese(value) ? "ja" : fallback;
+}
+
 function localizedString(value, lang = "en") {
   if (!value) return null;
   if (typeof value === "string") {
@@ -230,6 +234,7 @@ export function publicSavedListing(
     address: record.address ?? null,
     status: record.status ?? "active",
     notificationFrequency: record.notificationFrequency ?? "weekly",
+    preferredLanguage: normalizePreferredLanguage(record.preferredLanguage, lang),
     timezone: record.timezone ?? "UTC",
     createdAt: record.createdAt ?? null,
     updatedAt: record.updatedAt ?? null,
@@ -416,10 +421,10 @@ function buildCollectingReviewThemeMonitoring(lang = "en") {
     gapDirection: null,
     recurringFrictions: [],
     notableShift: isJapanese(lang)
-      ? "保存済みの review-theme snapshot が2回分そろうと表示されます。"
+      ? "保存済みのレビュー傾向スナップショットが2回分そろうと表示されます。"
       : "Available after two saved review-theme snapshots.",
     nextAction: isJapanese(lang)
-      ? "次の保存済み review snapshot が追加されるまで、そのまま観測を続けてください。"
+      ? "次の保存済みレビュー傾向スナップショットが追加されるまで、そのまま観測を続けてください。"
       : "Keep monitoring until another saved review snapshot is available.",
     confidence: "low",
   };
@@ -470,7 +475,7 @@ function buildNotableShift({
   const newFriction = latestFrictions.find((item) => !previousFrictions.has(item));
   if (newFriction) {
     return isJapanese(lang)
-      ? `${newFriction} が最新の review snapshot ではよりはっきり見えるようになっています。`
+      ? `${newFriction} が最新のレビュー傾向スナップショットではよりはっきり見えるようになっています。`
       : `${newFriction} is appearing more clearly in the latest review snapshot.`;
   }
 
@@ -497,18 +502,18 @@ function buildNotableShift({
 
   if (trend === "improving") {
     return isJapanese(lang)
-      ? "直近の review-theme 上の圧力は、前回の保存チェックより軽く見えます。"
+      ? "直近のレビュー傾向の圧力は、前回の保存チェックより軽く見えます。"
       : "Recent review-theme pressure looks lighter than in the previous saved check.";
   }
 
   if (trend === "worsening") {
     return isJapanese(lang)
-      ? "直近の review-theme 上の圧力は、前回の保存チェックより重く見えます。"
+      ? "直近のレビュー傾向の圧力は、前回の保存チェックより重く見えます。"
       : "Recent review-theme pressure looks heavier than in the previous saved check.";
   }
 
   return isJapanese(lang)
-    ? "まだ大きな review-theme の変化は目立っていません。"
+    ? "まだ大きなレビュー傾向の変化は目立っていません。"
     : "No major review-theme shift stands out yet.";
 }
 
@@ -528,14 +533,14 @@ function buildTrendAwareNextAction(
 
   if (trend === "improving") {
     return isJapanese(lang)
-      ? "最近の改善を続けつつ、同じ friction が静かなままか確認してください。"
+      ? "最近の改善を続けつつ、同じ不安要素が静かなままか確認してください。"
       : "Keep the recent changes in place and watch whether the same friction stays quiet.";
   }
 
   return (
     String(latest?.priorityAction || "").trim() ||
     (isJapanese(lang)
-      ? "優先順位を付けられる recurring friction がはっきりするまで、そのまま観測を続けてください。"
+      ? "優先順位を付けられる繰り返しの不安要素がはっきりするまで、そのまま観測を続けてください。"
       : "Keep monitoring until one repeat friction becomes clear enough to prioritize.")
   );
 }
@@ -708,7 +713,7 @@ export function buildRatingMilestoneProgress(record, { lang = "en" } = {}) {
   let deltaToPreviousEstimate = null;
   let trend = "tracking";
   let supportingCopy = isJapanese(lang)
-    ? "次回の確認後に、進み具合をもう一度比較します"
+    ? "次回の確認後に、進み具合をもう一度比較します。"
     : "We'll compare progress again after your next check";
 
   if (hasPreviousSavedMetrics(record)) {
@@ -754,7 +759,7 @@ export function buildRatingMilestoneProgress(record, { lang = "en" } = {}) {
     trend,
     supportingCopy,
     note: isJapanese(lang)
-      ? "現在の表示 rating と review 件数をもとにした目安です"
+      ? "現在表示されている評価とレビュー件数をもとにした目安です。"
       : "Estimate based on current displayed rating and total reviews",
   };
 }
@@ -892,7 +897,7 @@ export function buildSavedListingStatusSummary(
       isJapanese(lang) ? "観測中" : "Tracking",
       "quiet",
       isJapanese(lang)
-        ? "最初の保存済み snapshot を待っています"
+        ? "最初の保存済みスナップショットを待っています"
         : "Waiting for the first saved snapshot"
     );
   }
@@ -1133,6 +1138,10 @@ export async function upsertSavedListing({ KV, payload }) {
     q: String(payload.q || existing?.q || "").trim() || null,
     name: String(payload.name || existing?.name || "").trim() || null,
     address: String(payload.address || existing?.address || "").trim() || null,
+    preferredLanguage: normalizePreferredLanguage(
+      payload.preferredLanguage || existing?.preferredLanguage,
+      "en"
+    ),
     timezone: String(payload.timezone || existing?.timezone || "UTC").trim() || "UTC",
     notificationFrequency: "weekly",
     status: "active",

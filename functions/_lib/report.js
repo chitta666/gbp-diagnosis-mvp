@@ -8,6 +8,10 @@ import { fetchCompetitorsAutoRadius } from "./competitors.js";
 import { buildDiagnosis } from "./diagnosis.js";
 import { buildReviewClues } from "./reviewClues.js";
 
+function t(lang, en, ja) {
+  return lang === "ja" ? ja : en;
+}
+
 export async function resolvePlaceIdFromQuery({ key, q, lang = "en" }) {
   try {
     const findUrl =
@@ -34,9 +38,16 @@ export async function resolvePlaceIdFromQuery({ key, q, lang = "en" }) {
       return {
         ok: false,
         code: "PLACE_NOT_FOUND",
-        message:
+        message: t(
+          lang,
           "We couldn't find that business. Try the business name with the full address.",
-        hint: "Try the business name with the full address.",
+          "その店舗は見つかりませんでした。店舗名と住所をフルで入れてもう一度お試しください。"
+        ),
+        hint: t(
+          lang,
+          "Try the business name with the full address.",
+          "店舗名と住所をフルで入れて再度お試しください。"
+        ),
         httpStatus: 404,
         upstreamStatus: found?.status ?? null,
         upstreamErrorMessage: found?.error_message ?? null,
@@ -177,7 +188,13 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     return {
       ok: false,
       code: details?.code || "PLACE_DETAILS_FAILED",
-      message: details?.message || "We couldn't load the business details for that listing.",
+      message:
+        details?.message ||
+        t(
+          lang,
+          "We couldn't load the business details for that listing.",
+          "その店舗の詳細情報を読み込めませんでした。"
+        ),
       hint: details?.hint ?? null,
       httpStatus: details?.httpStatus ?? 502,
       upstreamStatus: details?.upstreamStatus ?? details?.status ?? null,
@@ -192,7 +209,11 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     return {
       ok: false,
       code: "LOCATION_UNAVAILABLE",
-      message: "We couldn't determine the business location for comparison.",
+      message: t(
+        lang,
+        "We couldn't determine the business location for comparison.",
+        "比較に必要な店舗位置を特定できませんでした。"
+      ),
     };
   }
 

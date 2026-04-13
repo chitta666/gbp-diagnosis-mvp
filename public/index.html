@@ -639,6 +639,7 @@ const COPY = {
     savedListingChangeFallback: "We'll compare changes after your next check",
     loadSavedPrompt: "Enter your email to load saved listings.",
     savedListingsLoaded: "Saved listings loaded.",
+    noSavedListingsForEmail: "No saved listings were found for this email yet.",
     savedListingDirectLink:
       "Showing this saved listing from a direct link. Enter your email to load all saved listings.",
     noHistoryYet: "No history yet",
@@ -841,18 +842,18 @@ const COPY = {
     reviewDisputeActionsTitle: "すでに取った対応",
     reviewDisputeActionFlagged: "GBPでフラグ済み",
     reviewDisputeActionRemoval: "削除申請済み",
-    reviewDisputeActionAppeal: "再申請・appeal済み",
+    reviewDisputeActionAppeal: "再申請・再審査申請済み",
     reviewDisputeActionCommunity: "Help Communityへ投稿済み",
     reviewDisputeActionReply: "公開返信を準備中",
     reviewDisputeHelpTitle: "欲しい支援",
-    reviewDisputeHelpLabel: "どんな guidance が欲しいですか？",
+    reviewDisputeHelpLabel: "どんな支援が欲しいですか？",
     reviewDisputeHelpPlaceholder: "任意",
     reviewDisputeGenerate: "下書きを生成",
     reviewDisputeGenerateNote:
       "不必要な断定や非難は避け、直接確認できる事実だけを書きましょう。",
     reviewDisputeGuidanceTitle: "ガイダンス",
     reviewDisputeSummaryTitle: "削除申請用サマリー",
-    reviewDisputeCommunityTitle: "Community投稿案",
+    reviewDisputeCommunityTitle: "コミュニティ投稿案",
     reviewDisputePublicResponseTitle: "公開返信案",
     changeCompetitor: "競合を変更",
     resetCompetitor: "推奨競合に戻す",
@@ -900,6 +901,7 @@ const COPY = {
     savedListingChangeFallback: "次回の確認後に変化を比較します",
     loadSavedPrompt: "保存済みを読み込むにはメールアドレスを入力してください。",
     savedListingsLoaded: "保存済みを読み込みました。",
+    noSavedListingsForEmail: "このメールアドレスに紐づく保存済み店舗はまだありません。",
     savedListingDirectLink:
       "この保存済みレポートを直接表示しています。すべての保存済みを読み込むにはメールアドレスを入力してください。",
     noHistoryYet: "履歴はまだありません",
@@ -1129,8 +1131,29 @@ function renderStaticCopy() {
   if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");
   if (loadSavedBtn) loadSavedBtn.textContent = t("loadSaved");
   if (saveListingBtn) saveListingBtn.textContent = t("saveCurrent");
-  if (savedMsgEl && !savedMsgEl.classList.contains("error") && !savedListingsEl?.children?.length) {
-    savedMsgEl.textContent = t("savedMsgDefault");
+  if (savedMsgEl && !savedMsgEl.classList.contains("error")) {
+    const currentSavedMsg = String(savedMsgEl.textContent || "").trim();
+    const translatableSavedMessages = [
+      "savedMsgDefault",
+      "loadSavedPrompt",
+      "savedListingsLoaded",
+      "noSavedListingsForEmail",
+      "savedListingDirectLink",
+      "competitorUpdatedSaved",
+      "saveListingSaving",
+      "saveListingSaved",
+      "savedListingDeleted",
+    ];
+
+    const matchingKey = translatableSavedMessages.find((key) =>
+      [COPY.en[key], COPY.ja[key]].includes(currentSavedMsg)
+    );
+
+    if (!currentSavedMsg) {
+      savedMsgEl.textContent = t("savedMsgDefault");
+    } else if (matchingKey) {
+      savedMsgEl.textContent = t(matchingKey);
+    }
   }
   if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
   if (nextActionsTitleEl) nextActionsTitleEl.textContent = t("nextActionsTitle");
@@ -3968,6 +3991,7 @@ function buildSavePayload() {
       ? currentResult.photoAnalysis.missingPhotos
       : null,
     timezone: currentTimezone(),
+    preferredLanguage: currentLanguage,
   };
 }
 
@@ -3989,7 +4013,11 @@ async function refreshSavedListings(options = {}) {
 
   renderSavedListings(response.listings);
   if (!options.quiet) {
-    setSavedMessage(t("savedListingsLoaded"));
+    setSavedMessage(
+      Array.isArray(response?.listings) && response.listings.length
+        ? t("savedListingsLoaded")
+        : t("noSavedListingsForEmail")
+    );
   }
 }
 

@@ -12,6 +12,10 @@ import { getWeeklyReport } from "../_lib/weeklyReport.js";
 
 const WEEKLY_INTERVAL_MS = 6.5 * 24 * 60 * 60 * 1000;
 
+function isJapanese(lang = "en") {
+  return String(lang || "").toLowerCase().startsWith("ja");
+}
+
 function canSendWeekly(lastWeeklySentAt) {
   if (!lastWeeklySentAt) return true;
   const ts = Date.parse(lastWeeklySentAt);
@@ -19,27 +23,41 @@ function canSendWeekly(lastWeeklySentAt) {
   return Date.now() - ts >= WEEKLY_INTERVAL_MS;
 }
 
-function makeSummaryLines(report) {
+function makeSummaryLines(report, lang = "en") {
+  const collecting = isJapanese(lang) ? "データ収集中" : "Collecting data";
   return [
-    `Your weekly review growth: ${report.my?.weeklyGain ?? "Collecting data"}`,
-    `Competitor weekly review growth: ${report.competitor?.weeklyGain ?? "Collecting data"}`,
-    `Weekly growth difference: ${report.weeklyGainDiff ?? "Collecting data"}`,
-    `Total review difference: ${report.totalDiff ?? "Collecting data"}`,
+    isJapanese(lang)
+      ? `今週の自店舗レビュー増加: ${report.my?.weeklyGain ?? collecting}`
+      : `Your weekly review growth: ${report.my?.weeklyGain ?? collecting}`,
+    isJapanese(lang)
+      ? `今週の競合レビュー増加: ${report.competitor?.weeklyGain ?? collecting}`
+      : `Competitor weekly review growth: ${report.competitor?.weeklyGain ?? collecting}`,
+    isJapanese(lang)
+      ? `週間レビュー増減差: ${report.weeklyGainDiff ?? collecting}`
+      : `Weekly growth difference: ${report.weeklyGainDiff ?? collecting}`,
+    isJapanese(lang)
+      ? `総レビュー差: ${report.totalDiff ?? collecting}`
+      : `Total review difference: ${report.totalDiff ?? collecting}`,
   ];
 }
 
-function buildEmailInsight({ report, reviewDropSignal }) {
+function buildEmailInsight({ report, reviewDropSignal, lang = "en" }) {
   if (reviewDropSignal?.visible && Number.isFinite(reviewDropSignal?.dropCount)) {
     return [
-      `Review count dropped by ${reviewDropSignal.dropCount} since the last saved check.`,
-      reviewDropSignal.customerImpact || "Visible trust may be weaker than before.",
+      isJapanese(lang)
+        ? `前回の保存チェック以降、レビュー件数が ${reviewDropSignal.dropCount} 件減っています。`
+        : `Review count dropped by ${reviewDropSignal.dropCount} since the last saved check.`,
+      reviewDropSignal.customerImpact ||
+        (isJapanese(lang)
+          ? "見た目の信頼感が以前より弱くなっている可能性があります。"
+          : "Visible trust may be weaker than before."),
       report?.insight || "",
     ]
       .filter(Boolean)
       .join(" ");
   }
 
-  return report?.insight || "Your weekly GBP report is ready.";
+  return report?.insight || (isJapanese(lang) ? "週次GBPレポートの準備ができました。" : "Your weekly GBP report is ready.");
 }
 
 export async function onRequest({ request, env }) {
@@ -191,15 +209,17 @@ export async function onRequest({ request, env }) {
         });
       }
 
-      const reviewDropSignal = buildReviewDropSignal(listing);
+      const lang = String(listing?.preferredLanguage || "en").trim().toLowerCase() === "ja" ? "ja" : "en";
+      const reviewDropSignal = buildReviewDropSignal(listing, { lang });
       if (reviewDropSignal?.visible) {
         summary.reviewDropsDetected += 1;
       }
 
-      let weeklyReport = weeklyCache.get(listing.placeId);
+      const weeklyKey = `${listing.placeId}:${lang}`;
+      let weeklyReport = weeklyCache.get(weeklyKey);
       if (!weeklyReport) {
-        weeklyReport = await getWeeklyReport({ KV, myPlaceId: listing.placeId });
-        weeklyCache.set(listing.placeId, weeklyReport);
+        weeklyReport = await getWeeklyReport({ KV, myPlaceId: listing.placeId, lang });
+        weeklyCache.set(weeklyKey, weeklyReport);
       }
 
       if (weeklyReport.status !== "ready") {
@@ -218,12 +238,16 @@ export async function onRequest({ request, env }) {
       }
 
       const emailPayload = buildWeeklyEmail({
-        listingName: listing.name || weeklyReport.my?.placeId || "Saved Listing",
-        insight: buildEmailInsight({ report: weeklyReport, reviewDropSignal }),
-        summaryLines: makeSummaryLines(weeklyReport),
+        listingName:
+          listing.name ||
+          weeklyReport.my?.placeId ||
+          (isJapanese(lang) ? "保存した店舗" : "Saved Listing"),
+        insight: buildEmailInsight({ report: weeklyReport, reviewDropSignal, lang }),
+        summaryLines: makeSummaryLines(weeklyReport, lang),
         deepLink: buildDeepLink({ origin, id: listing.id }),
         weekAgo: weeklyReport.weekAgo,
         today: weeklyReport.today,
+        lang,
       });
 
       const sent = await sendEmailNotification({

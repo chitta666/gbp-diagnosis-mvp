@@ -1,6 +1,10 @@
 import { buildListingReport } from "../_lib/report.js";
 import { resolveRequestLanguage } from "../_lib/i18n.js";
-import { getSavedListing, publicSavedListing } from "../_lib/savedListings.js";
+import {
+  ensureSavedListingMetrics,
+  getSavedListing,
+  publicSavedListing,
+} from "../_lib/savedListings.js";
 
 function t(lang, en, ja) {
   return lang === "ja" ? ja : en;
@@ -42,13 +46,20 @@ export async function onRequest({ request, env }) {
     );
   }
 
-  const saved = await getSavedListing(KV, id);
+  let saved = await getSavedListing(KV, id);
   if (!saved) {
     return json(
       { ok: false, error: "NOT_FOUND", message: t(lang, "Saved report not found.", "保存済みレポートが見つかりません。") },
       404
     );
   }
+
+  saved =
+    (await ensureSavedListingMetrics({
+      KV,
+      key,
+      listing: saved,
+    })) || saved;
 
   if (saved?.competitorPlaceId) {
     await KV.put(

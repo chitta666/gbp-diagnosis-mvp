@@ -2,6 +2,7 @@ import { runDailyForPlace } from "../_lib/runDaily.js";
 import { resolveRequestLanguage } from "../_lib/i18n.js";
 import {
   deleteSavedListing,
+  ensureSavedListingMetrics,
   isValidEmail,
   listSavedListingsByEmail,
   publicSavedListing,
@@ -46,7 +47,18 @@ export async function onRequest({ request, env }) {
       );
     }
 
-    const listings = await listSavedListingsByEmail({ KV, email });
+    let listings = await listSavedListingsByEmail({ KV, email });
+    if (env?.GOOGLE_MAPS_API_KEY) {
+      listings = await Promise.all(
+        listings.map((item) =>
+          ensureSavedListingMetrics({
+            KV,
+            key: env.GOOGLE_MAPS_API_KEY,
+            listing: item,
+          })
+        )
+      );
+    }
     return json({
       ok: true,
       listings: listings.map((item) => publicSavedListing(item, { origin, lang })),

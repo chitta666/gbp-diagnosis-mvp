@@ -1112,6 +1112,20 @@ export async function refreshSavedListingMetrics({ KV, key, id, listing }) {
   });
 }
 
+function hasSavedListingMetrics(listing) {
+  const latest = listing?.latestMetrics ?? null;
+  return Number.isFinite(latest?.rating) && Number.isFinite(latest?.reviewCount);
+}
+
+export async function ensureSavedListingMetrics({ KV, key, id, listing }) {
+  const current = listing ?? (id ? await getSavedListing(KV, id) : null);
+  if (!current || !key || hasSavedListingMetrics(current)) {
+    return current;
+  }
+
+  return refreshSavedListingMetrics({ KV, key, listing: current });
+}
+
 export async function upsertSavedListing({ KV, payload }) {
   const email = normalizeEmail(payload.email);
   const placeId = String(payload.placeId || "").trim();

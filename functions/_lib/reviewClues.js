@@ -1,65 +1,221 @@
 const THEME_GROUPS = [
   {
     key: "friendly_staff",
-    label: "friendly staff",
+    label: {
+      en: "friendly staff",
+      ja: "スタッフの親切さ",
+    },
     kind: "strength",
-    keywords: ["friendly", "kind", "warm", "welcoming", "helpful"],
+    keywords: [
+      "friendly",
+      "kind",
+      "warm",
+      "welcoming",
+      "helpful",
+      "親切",
+      "丁寧",
+      "優しい",
+      "フレンドリー",
+      "感じがいい",
+      "対応が良い",
+    ],
   },
   {
     key: "atmosphere",
-    label: "the atmosphere",
+    label: {
+      en: "the atmosphere",
+      ja: "雰囲気",
+    },
     kind: "strength",
-    keywords: ["atmosphere", "ambience", "cozy", "calm", "vibe", "beautiful interior"],
+    keywords: [
+      "atmosphere",
+      "ambience",
+      "cozy",
+      "calm",
+      "vibe",
+      "beautiful interior",
+      "雰囲気",
+      "居心地",
+      "落ち着く",
+      "おしゃれ",
+      "素敵",
+    ],
   },
   {
     key: "quality",
-    label: "product quality",
+    label: {
+      en: "product quality",
+      ja: "商品・サービスの質",
+    },
     kind: "strength",
-    keywords: ["delicious", "tasty", "great food", "quality", "excellent", "amazing"],
+    keywords: [
+      "delicious",
+      "tasty",
+      "great food",
+      "quality",
+      "excellent",
+      "amazing",
+      "美味しい",
+      "おいしい",
+      "うまい",
+      "品質",
+      "クオリティ",
+      "素晴らしい",
+    ],
   },
   {
     key: "professionalism",
-    label: "professional service",
+    label: {
+      en: "professional service",
+      ja: "プロらしい対応",
+    },
     kind: "strength",
-    keywords: ["professional", "knowledgeable", "skilled", "expert", "attentive"],
+    keywords: [
+      "professional",
+      "knowledgeable",
+      "skilled",
+      "expert",
+      "attentive",
+      "プロ",
+      "知識",
+      "技術",
+      "上手",
+      "的確",
+      "しっかり",
+    ],
   },
   {
     key: "cleanliness",
-    label: "a clean environment",
+    label: {
+      en: "a clean environment",
+      ja: "清潔感",
+    },
     kind: "strength",
-    keywords: ["clean", "spotless", "neat", "organized", "tidy"],
+    keywords: [
+      "clean",
+      "spotless",
+      "neat",
+      "organized",
+      "tidy",
+      "清潔",
+      "きれい",
+      "綺麗",
+      "清掃",
+      "清潔感",
+    ],
   },
   {
     key: "slow_service",
-    label: "slow service",
+    label: {
+      en: "slow service",
+      ja: "対応の遅さ",
+    },
     kind: "friction",
-    keywords: ["slow", "waited", "waiting", "long wait", "took forever", "late"],
+    keywords: [
+      "slow",
+      "waited",
+      "waiting",
+      "long wait",
+      "took forever",
+      "late",
+      "遅い",
+      "待った",
+      "待ち時間",
+      "時間がかかる",
+      "提供が遅い",
+    ],
   },
   {
     key: "confusing_process",
-    label: "an unclear process",
+    label: {
+      en: "an unclear process",
+      ja: "分かりにくい導線",
+    },
     kind: "friction",
-    keywords: ["confusing", "unclear", "hard to find", "hard to book", "hard to order", "complicated"],
+    keywords: [
+      "confusing",
+      "unclear",
+      "hard to find",
+      "hard to book",
+      "hard to order",
+      "complicated",
+      "分かりにくい",
+      "わかりにくい",
+      "見つけにくい",
+      "予約しづらい",
+      "注文しづらい",
+      "複雑",
+    ],
   },
   {
     key: "rude_service",
-    label: "unfriendly service",
+    label: {
+      en: "unfriendly service",
+      ja: "対応の悪さ",
+    },
     kind: "friction",
-    keywords: ["rude", "unhelpful", "dismissive", "bad attitude", "unprofessional"],
+    keywords: [
+      "rude",
+      "unhelpful",
+      "dismissive",
+      "bad attitude",
+      "unprofessional",
+      "不親切",
+      "失礼",
+      "態度が悪い",
+      "無愛想",
+      "感じが悪い",
+    ],
   },
   {
     key: "noise_crowding",
-    label: "noise or crowding",
+    label: {
+      en: "noise or crowding",
+      ja: "騒がしさ・混雑",
+    },
     kind: "friction",
-    keywords: ["noisy", "loud", "crowded", "busy", "packed"],
+    keywords: [
+      "noisy",
+      "loud",
+      "crowded",
+      "busy",
+      "packed",
+      "うるさい",
+      "騒がしい",
+      "混んで",
+      "混雑",
+      "人が多い",
+    ],
   },
   {
     key: "overpriced",
-    label: "value concerns",
+    label: {
+      en: "value concerns",
+      ja: "価格への不満",
+    },
     kind: "friction",
-    keywords: ["expensive", "overpriced", "pricey", "too much", "not worth"],
+    keywords: [
+      "expensive",
+      "overpriced",
+      "pricey",
+      "too much",
+      "not worth",
+      "高い",
+      "割高",
+      "高すぎる",
+      "コスパ",
+      "値段",
+    ],
   },
 ];
+
+function isJapanese(lang = "en") {
+  return String(lang || "").toLowerCase().startsWith("ja");
+}
+
+function themeLabel(group, lang = "en") {
+  return isJapanese(lang) ? group?.label?.ja : group?.label?.en;
+}
 
 function uniqueStrings(values) {
   return Array.from(
@@ -71,10 +227,16 @@ function uniqueStrings(values) {
   );
 }
 
-function humanJoin(values) {
+function humanJoin(values, lang = "en") {
   const items = uniqueStrings(values);
   if (!items.length) return "";
   if (items.length === 1) return items[0];
+
+  if (isJapanese(lang)) {
+    if (items.length === 2) return `${items[0]}と${items[1]}`;
+    return `${items.slice(0, -1).join("、")}、${items[items.length - 1]}`;
+  }
+
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 }
@@ -95,7 +257,7 @@ function collectThemeCounts(reviews) {
   reviews.forEach((review) => {
     const text = review.text.toLowerCase();
     THEME_GROUPS.forEach((group) => {
-      if (group.keywords.some((keyword) => text.includes(keyword))) {
+      if (group.keywords.some((keyword) => text.includes(String(keyword).toLowerCase()))) {
         counts.set(group.key, (counts.get(group.key) || 0) + 1);
       }
     });
@@ -104,100 +266,117 @@ function collectThemeCounts(reviews) {
   return counts;
 }
 
-function rankedThemes(kind, counts) {
+function rankedThemes(kind, counts, lang = "en") {
+  const locale = isJapanese(lang) ? "ja" : "en";
+
   return THEME_GROUPS.filter((group) => group.kind === kind)
     .map((group) => ({
       ...group,
+      displayLabel: themeLabel(group, lang),
       count: counts.get(group.key) || 0,
     }))
     .filter((group) => group.count > 0)
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+    .sort((a, b) => b.count - a.count || a.displayLabel.localeCompare(b.displayLabel, locale));
 }
 
 function hasTheme(groups, keys) {
   return groups.some((item) => keys.includes(item.key));
 }
 
-function buildUnderSignaledStrengths({ topStrengths, websiteMissing, missingPhotos }) {
+function buildUnderSignaledStrengths({ topStrengths, websiteMissing, missingPhotos }, lang = "en") {
   if (!topStrengths.length) return [];
 
-  const labels = humanJoin(toPublicThemeLabels(topStrengths));
+  const labels = humanJoin(toPublicThemeLabels(topStrengths, lang), lang);
   const insights = [];
 
   if (missingPhotos > 0 && hasTheme(topStrengths, ["atmosphere", "quality", "cleanliness"])) {
     insights.push(
-      `Customers seem to value ${labels}, but the listing still under-signals that strength in first-view photos.`
+      isJapanese(lang)
+        ? `レビューでは${labels}が評価されていますが、その強みが一覧の写真だけではまだ十分に伝わっていません。`
+        : `Customers seem to value ${labels}, but the listing still under-signals that strength in first-view photos.`
     );
   }
 
   if (websiteMissing && hasTheme(topStrengths, ["professionalism", "quality"])) {
     insights.push(
-      `Customers seem to value ${labels}, but the listing still does not explain that strength clearly enough before the visit.`
+      isJapanese(lang)
+        ? `レビューでは${labels}が評価されていますが、来店前にその強みを確認できる情報がまだ足りません。`
+        : `Customers seem to value ${labels}, but the listing still does not explain that strength clearly enough before the visit.`
     );
   }
 
   if (!insights.length && (websiteMissing || missingPhotos > 0)) {
     insights.push(
-      `Customers seem to value ${labels}, but the listing may not be surfacing that strength clearly enough yet.`
+      isJapanese(lang)
+        ? `レビューでは${labels}が評価されていますが、その強みが一覧上ではまだ十分に見えていません。`
+        : `Customers seem to value ${labels}, but the listing may not be surfacing that strength clearly enough yet.`
     );
   }
 
   return uniqueStrings(insights).slice(0, 2);
 }
 
-function buildUnderestimatedFrictions({ topFrictions, topStrengths }) {
+function buildUnderestimatedFrictions({ topFrictions, topStrengths }, lang = "en") {
   const insights = [];
 
   if (topFrictions.some((item) => item.key === "confusing_process")) {
     insights.push(
-      "Recent lower reviews suggest clarity may be a bigger choice friction than review volume right now."
+      isJapanese(lang)
+        ? "最近の低評価レビューを見ると、いまはレビュー数よりも分かりやすさの問題のほうが大きい可能性があります。"
+        : "Recent lower reviews suggest clarity may be a bigger choice friction than review volume right now."
     );
   }
 
   if (topFrictions.some((item) => item.key === "slow_service")) {
     insights.push(
-      "Recent lower reviews suggest speed or wait-time friction may matter more than adding more visible proof right now."
+      isJapanese(lang)
+        ? "最近の低評価レビューを見ると、いまは見える根拠を増やすより待ち時間やスピードの問題を減らすほうが効きそうです。"
+        : "Recent lower reviews suggest speed or wait-time friction may matter more than adding more visible proof right now."
     );
   }
 
   if (topFrictions.some((item) => item.key === "rude_service")) {
     insights.push(
-      "Recent lower reviews suggest service consistency may be the bigger choice issue right now."
+      isJapanese(lang)
+        ? "最近の低評価レビューを見ると、いまはサービス対応のばらつきが選ばれにくさにつながっている可能性があります。"
+        : "Recent lower reviews suggest service consistency may be the bigger choice issue right now."
     );
   }
 
   if (topFrictions.some((item) => item.key === "overpriced") && topStrengths.length) {
     insights.push(
-      "Recent lower reviews suggest value perception may be weakening customer choice even when the core experience is appreciated."
+      isJapanese(lang)
+        ? "最近の低評価レビューを見ると、体験自体は評価されていても価格に対する納得感が選ばれやすさを弱めている可能性があります。"
+        : "Recent lower reviews suggest value perception may be weakening customer choice even when the core experience is appreciated."
     );
   }
 
   return uniqueStrings(insights).slice(0, 2);
 }
 
-function buildVerificationGaps({
-  topStrengths,
-  websiteMissing,
-  missingPhotos,
-}) {
+function buildVerificationGaps({ topStrengths, websiteMissing, missingPhotos }, lang = "en") {
   const insights = [];
 
   if (websiteMissing && topStrengths.length) {
     insights.push(
-      "Reviews suggest the business is credible, but the missing website still makes that proof slower to verify."
+      isJapanese(lang)
+        ? "レビューでは信頼感が見えていますが、Webサイトがないため、その根拠を来店前に確認しづらい状態です。"
+        : "Reviews suggest the business is credible, but the missing website still makes that proof slower to verify."
     );
   }
 
   if (missingPhotos > 0 && hasTheme(topStrengths, ["atmosphere", "quality", "cleanliness"])) {
     insights.push(
-      "Reviews point to strengths that are not yet easy to verify visually in the listing."
+      isJapanese(lang)
+        ? "レビューで評価されている強みが、店舗情報上ではまだ視覚的に確認しづらい状態です。"
+        : "Reviews point to strengths that are not yet easy to verify visually in the listing."
     );
   }
 
   return uniqueStrings(insights).slice(0, 2);
 }
 
-function buildCompetitorChoiceEdges({ competitor, details, photoAnalysis }) {
+function buildCompetitorChoiceEdges({ competitor, details, photoAnalysis }, lang = "en") {
   if (!competitor) return [];
 
   const myPhotos = Number.isFinite(photoAnalysis?.myPhotos) ? Number(photoAnalysis.myPhotos) : 0;
@@ -218,13 +397,17 @@ function buildCompetitorChoiceEdges({ competitor, details, photoAnalysis }) {
 
   if (!details?.website && competitor?.website) {
     edges.push(
-      "The selected competitor appears easier to verify quickly because it links out to more business detail."
+      isJapanese(lang)
+        ? "選択中の競合は、Webサイトへの導線があるぶん、事前に内容を確認しやすく見えます。"
+        : "The selected competitor appears easier to verify quickly because it links out to more business detail."
     );
   }
 
   if (competitorPhotos > myPhotos + 3) {
     edges.push(
-      "The selected competitor appears easier to size up quickly because the visual proof is stronger."
+      isJapanese(lang)
+        ? "選択中の競合は、写真が多いぶん、初見で判断しやすく見えます。"
+        : "The selected competitor appears easier to size up quickly because the visual proof is stronger."
     );
   }
 
@@ -234,7 +417,9 @@ function buildCompetitorChoiceEdges({ competitor, details, photoAnalysis }) {
     competitorReviewCount > myReviewCount + Math.max(20, Math.round(myReviewCount * 0.35))
   ) {
     edges.push(
-      "The selected competitor may feel easier to trust at a glance because the review scale looks more established."
+      isJapanese(lang)
+        ? "選択中の競合は、レビュー規模が大きいぶん、ひと目で信頼されやすく見える可能性があります。"
+        : "The selected competitor may feel easier to trust at a glance because the review scale looks more established."
     );
   }
 
@@ -262,56 +447,84 @@ function buildChoicePriorityReason({
   underestimatedFrictions,
   verificationGaps,
   competitorChoiceEdges,
-}) {
+}, lang = "en") {
   if (underestimatedFrictions.length) {
-    return "Remove the friction most likely to interrupt customer choice before pushing harder on acquisition.";
+    return isJapanese(lang)
+      ? "集客を強める前に、顧客の意思決定を止めている問題を先に減らしてください。"
+      : "Remove the friction most likely to interrupt customer choice before pushing harder on acquisition.";
   }
 
   if (verificationGaps.length) {
-    return "Make the existing proof easier to verify before asking customers to trust more.";
+    return isJapanese(lang)
+      ? "さらに信頼を求める前に、いまある根拠をもっと確認しやすくしてください。"
+      : "Make the existing proof easier to verify before asking customers to trust more.";
   }
 
   if (competitorChoiceEdges.length) {
-    return "Close the easiest visible gap before comparing review momentum again.";
+    return isJapanese(lang)
+      ? "レビューの勢いを見直す前に、見た目で分かる競合差を先に埋めてください。"
+      : "Close the easiest visible gap before comparing review momentum again.";
   }
 
   if (underSignaledStrengths.length) {
-    return "Surface the strengths customers already value before adding more generic messaging.";
+    return isJapanese(lang)
+      ? "一般的な訴求を足す前に、すでに評価されている強みをもっと前に出してください。"
+      : "Surface the strengths customers already value before adding more generic messaging.";
   }
 
-  return "Keep the strongest proof visible and re-check whether one decision friction starts repeating.";
+  return isJapanese(lang)
+    ? "強みが伝わる見える根拠を保ちつつ、繰り返し出る問題がないか見ていきましょう。"
+    : "Keep the strongest proof visible and re-check whether one decision friction starts repeating.";
 }
 
-function buildPriorityAction({ topFrictions, topStrengths, websiteMissing, missingPhotos }) {
+function buildPriorityAction({ topFrictions, topStrengths, websiteMissing, missingPhotos }, lang = "en") {
   if (topFrictions.some((item) => item.key === "confusing_process")) {
-    return "Make booking, ordering, or first-step information easier to find before someone visits.";
+    return isJapanese(lang)
+      ? "予約・注文・最初の一歩がもっと分かりやすく見えるようにしてください。"
+      : "Make booking, ordering, or first-step information easier to find before someone visits.";
   }
 
   if (topFrictions.some((item) => item.key === "slow_service")) {
-    return "Reduce visible wait-time friction before trying to improve review volume.";
+    return isJapanese(lang)
+      ? "レビュー数を増やす前に、待ち時間やスピードの問題を見えにくくしてください。"
+      : "Reduce visible wait-time friction before trying to improve review volume.";
   }
 
   if (topFrictions.some((item) => item.key === "rude_service")) {
-    return "Tighten service consistency before pushing harder on acquisition or comparison.";
+    return isJapanese(lang)
+      ? "集客や比較施策を強める前に、接客品質のばらつきを整えてください。"
+      : "Tighten service consistency before pushing harder on acquisition or comparison.";
   }
 
   if (websiteMissing) {
-    return "Add an official website or business page so customers can verify key details more easily.";
+    return isJapanese(lang)
+      ? "お客様が基本情報を確認しやすいように、公式サイトや事業ページを追加してください。"
+      : "Add an official website or business page so customers can verify key details more easily.";
   }
 
   if (missingPhotos > 0 && topStrengths.length) {
-    return `Make ${topStrengths[0].label} easier to notice in photos and other first-view signals.`;
+    const leadStrength = themeLabel(topStrengths[0], lang);
+    return isJapanese(lang)
+      ? `${leadStrength}がひと目で伝わる写真や第一印象の要素を増やしてください。`
+      : `Make ${leadStrength} easier to notice in photos and other first-view signals.`;
   }
 
   if (missingPhotos > 0) {
-    return "Improve photo coverage so the strongest parts of the experience are easier to notice.";
+    return isJapanese(lang)
+      ? "強みがひと目で伝わるように、写真の見せ方を改善してください。"
+      : "Improve photo coverage so the strongest parts of the experience are easier to notice.";
   }
 
   if (topStrengths.length) {
-    return `Make ${topStrengths[0].label} more obvious before the visit so the listing feels easier to choose.`;
+    const leadStrength = themeLabel(topStrengths[0], lang);
+    return isJapanese(lang)
+      ? `${leadStrength}が来店前から分かるように、見せ方を強めてください。`
+      : `Make ${leadStrength} more obvious before the visit so the listing feels easier to choose.`;
   }
 
-  return "Keep visible proof clear and re-check whether one friction theme starts repeating.";
+  return isJapanese(lang)
+    ? "強みが伝わる見える根拠を保ちつつ、繰り返し出る問題がないか確認してください。"
+    : "Keep visible proof clear and re-check whether one friction theme starts repeating.";
 }
 
 function buildSummary({
@@ -323,51 +536,71 @@ function buildSummary({
   competitorChoiceEdges,
   websiteMissing,
   missingPhotos,
-}) {
+}, lang = "en") {
   if (competitorChoiceEdges.length && (underSignaledStrengths.length || underestimatedFrictions.length)) {
-    return "Recent visible reviews suggest this business has real strengths, but the selected competitor may still feel easier to choose quickly.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは強みは伝わっていますが、選択中の競合のほうが短時間で選びやすく見える可能性があります。"
+      : "Recent visible reviews suggest this business has real strengths, but the selected competitor may still feel easier to choose quickly.";
   }
 
   if (verificationGaps.length) {
-    return "Recent visible reviews suggest trust is present, but the listing still makes that proof too slow to verify.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは信頼感はありますが、その根拠を店舗情報上ですぐ確認しづらい状態です。"
+      : "Recent visible reviews suggest trust is present, but the listing still makes that proof too slow to verify.";
   }
 
   if (underestimatedFrictions.length && underSignaledStrengths.length) {
-    return "Recent visible reviews suggest real strengths are landing, but the listing may still under-signal why this business is easy to choose.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは強みは届いていますが、なぜ選びやすいのかが店舗情報上ではまだ伝わりきっていません。"
+      : "Recent visible reviews suggest real strengths are landing, but the listing may still under-signal why this business is easy to choose.";
   }
 
   if (underestimatedFrictions.length) {
-    return "Recent visible reviews suggest the bigger choice issue may be customer experience friction, not only profile basics.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは、問題は基本情報だけでなく体験上のつまずきにある可能性があります。"
+      : "Recent visible reviews suggest the bigger choice issue may be customer experience friction, not only profile basics.";
   }
 
   if (underSignaledStrengths.length) {
-    return "Recent visible reviews suggest customers notice strengths that the listing is not surfacing clearly enough yet.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは強みが評価されていますが、その強みが店舗情報上でまだ十分に見えていません。"
+      : "Recent visible reviews suggest customers notice strengths that the listing is not surfacing clearly enough yet.";
   }
 
   if (topFrictions.length) {
     if (topStrengths.length) {
-      return "Recent visible reviews suggest customers notice real strengths, but some decision friction is still showing up.";
+      return isJapanese(lang)
+        ? "最近見えているレビューでは強みも感じられていますが、意思決定を止める問題もまだ残っています。"
+        : "Recent visible reviews suggest customers notice real strengths, but some decision friction is still showing up.";
     }
 
-    return "Recent visible reviews suggest hesitation may be coming from customer experience friction, not just missing profile basics.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは、ためらいの主因は基本情報の不足だけでなく体験上のつまずきにありそうです。"
+      : "Recent visible reviews suggest hesitation may be coming from customer experience friction, not just missing profile basics.";
   }
 
   if (topStrengths.length && (websiteMissing || missingPhotos > 0)) {
-    return "Recent visible reviews suggest customers already see strengths, but those strengths may not be obvious enough before the visit.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは強みは伝わっていますが、来店前にはその強みがまだ十分に見えていません。"
+      : "Recent visible reviews suggest customers already see strengths, but those strengths may not be obvious enough before the visit.";
   }
 
   if (topStrengths.length) {
-    return "Recent visible reviews suggest customers already notice clear strengths in this experience.";
+    return isJapanese(lang)
+      ? "最近見えているレビューでは、この体験の強みがすでにしっかり伝わっています。"
+      : "Recent visible reviews suggest customers already notice clear strengths in this experience.";
   }
 
-  return "Recent visible reviews do not yet show one dominant customer-choice theme.";
+  return isJapanese(lang)
+    ? "最近見えているレビューだけでは、顧客視点の主要テーマはまだはっきりしていません。"
+    : "Recent visible reviews do not yet show one dominant customer-choice theme.";
 }
 
-function toPublicThemeLabels(groups) {
-  return groups.map((group) => group.label).slice(0, 2);
+function toPublicThemeLabels(groups, lang = "en") {
+  return groups.map((group) => themeLabel(group, lang)).slice(0, 2);
 }
 
-export function buildReviewClues({ reviews, details, photoAnalysis, competitor } = {}) {
+export function buildReviewClues({ reviews, details, photoAnalysis, competitor, lang = "en" } = {}) {
   const sample = normalizeReviews(reviews);
   if (!sample.length) return null;
 
@@ -380,11 +613,13 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor }
   const lowerCounts = collectThemeCounts(lowerReviews);
   const topStrengths = rankedThemes(
     "strength",
-    positiveReviews.length ? positiveCounts : allCounts
+    positiveReviews.length ? positiveCounts : allCounts,
+    lang
   ).slice(0, 2);
   const topFrictions = rankedThemes(
     "friction",
-    lowerReviews.length ? lowerCounts : allCounts
+    lowerReviews.length ? lowerCounts : allCounts,
+    lang
   ).slice(0, 2);
   const websiteMissing = !details?.website;
   const missingPhotos = Number.isFinite(photoAnalysis?.missingPhotos)
@@ -394,21 +629,21 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor }
     topStrengths,
     websiteMissing,
     missingPhotos,
-  });
+  }, lang);
   const underestimatedFrictions = buildUnderestimatedFrictions({
     topFrictions,
     topStrengths,
-  });
+  }, lang);
   const verificationGaps = buildVerificationGaps({
     topStrengths,
     websiteMissing,
     missingPhotos,
-  });
+  }, lang);
   const competitorChoiceEdges = buildCompetitorChoiceEdges({
     competitor,
     details,
     photoAnalysis,
-  });
+  }, lang);
   const blindSpots = buildBlindSpots({
     underSignaledStrengths,
     underestimatedFrictions,
@@ -420,7 +655,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor }
     underestimatedFrictions,
     verificationGaps,
     competitorChoiceEdges,
-  });
+  }, lang);
 
   return {
     sampleBasis: "recent_visible_reviews",
@@ -436,9 +671,9 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor }
       competitorChoiceEdges,
       websiteMissing,
       missingPhotos,
-    }),
-    strengths: toPublicThemeLabels(topStrengths),
-    frictions: toPublicThemeLabels(topFrictions),
+    }, lang),
+    strengths: toPublicThemeLabels(topStrengths, lang),
+    frictions: toPublicThemeLabels(topFrictions, lang),
     blindSpots,
     underSignaledStrengths,
     underestimatedFrictions,
@@ -449,7 +684,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor }
       topStrengths,
       websiteMissing,
       missingPhotos,
-    }),
+    }, lang),
     choicePriorityReason,
     confidence: sample.length >= 4 ? "medium" : "low",
   };

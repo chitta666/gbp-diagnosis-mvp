@@ -8,14 +8,14 @@ import { fetchCompetitorsAutoRadius } from "./competitors.js";
 import { buildDiagnosis } from "./diagnosis.js";
 import { buildReviewClues } from "./reviewClues.js";
 
-export async function resolvePlaceIdFromQuery({ key, q }) {
+export async function resolvePlaceIdFromQuery({ key, q, lang = "en" }) {
   try {
     const findUrl =
       "https://maps.googleapis.com/maps/api/place/findplacefromtext/json" +
       `?input=${encodeURIComponent(q)}` +
       `&inputtype=textquery` +
       `&fields=place_id,name,formatted_address` +
-      `&language=en` +
+      `&language=${encodeURIComponent(lang)}` +
       `&key=${encodeURIComponent(key)}`;
 
     const found = await fetchJson(findUrl);
@@ -134,7 +134,7 @@ function filterCompetitors(competitors, myPlaceId) {
   };
 }
 
-async function addCompetitorPhotoCounts({ key, competitors, limit = 3 }) {
+async function addCompetitorPhotoCounts({ key, competitors, limit = 3, lang = "en" }) {
   if (!Array.isArray(competitors?.results) || !competitors.results.length) {
     return competitors;
   }
@@ -143,7 +143,7 @@ async function addCompetitorPhotoCounts({ key, competitors, limit = 3 }) {
   const photoCounts = await Promise.all(
     targets.map(async (item) => {
       try {
-        const details = await fetchPlaceDetails({ key, placeId: item.place_id });
+        const details = await fetchPlaceDetails({ key, placeId: item.place_id, lang });
         return {
           placeId: item.place_id,
           photoCount: Array.isArray(details?.photos) ? details.photos.length : null,
@@ -171,7 +171,7 @@ async function addCompetitorPhotoCounts({ key, competitors, limit = 3 }) {
 }
 
 export async function buildListingReport({ key, placeId, lang = "en" }) {
-  const details = await fetchPlaceDetails({ key, placeId });
+  const details = await fetchPlaceDetails({ key, placeId, lang });
 
   if (!details?.ok) {
     return {
@@ -202,14 +202,16 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     lng,
     listingTypes: details?.types ?? [],
     myReviewCount: details?.user_ratings_total ?? null,
+    lang,
   });
   const filteredCompetitors = filterCompetitors(competitors, placeId);
   const enrichedCompetitors = await addCompetitorPhotoCounts({
     key,
     competitors: filteredCompetitors,
+    lang,
   });
 
-  const diagnosis = buildDiagnosis(details, enrichedCompetitors);
+  const diagnosis = buildDiagnosis(details, enrichedCompetitors, { lang });
 
   const myPhotos = Array.isArray(details?.photos) ? details.photos.length : 0;
   const competitorPhotoAvg = calcCompetitorPhotoAvg(enrichedCompetitors);
@@ -233,6 +235,7 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
       missingPhotos,
     },
     competitor: defaultCompetitor,
+    lang,
   });
   const publicDetails = {
     ok: true,

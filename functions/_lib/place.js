@@ -4,7 +4,7 @@ import {
   mapGooglePlacesTransportError,
 } from "./utils.js";
 
-export async function fetchPlaceDetails({ key, placeId }) {
+export async function fetchPlaceDetails({ key, placeId, lang = "en" }) {
   if (!key) {
     return {
       ok: false,
@@ -36,7 +36,7 @@ export async function fetchPlaceDetails({ key, placeId }) {
     `?place_id=${encodeURIComponent(placeId)}` +
     `&fields=place_id,name,formatted_address,international_phone_number,website,photos,rating,user_ratings_total,geometry,types,reviews` +
     `&reviews_sort=newest` +
-    `&language=en` +
+    `&language=${encodeURIComponent(lang)}` +
     `&key=${encodeURIComponent(key)}`;
 
   let res;

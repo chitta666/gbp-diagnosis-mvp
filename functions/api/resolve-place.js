@@ -3,11 +3,13 @@ import {
   mapGooglePlacesApiError,
   mapGooglePlacesTransportError,
 } from "../_lib/utils.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
 
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const name = (url.searchParams.get("name") || "").trim();
   const address = (url.searchParams.get("address") || "").trim();
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -39,7 +41,7 @@ export async function onRequest({ request, env }) {
     `?input=${encodeURIComponent(input)}` +
     `&inputtype=textquery` +
     `&fields=place_id,name,formatted_address` +
-    `&language=ja` +
+    `&language=${encodeURIComponent(lang)}` +
     `&key=${encodeURIComponent(key)}`;
 
   let res;

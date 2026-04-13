@@ -1,4 +1,5 @@
 import { getWeeklyReport } from "../_lib/weeklyReport.js";
+import { resolveRequestLanguage } from "../_lib/i18n.js";
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -11,10 +12,16 @@ export async function onRequest({ request, env }) {
 
   const url = new URL(request.url);
   const myPlaceId = (url.searchParams.get("my") || "").trim();
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
+  const isJa = String(lang || "").toLowerCase().startsWith("ja");
 
   if (!myPlaceId) {
     return json(
-      { ok: false, code: "BAD_REQUEST", message: "A place ID is required." },
+      {
+        ok: false,
+        code: "BAD_REQUEST",
+        message: isJa ? "place ID が必要です。" : "A place ID is required.",
+      },
       400
     );
   }
@@ -25,12 +32,14 @@ export async function onRequest({ request, env }) {
       {
         ok: false,
         code: "SERVICE_UNAVAILABLE",
-        message: "Weekly report data is temporarily unavailable.",
+        message: isJa
+          ? "週次レポートのデータは現在利用できません。"
+          : "Weekly report data is temporarily unavailable.",
       },
       500
     );
   }
 
-  const report = await getWeeklyReport({ KV, myPlaceId });
+  const report = await getWeeklyReport({ KV, myPlaceId, lang });
   return json(report);
 }

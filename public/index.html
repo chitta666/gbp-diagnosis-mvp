@@ -8,7 +8,13 @@
 </head>
 <body>
   <div class="container">
-  <h1 class="h1">Google Maps Listing Analyzer</h1>
+  <div class="shell-header">
+    <h1 id="appTitle" class="h1">Google Maps Listing Analyzer</h1>
+    <div class="language-toggle" role="group" aria-label="Language">
+      <button id="langToggleEn" class="language-toggle__btn" data-lang-option="en" type="button">EN</button>
+      <button id="langToggleJa" class="language-toggle__btn" data-lang-option="ja" type="button">JP</button>
+    </div>
+  </div>
 
   <div class="row">
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
@@ -22,7 +28,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
   <div id="msg" class="muted"></div>
 
   <div id="savedHub" class="card">
-    <h2 class="section__title">Saved Listings</h2>
+    <h2 id="savedListingsTitle" class="section__title">Saved Listings</h2>
     <div class="row">
       <input id="emailInput" class="input" type="email" placeholder="Enter email to manage saved listings" />
       <button id="loadSavedBtn" class="btn" type="button">Load Saved Listings</button>
@@ -30,19 +36,14 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="row">
       <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save Current Listing</button>
     </div>
-    <div
-      id="savedMsg"
-      class="muted"
-      data-en="Analyze a listing, then save it so you can reopen the latest report quickly from this app."
-      data-ja="まず診断してから保存すると、このアプリで最新レポートをすぐ開き直せます。"
-    >
+    <div id="savedMsg" class="muted">
       Analyze a listing, then save it so you can reopen the latest report quickly from this app.
     </div>
     <ul id="savedListings" class="saved-list"></ul>
   </div>
 
   <div id="card" class="card hidden">
-    <h2 class="section__title">Google Maps Analysis Report</h2>
+    <h2 id="reportTitle" class="section__title">Google Maps Analysis Report</h2>
     <p id="reportDate" class="muted"></p>
 
     <div id="diagnosisHero" class="diagnosis-hero">
@@ -54,12 +55,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div id="priorityRow" class="priority-row"></div>
 
     <div class="section">
-      <h2 class="section__title">Next Actions</h2>
+      <h2 id="nextActionsTitle" class="section__title">Next Actions</h2>
       <ul id="primaryActionsList" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Competitive Gap</h2>
+      <h2 id="competitiveGapTitle" class="section__title">Competitive Gap</h2>
       <div id="compareMeta" class="compare__meta"></div>
       <div id="compareControls" class="compare__controls hidden">
         <div class="compare__actions">
@@ -76,16 +77,16 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Customer Choice</h2>
+      <h2 id="customerChoiceTitle" class="section__title">Customer Choice</h2>
       <div id="customerChoice" class="muted"></div>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics Check</h2>
+      <h2 id="googleBasicsTitle" class="section__title">Google Basics Check</h2>
       <div class="foundation-card">
         <div class="foundation-card__header">
           <div class="foundation-card__status">
-            <div class="foundation-card__eyebrow">Google basics</div>
+            <div id="foundationEyebrow" class="foundation-card__eyebrow">Google basics</div>
             <div id="foundationSummary" class="foundation-card__summary"></div>
             <div id="foundationStatusCopy" class="foundation-card__copy muted"></div>
           </div>
@@ -99,74 +100,59 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
-      <h2 class="section__title">Weekly Report</h2>
+      <h2 id="weeklyReportTitle" class="section__title">Weekly Report</h2>
       <ul id="weeklyReportList" class="list"></ul>
     </div>
 
     <div id="reviewSupportCta" class="section review-support-cta hidden">
-      <h2
-        class="section__title"
-        data-en="Review Support"
-        data-ja="レビュー対応サポート"
-      >Review Support</h2>
-      <div
-        id="reviewSupportCtaCopy"
-        class="review-support-cta__copy muted"
-        data-en="Organize a suspicious review and generate calm, factual draft text before you escalate."
-        data-ja="不審なレビューの論点を整理して、冷静で事実ベースの下書きを作ってから対応できます。"
-      >
+      <h2 id="reviewSupportTitle" class="section__title">Review Support</h2>
+      <div id="reviewSupportCtaCopy" class="review-support-cta__copy muted">
         Organize a suspicious review and generate calm, factual draft text before you escalate.
       </div>
-      <button
-        id="openReviewDisputeAssistantBtn"
-        class="btn"
-        type="button"
-        data-en="Open Review Dispute Assistant"
-        data-ja="レビュー削除アシスタントを開く"
-      >
+      <button id="openReviewDisputeAssistantBtn" class="btn" type="button">
         Open Review Dispute Assistant
       </button>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Photo Comparison</h2>
+      <h2 id="photoComparisonTitle" class="section__title">Photo Comparison</h2>
       <ul id="photoCompare" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Recommended Photos</h2>
+      <h2 id="recommendedPhotosTitle" class="section__title">Recommended Photos</h2>
       <ul id="photoAdviceList" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics Tasks</h2>
+      <h2 id="googleBasicsTasksTitle" class="section__title">Google Basics Tasks</h2>
       <ul id="todos" class="list"></ul>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Google Basics Breakdown</h2>
+      <h2 id="googleBasicsBreakdownTitle" class="section__title">Google Basics Breakdown</h2>
       <ul id="breakdown" class="list"></ul>
       <div id="penalty" class="muted" style="margin-top:8px;"></div>
     </div>
 
     <div class="section">
-      <h2 class="section__title">Business Details</h2>
+      <h2 id="businessDetailsTitle" class="section__title">Business Details</h2>
       <div id="summary"></div>
     </div>
 
     <button id="pdfBtn" class="btn">Export PDF</button>
 
     <div class="section" id="historySection">
-      <h2 class="section__title">History</h2>
+      <h2 id="historyTitle" class="section__title">History</h2>
       <div class="row" style="justify-content:space-between;">
         <button id="clearHistory" type="button" class="btn">Clear History</button>
-        <div class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
+        <div id="historyHint" class="muted" style="font-size:12px;">Click a history item to display the result again (no API request)</div>
       </div>
       <ul id="history" style="list-style:none; padding:0; margin:0;"></ul>
     </div>
 
     <div id="feedbackCta" class="section feedback-cta hidden">
-      <h2 class="section__title">Quick Feedback</h2>
+      <h2 id="feedbackTitle" class="section__title">Quick Feedback</h2>
       <div id="feedbackCtaCopy" class="feedback-cta__copy muted">
         After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.
       </div>
@@ -179,32 +165,13 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="assistant-modal__panel" role="dialog" aria-modal="true" aria-labelledby="reviewDisputeTitle">
       <div class="assistant-modal__header">
         <div>
-          <div
-            class="assistant-modal__eyebrow"
-            data-en="Review support utility"
-            data-ja="レビュー対応ユーティリティ"
-          >Review support utility</div>
-          <h2
-            id="reviewDisputeTitle"
-            class="section__title"
-            data-en="Review Dispute Assistant"
-            data-ja="レビュー削除アシスタント"
-          >Review Dispute Assistant</h2>
-          <div
-            class="assistant-modal__intro muted"
-            data-en="Keep your explanation short, factual, and calm. This tool does not guarantee review removal."
-            data-ja="説明は短く、事実ベースで、落ち着いたトーンに保ちましょう。このツールはレビュー削除を保証するものではありません。"
-          >
+          <div id="reviewDisputeEyebrow" class="assistant-modal__eyebrow">Review support utility</div>
+          <h2 id="reviewDisputeTitle" class="section__title">Review Dispute Assistant</h2>
+          <div id="reviewDisputeIntro" class="assistant-modal__intro muted">
             Keep your explanation short, factual, and calm. This tool does not guarantee review removal.
           </div>
         </div>
-        <button
-          id="closeReviewDisputeAssistantBtn"
-          class="btn assistant-modal__close"
-          type="button"
-          data-en="Close"
-          data-ja="閉じる"
-        >
+        <button id="closeReviewDisputeAssistantBtn" class="btn assistant-modal__close" type="button">
           Close
         </button>
       </div>
@@ -213,150 +180,88 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
       <form id="reviewDisputeForm" class="assistant-form">
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Review snapshot"
-            data-ja="レビュー情報"
-          >Review snapshot</h3>
+          <h3 id="reviewDisputeSnapshotTitle" class="assistant-section__title">Review snapshot</h3>
           <div class="assistant-grid">
             <label class="assistant-field">
-              <span data-en="Business name" data-ja="店舗名">Business name</span>
-              <input
-                id="reviewDisputeBusinessName"
-                class="input"
-                type="text"
-                placeholder="Example Dental"
-                data-en-placeholder="Example Dental"
-                data-ja-placeholder="例: さくら歯科"
-              />
+              <span id="reviewDisputeBusinessNameLabel">Business name</span>
+              <input id="reviewDisputeBusinessName" class="input" type="text" placeholder="Example Dental" />
             </label>
             <label class="assistant-field">
-              <span data-en="Reviewer name" data-ja="投稿者名">Reviewer name</span>
-              <input
-                id="reviewDisputeReviewerName"
-                class="input"
-                type="text"
-                placeholder="Optional"
-                data-en-placeholder="Optional"
-                data-ja-placeholder="任意"
-              />
+              <span id="reviewDisputeReviewerNameLabel">Reviewer name</span>
+              <input id="reviewDisputeReviewerName" class="input" type="text" placeholder="Optional" />
             </label>
             <label class="assistant-field">
-              <span data-en="Review date" data-ja="レビュー投稿日">Review date</span>
+              <span id="reviewDisputeReviewDateLabel">Review date</span>
               <input id="reviewDisputeReviewDate" class="input" type="date" />
             </label>
             <label class="assistant-field">
-              <span data-en="Star rating" data-ja="評価">Star rating</span>
+              <span id="reviewDisputeReviewRatingLabel">Star rating</span>
               <input id="reviewDisputeReviewRating" class="input" type="number" min="1" max="5" step="1" placeholder="1-5" />
             </label>
             <label class="assistant-field">
-              <span data-en="Business launch date" data-ja="店舗公開日">Business launch date</span>
+              <span id="reviewDisputeBusinessLaunchLabel">Business launch date</span>
               <input id="reviewDisputeBusinessLaunchDate" class="input" type="date" />
             </label>
             <label class="assistant-field">
-              <span data-en="Service launch date" data-ja="サービス開始日">Service launch date</span>
+              <span id="reviewDisputeServiceLaunchLabel">Service launch date</span>
               <input id="reviewDisputeServiceLaunchDate" class="input" type="date" />
             </label>
           </div>
           <label class="assistant-field">
-            <span data-en="Review text" data-ja="レビュー本文">Review text</span>
-            <textarea
-              id="reviewDisputeReviewText"
-              class="input assistant-textarea"
-              rows="5"
-              placeholder="Paste the suspicious review text here"
-              data-en-placeholder="Paste the suspicious review text here"
-              data-ja-placeholder="問題のあるレビュー本文をここに貼り付けてください"
-            ></textarea>
+            <span id="reviewDisputeReviewTextLabel">Review text</span>
+            <textarea id="reviewDisputeReviewText" class="input assistant-textarea" rows="5" placeholder="Paste the suspicious review text here"></textarea>
           </label>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Possible issue type"
-            data-ja="想定される論点"
-          >Possible issue type</h3>
+          <h3 id="reviewDisputeIssueTypeTitle" class="assistant-section__title">Possible issue type</h3>
           <div class="assistant-checklist assistant-checklist--compact">
-            <label><input type="checkbox" name="reviewDisputeCategory" value="not_a_real_customer" /> <span data-en="Not a real customer" data-ja="実際の顧客ではない可能性">Not a real customer</span></label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="conflict_of_interest" /> <span data-en="Conflict of interest" data-ja="利害関係の可能性">Conflict of interest</span></label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="harassment_or_abuse" /> <span data-en="Harassment or abuse" data-ja="嫌がらせ・攻撃的表現">Harassment or abuse</span></label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="factually_impossible_claim" /> <span data-en="Factually impossible claim" data-ja="事実と整合しない主張">Factually impossible claim</span></label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="off_topic_or_irrelevant" /> <span data-en="Off-topic or irrelevant" data-ja="サービス体験と無関係">Off-topic or irrelevant</span></label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="other" /> <span data-en="Other" data-ja="その他">Other</span></label>
+            <label id="reviewDisputeCategoryNotCustomerLabel"><input type="checkbox" name="reviewDisputeCategory" value="not_a_real_customer" /> Not a real customer</label>
+            <label id="reviewDisputeCategoryConflictLabel"><input type="checkbox" name="reviewDisputeCategory" value="conflict_of_interest" /> Conflict of interest</label>
+            <label id="reviewDisputeCategoryHarassmentLabel"><input type="checkbox" name="reviewDisputeCategory" value="harassment_or_abuse" /> Harassment or abuse</label>
+            <label id="reviewDisputeCategoryImpossibleLabel"><input type="checkbox" name="reviewDisputeCategory" value="factually_impossible_claim" /> Factually impossible claim</label>
+            <label id="reviewDisputeCategoryOffTopicLabel"><input type="checkbox" name="reviewDisputeCategory" value="off_topic_or_irrelevant" /> Off-topic or irrelevant</label>
+            <label id="reviewDisputeCategoryOtherLabel"><input type="checkbox" name="reviewDisputeCategory" value="other" /> Other</label>
           </div>
-          <div
-            class="muted assistant-note"
-            data-en="Try to keep this to 1-2 issue types."
-            data-ja="論点は 1〜2 個に絞ると伝わりやすくなります。"
-          >Try to keep this to 1-2 issue types.</div>
+          <div id="reviewDisputeIssueTypeNote" class="muted assistant-note">Try to keep this to 1-2 issue types.</div>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Evidence checklist"
-            data-ja="証拠チェックリスト"
-          >Evidence checklist</h3>
+          <h3 id="reviewDisputeEvidenceTitle" class="assistant-section__title">Evidence checklist</h3>
           <div class="assistant-checklist">
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="crm_no_customer_record" /> <span data-en="Reviewer is not found in CRM" data-ja="CRM 上で該当顧客が見つからない">Reviewer is not found in CRM</span></label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="no_transaction_record" /> <span data-en="No transaction record exists" data-ja="取引記録が確認できない">No transaction record exists</span></label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="service_not_launched_yet" /> <span data-en="Service was not launched yet" data-ja="レビュー時点でサービスが未開始だった">Service was not launched yet</span></label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="timeline_documented" /> <span data-en="Relevant timeline is documented" data-ja="関連する時系列を整理済み">Relevant timeline is documented</span></label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="supporting_screenshots_ready" /> <span data-en="Supporting screenshots are ready" data-ja="補足スクリーンショットを用意済み">Supporting screenshots are ready</span></label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="only_relevant_evidence_selected" /> <span data-en="Only directly relevant evidence is included" data-ja="直接関係する証拠だけに絞れている">Only directly relevant evidence is included</span></label>
+            <label id="reviewDisputeEvidenceCrmLabel"><input type="checkbox" name="reviewDisputeEvidence" value="crm_no_customer_record" /> Reviewer is not found in CRM</label>
+            <label id="reviewDisputeEvidenceTransactionLabel"><input type="checkbox" name="reviewDisputeEvidence" value="no_transaction_record" /> No transaction record exists</label>
+            <label id="reviewDisputeEvidenceLaunchLabel"><input type="checkbox" name="reviewDisputeEvidence" value="service_not_launched_yet" /> Service was not launched yet</label>
+            <label id="reviewDisputeEvidenceTimelineLabel"><input type="checkbox" name="reviewDisputeEvidence" value="timeline_documented" /> Relevant timeline is documented</label>
+            <label id="reviewDisputeEvidenceScreenshotsLabel"><input type="checkbox" name="reviewDisputeEvidence" value="supporting_screenshots_ready" /> Supporting screenshots are ready</label>
+            <label id="reviewDisputeEvidenceRelevantLabel"><input type="checkbox" name="reviewDisputeEvidence" value="only_relevant_evidence_selected" /> Only directly relevant evidence is included</label>
           </div>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Actions already taken"
-            data-ja="すでに行った対応"
-          >Actions already taken</h3>
+          <h3 id="reviewDisputeActionsTitle" class="assistant-section__title">Actions already taken</h3>
           <div class="assistant-checklist assistant-checklist--compact">
-            <label><input type="checkbox" name="reviewDisputeAction" value="flagged_in_gbp" /> <span data-en="Flagged in GBP" data-ja="GBP 上で報告済み">Flagged in GBP</span></label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_removal_request" /> <span data-en="Submitted removal request" data-ja="削除申請を送信済み">Submitted removal request</span></label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_appeal" /> <span data-en="Submitted appeal" data-ja="再審査を申請済み">Submitted appeal</span></label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="posted_help_community" /> <span data-en="Posted to Help Community" data-ja="Help Community に投稿済み">Posted to Help Community</span></label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="drafting_public_reply" /> <span data-en="Drafting a public reply" data-ja="公開返信を準備中">Drafting a public reply</span></label>
+            <label id="reviewDisputeActionFlaggedLabel"><input type="checkbox" name="reviewDisputeAction" value="flagged_in_gbp" /> Flagged in GBP</label>
+            <label id="reviewDisputeActionRemovalLabel"><input type="checkbox" name="reviewDisputeAction" value="submitted_removal_request" /> Submitted removal request</label>
+            <label id="reviewDisputeActionAppealLabel"><input type="checkbox" name="reviewDisputeAction" value="submitted_appeal" /> Submitted appeal</label>
+            <label id="reviewDisputeActionCommunityLabel"><input type="checkbox" name="reviewDisputeAction" value="posted_help_community" /> Posted to Help Community</label>
+            <label id="reviewDisputeActionReplyLabel"><input type="checkbox" name="reviewDisputeAction" value="drafting_public_reply" /> Drafting a public reply</label>
           </div>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Desired help"
-            data-ja="求めている支援"
-          >Desired help</h3>
+          <h3 id="reviewDisputeHelpTitle" class="assistant-section__title">Desired help</h3>
           <label class="assistant-field">
-            <span data-en="What guidance are you looking for?" data-ja="どんな助言がほしいですか？">What guidance are you looking for?</span>
-            <textarea
-              id="reviewDisputeDesiredHelp"
-              class="input assistant-textarea"
-              rows="3"
-              placeholder="Optional"
-              data-en-placeholder="Optional"
-              data-ja-placeholder="任意"
-            ></textarea>
+            <span id="reviewDisputeHelpLabel">What guidance are you looking for?</span>
+            <textarea id="reviewDisputeDesiredHelp" class="input assistant-textarea" rows="3" placeholder="Optional"></textarea>
           </label>
         </div>
 
         <div class="assistant-actions">
-          <button
-            id="reviewDisputeGenerateBtn"
-            class="btn btn--primary"
-            type="submit"
-            data-en="Generate drafts"
-            data-ja="下書きを生成する"
-          >
+          <button id="reviewDisputeGenerateBtn" class="btn btn--primary" type="submit">
             Generate drafts
           </button>
-          <div
-            class="muted assistant-note"
-            data-en="Avoid unnecessary accusations. Mention only what you can confirm directly."
-            data-ja="不要な断定は避け、直接確認できる事実だけを書きましょう。"
-          >
+          <div id="reviewDisputeGenerateNote" class="muted assistant-note">
             Avoid unnecessary accusations. Mention only what you can confirm directly.
           </div>
         </div>
@@ -364,38 +269,22 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
       <div class="assistant-output">
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Guidance"
-            data-ja="ガイダンス"
-          >Guidance</h3>
+          <h3 id="reviewDisputeGuidanceTitle" class="assistant-section__title">Guidance</h3>
           <ul id="reviewDisputeGuidance" class="list"></ul>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Removal summary"
-            data-ja="削除申請用サマリー"
-          >Removal summary</h3>
+          <h3 id="reviewDisputeSummaryTitle" class="assistant-section__title">Removal summary</h3>
           <textarea id="reviewDisputeSummary" class="input assistant-output__text" rows="7" readonly></textarea>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Community post"
-            data-ja="Community 投稿案"
-          >Community post</h3>
+          <h3 id="reviewDisputeCommunityTitle" class="assistant-section__title">Community post</h3>
           <textarea id="reviewDisputeCommunity" class="input assistant-output__text" rows="9" readonly></textarea>
         </div>
 
         <div class="assistant-section">
-          <h3
-            class="assistant-section__title"
-            data-en="Public response"
-            data-ja="公開返信案"
-          >Public response</h3>
+          <h3 id="reviewDisputePublicResponseTitle" class="assistant-section__title">Public response</h3>
           <textarea id="reviewDisputePublicResponse" class="input assistant-output__text" rows="7" readonly></textarea>
         </div>
       </div>
@@ -404,12 +293,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
   <div id="feedbackAssistant" class="assistant-modal hidden" aria-hidden="true">
     <div id="feedbackBackdrop" class="assistant-modal__backdrop"></div>
-    <div class="assistant-modal__panel" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <div class="assistant-modal__panel" role="dialog" aria-modal="true" aria-labelledby="feedbackModalTitle">
       <div class="assistant-modal__header">
         <div>
-          <div class="assistant-modal__eyebrow">Beta feedback</div>
-          <h2 id="feedbackTitle" class="section__title">Quick Feedback</h2>
-          <div class="assistant-modal__intro muted">
+          <div id="feedbackEyebrow" class="assistant-modal__eyebrow">Beta feedback</div>
+          <h2 id="feedbackModalTitle" class="section__title">Quick Feedback</h2>
+          <div id="feedbackIntro" class="assistant-modal__intro muted">
             Keep it short. Useful, confusing, missing, or buggy is enough for us to learn from.
           </div>
         </div>
@@ -422,27 +311,27 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
       <form id="feedbackForm" class="assistant-form">
         <div class="assistant-section">
-          <h3 class="assistant-section__title">What kind of feedback is this?</h3>
+          <h3 id="feedbackTypeTitle" class="assistant-section__title">What kind of feedback is this?</h3>
           <div class="assistant-checklist assistant-checklist--compact">
-            <label><input type="radio" name="feedbackType" value="useful_result" /> Useful result</label>
-            <label><input type="radio" name="feedbackType" value="confusing_output" /> Confusing output</label>
-            <label><input type="radio" name="feedbackType" value="bug_report" /> Bug or broken flow</label>
-            <label><input type="radio" name="feedbackType" value="missing_feature" /> Missing feature</label>
-            <label><input type="radio" name="feedbackType" value="other" /> Other</label>
+            <label id="feedbackTypeUsefulLabel"><input type="radio" name="feedbackType" value="useful_result" /> Useful result</label>
+            <label id="feedbackTypeConfusingLabel"><input type="radio" name="feedbackType" value="confusing_output" /> Confusing output</label>
+            <label id="feedbackTypeBugLabel"><input type="radio" name="feedbackType" value="bug_report" /> Bug or broken flow</label>
+            <label id="feedbackTypeMissingLabel"><input type="radio" name="feedbackType" value="missing_feature" /> Missing feature</label>
+            <label id="feedbackTypeOtherLabel"><input type="radio" name="feedbackType" value="other" /> Other</label>
           </div>
         </div>
 
         <div class="assistant-section">
           <label class="assistant-field">
-            <span>Short note</span>
+            <span id="feedbackMessageLabel">Short note</span>
             <textarea id="feedbackMessage" class="input assistant-textarea" rows="5" placeholder="What felt useful, confusing, or missing?"></textarea>
           </label>
           <label class="assistant-field">
-            <span>Email for follow-up (optional)</span>
+            <span id="feedbackEmailLabel">Email for follow-up (optional)</span>
             <input id="feedbackEmail" class="input" type="email" placeholder="Optional" />
           </label>
           <div id="feedbackContextPreview" class="feedback-context muted"></div>
-          <div class="muted assistant-note">
+          <div id="feedbackPrivacyNote" class="muted assistant-note">
             We only need enough context to understand the moment. Please avoid sensitive information.
           </div>
         </div>
@@ -459,11 +348,32 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 <script>
 const btn = document.getElementById("btn");
 const input = document.getElementById("urlInput");
+const appTitleEl = document.getElementById("appTitle");
+const introTextEl = document.getElementById("introText");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
 const savedMsgEl = document.getElementById("savedMsg");
 const savedListingsEl = document.getElementById("savedListings");
+const savedListingsTitleEl = document.getElementById("savedListingsTitle");
+const reportTitleEl = document.getElementById("reportTitle");
+const nextActionsTitleEl = document.getElementById("nextActionsTitle");
+const competitiveGapTitleEl = document.getElementById("competitiveGapTitle");
+const customerChoiceTitleEl = document.getElementById("customerChoiceTitle");
+const googleBasicsTitleEl = document.getElementById("googleBasicsTitle");
+const weeklyReportTitleEl = document.getElementById("weeklyReportTitle");
+const reviewSupportTitleEl = document.getElementById("reviewSupportTitle");
+const photoComparisonTitleEl = document.getElementById("photoComparisonTitle");
+const recommendedPhotosTitleEl = document.getElementById("recommendedPhotosTitle");
+const googleBasicsTasksTitleEl = document.getElementById("googleBasicsTasksTitle");
+const googleBasicsBreakdownTitleEl = document.getElementById("googleBasicsBreakdownTitle");
+const businessDetailsTitleEl = document.getElementById("businessDetailsTitle");
+const historyTitleEl = document.getElementById("historyTitle");
+const historyHintEl = document.getElementById("historyHint");
+const feedbackTitleEl = document.getElementById("feedbackTitle");
+const foundationEyebrowEl = document.getElementById("foundationEyebrow");
+const langToggleEn = document.getElementById("langToggleEn");
+const langToggleJa = document.getElementById("langToggleJa");
 
 const msg = document.getElementById("msg");
 const card = document.getElementById("card");
@@ -499,6 +409,45 @@ const openReviewDisputeAssistantBtn = document.getElementById("openReviewDispute
 const reviewDisputeAssistantEl = document.getElementById("reviewDisputeAssistant");
 const reviewDisputeBackdropEl = document.getElementById("reviewDisputeBackdrop");
 const closeReviewDisputeAssistantBtn = document.getElementById("closeReviewDisputeAssistantBtn");
+const reviewDisputeEyebrowEl = document.getElementById("reviewDisputeEyebrow");
+const reviewDisputeTitleEl = document.getElementById("reviewDisputeTitle");
+const reviewDisputeIntroEl = document.getElementById("reviewDisputeIntro");
+const reviewDisputeSnapshotTitleEl = document.getElementById("reviewDisputeSnapshotTitle");
+const reviewDisputeBusinessNameLabelEl = document.getElementById("reviewDisputeBusinessNameLabel");
+const reviewDisputeReviewerNameLabelEl = document.getElementById("reviewDisputeReviewerNameLabel");
+const reviewDisputeReviewDateLabelEl = document.getElementById("reviewDisputeReviewDateLabel");
+const reviewDisputeReviewRatingLabelEl = document.getElementById("reviewDisputeReviewRatingLabel");
+const reviewDisputeBusinessLaunchLabelEl = document.getElementById("reviewDisputeBusinessLaunchLabel");
+const reviewDisputeServiceLaunchLabelEl = document.getElementById("reviewDisputeServiceLaunchLabel");
+const reviewDisputeReviewTextLabelEl = document.getElementById("reviewDisputeReviewTextLabel");
+const reviewDisputeIssueTypeTitleEl = document.getElementById("reviewDisputeIssueTypeTitle");
+const reviewDisputeCategoryNotCustomerLabelEl = document.getElementById("reviewDisputeCategoryNotCustomerLabel");
+const reviewDisputeCategoryConflictLabelEl = document.getElementById("reviewDisputeCategoryConflictLabel");
+const reviewDisputeCategoryHarassmentLabelEl = document.getElementById("reviewDisputeCategoryHarassmentLabel");
+const reviewDisputeCategoryImpossibleLabelEl = document.getElementById("reviewDisputeCategoryImpossibleLabel");
+const reviewDisputeCategoryOffTopicLabelEl = document.getElementById("reviewDisputeCategoryOffTopicLabel");
+const reviewDisputeCategoryOtherLabelEl = document.getElementById("reviewDisputeCategoryOtherLabel");
+const reviewDisputeIssueTypeNoteEl = document.getElementById("reviewDisputeIssueTypeNote");
+const reviewDisputeEvidenceTitleEl = document.getElementById("reviewDisputeEvidenceTitle");
+const reviewDisputeEvidenceCrmLabelEl = document.getElementById("reviewDisputeEvidenceCrmLabel");
+const reviewDisputeEvidenceTransactionLabelEl = document.getElementById("reviewDisputeEvidenceTransactionLabel");
+const reviewDisputeEvidenceLaunchLabelEl = document.getElementById("reviewDisputeEvidenceLaunchLabel");
+const reviewDisputeEvidenceTimelineLabelEl = document.getElementById("reviewDisputeEvidenceTimelineLabel");
+const reviewDisputeEvidenceScreenshotsLabelEl = document.getElementById("reviewDisputeEvidenceScreenshotsLabel");
+const reviewDisputeEvidenceRelevantLabelEl = document.getElementById("reviewDisputeEvidenceRelevantLabel");
+const reviewDisputeActionsTitleEl = document.getElementById("reviewDisputeActionsTitle");
+const reviewDisputeActionFlaggedLabelEl = document.getElementById("reviewDisputeActionFlaggedLabel");
+const reviewDisputeActionRemovalLabelEl = document.getElementById("reviewDisputeActionRemovalLabel");
+const reviewDisputeActionAppealLabelEl = document.getElementById("reviewDisputeActionAppealLabel");
+const reviewDisputeActionCommunityLabelEl = document.getElementById("reviewDisputeActionCommunityLabel");
+const reviewDisputeActionReplyLabelEl = document.getElementById("reviewDisputeActionReplyLabel");
+const reviewDisputeHelpTitleEl = document.getElementById("reviewDisputeHelpTitle");
+const reviewDisputeHelpLabelEl = document.getElementById("reviewDisputeHelpLabel");
+const reviewDisputeGenerateNoteEl = document.getElementById("reviewDisputeGenerateNote");
+const reviewDisputeGuidanceTitleEl = document.getElementById("reviewDisputeGuidanceTitle");
+const reviewDisputeSummaryTitleEl = document.getElementById("reviewDisputeSummaryTitle");
+const reviewDisputeCommunityTitleEl = document.getElementById("reviewDisputeCommunityTitle");
+const reviewDisputePublicResponseTitleEl = document.getElementById("reviewDisputePublicResponseTitle");
 const reviewDisputeFormEl = document.getElementById("reviewDisputeForm");
 const reviewDisputeMsgEl = document.getElementById("reviewDisputeMsg");
 const reviewDisputeBusinessNameEl = document.getElementById("reviewDisputeBusinessName");
@@ -520,6 +469,18 @@ const openFeedbackBtn = document.getElementById("openFeedbackBtn");
 const feedbackAssistantEl = document.getElementById("feedbackAssistant");
 const feedbackBackdropEl = document.getElementById("feedbackBackdrop");
 const closeFeedbackBtn = document.getElementById("closeFeedbackBtn");
+const feedbackEyebrowEl = document.getElementById("feedbackEyebrow");
+const feedbackModalTitleEl = document.getElementById("feedbackModalTitle");
+const feedbackIntroEl = document.getElementById("feedbackIntro");
+const feedbackTypeTitleEl = document.getElementById("feedbackTypeTitle");
+const feedbackTypeUsefulLabelEl = document.getElementById("feedbackTypeUsefulLabel");
+const feedbackTypeConfusingLabelEl = document.getElementById("feedbackTypeConfusingLabel");
+const feedbackTypeBugLabelEl = document.getElementById("feedbackTypeBugLabel");
+const feedbackTypeMissingLabelEl = document.getElementById("feedbackTypeMissingLabel");
+const feedbackTypeOtherLabelEl = document.getElementById("feedbackTypeOtherLabel");
+const feedbackMessageLabelEl = document.getElementById("feedbackMessageLabel");
+const feedbackEmailLabelEl = document.getElementById("feedbackEmailLabel");
+const feedbackPrivacyNoteEl = document.getElementById("feedbackPrivacyNote");
 const feedbackFormEl = document.getElementById("feedbackForm");
 const feedbackMsgEl = document.getElementById("feedbackMsg");
 const feedbackMessageEl = document.getElementById("feedbackMessage");
@@ -530,8 +491,537 @@ const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
 const HISTORY_KEY = "gbp_history_v2";
 const HISTORY_MAX = 10;
 const SUBSCRIBER_EMAIL_KEY = "gbp_subscriber_email_v1";
+const APP_LANGUAGE_KEY = "gbp_app_language_v1";
+const DEFAULT_LANGUAGE = "en";
+
+const COPY = {
+  en: {
+    documentTitle: "Google Maps Listing Analyzer",
+    appTitle: "Google Maps Listing Analyzer",
+    analyzePlaceholder: "Enter business name and address",
+    analyzeButton: "Analyze Listing",
+    introText:
+      "Analyze your Google Maps listing, compare competitors, and discover how to improve reviews, photos, and visibility.",
+    savedListingsTitle: "Saved Listings",
+    savedEmailPlaceholder: "Enter email to manage saved listings",
+    loadSaved: "Load Saved Listings",
+    saveCurrent: "Save Current Listing",
+    savedMsgDefault:
+      "Analyze a listing, then save it so you can reopen the latest report quickly from this app.",
+    reportTitle: "Google Maps Analysis Report",
+    nextActionsTitle: "Next Actions",
+    competitiveGapTitle: "Competitive Gap",
+    customerChoiceTitle: "Customer Choice",
+    googleBasicsTitle: "Google Basics Check",
+    foundationEyebrow: "Google basics",
+    weeklyReportTitle: "Weekly Report",
+    reviewSupportTitle: "Review Support",
+    photoComparisonTitle: "Photo Comparison",
+    recommendedPhotosTitle: "Recommended Photos",
+    googleBasicsTasksTitle: "Google Basics Tasks",
+    googleBasicsBreakdownTitle: "Google Basics Breakdown",
+    businessDetailsTitle: "Business Details",
+    exportPdf: "Export PDF",
+    historyTitle: "History",
+    clearHistory: "Clear History",
+    historyHint: "Click a history item to display the result again (no API request)",
+    feedbackTitle: "Quick Feedback",
+    feedbackEyebrow: "Beta feedback",
+    feedbackModalTitle: "Quick Feedback",
+    feedbackIntro:
+      "Keep it short. Useful, confusing, missing, or buggy is enough for us to learn from.",
+    feedbackCtaCopy:
+      "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.",
+    feedbackButton: "Share Report Feedback",
+    feedbackTypeTitle: "What kind of feedback is this?",
+    feedbackTypeUseful: "Useful result",
+    feedbackTypeConfusing: "Confusing output",
+    feedbackTypeBug: "Bug or broken flow",
+    feedbackTypeMissing: "Missing feature",
+    feedbackTypeOther: "Other",
+    feedbackMessageLabel: "Short note",
+    feedbackMessagePlaceholder: "What felt useful, confusing, or missing?",
+    feedbackEmailLabel: "Email for follow-up (optional)",
+    feedbackOptionalPlaceholder: "Optional",
+    feedbackPrivacyNote:
+      "We only need enough context to understand the moment. Please avoid sensitive information.",
+    feedbackSubmit: "Send Feedback",
+    reviewSupportButton: "Open Review Dispute Assistant",
+    reviewDisputeEyebrow: "Review support utility",
+    reviewDisputeTitle: "Review Dispute Assistant",
+    reviewDisputeIntro:
+      "Keep your explanation short, factual, and calm. This tool does not guarantee review removal.",
+    reviewDisputeClose: "Close",
+    reviewDisputeSnapshotTitle: "Review snapshot",
+    reviewDisputeBusinessNameLabel: "Business name",
+    reviewDisputeBusinessNamePlaceholder: "Example Dental",
+    reviewDisputeReviewerNameLabel: "Reviewer name",
+    reviewDisputeReviewDateLabel: "Review date",
+    reviewDisputeReviewRatingLabel: "Star rating",
+    reviewDisputeBusinessLaunchLabel: "Business launch date",
+    reviewDisputeServiceLaunchLabel: "Service launch date",
+    reviewDisputeReviewTextLabel: "Review text",
+    reviewDisputeReviewTextPlaceholder: "Paste the suspicious review text here",
+    reviewDisputeIssueTypeTitle: "Possible issue type",
+    reviewDisputeCategoryNotCustomer: "Not a real customer",
+    reviewDisputeCategoryConflict: "Conflict of interest",
+    reviewDisputeCategoryHarassment: "Harassment or abuse",
+    reviewDisputeCategoryImpossible: "Factually impossible claim",
+    reviewDisputeCategoryOffTopic: "Off-topic or irrelevant",
+    reviewDisputeCategoryOther: "Other",
+    reviewDisputeIssueTypeNote: "Try to keep this to 1-2 issue types.",
+    reviewDisputeEvidenceTitle: "Evidence checklist",
+    reviewDisputeEvidenceCrm: "Reviewer is not found in CRM",
+    reviewDisputeEvidenceTransaction: "No transaction record exists",
+    reviewDisputeEvidenceLaunch: "Service was not launched yet",
+    reviewDisputeEvidenceTimeline: "Relevant timeline is documented",
+    reviewDisputeEvidenceScreenshots: "Supporting screenshots are ready",
+    reviewDisputeEvidenceRelevant: "Only directly relevant evidence is included",
+    reviewDisputeActionsTitle: "Actions already taken",
+    reviewDisputeActionFlagged: "Flagged in GBP",
+    reviewDisputeActionRemoval: "Submitted removal request",
+    reviewDisputeActionAppeal: "Submitted appeal",
+    reviewDisputeActionCommunity: "Posted to Help Community",
+    reviewDisputeActionReply: "Drafting a public reply",
+    reviewDisputeHelpTitle: "Desired help",
+    reviewDisputeHelpLabel: "What guidance are you looking for?",
+    reviewDisputeHelpPlaceholder: "Optional",
+    reviewDisputeGenerate: "Generate drafts",
+    reviewDisputeGenerateNote:
+      "Avoid unnecessary accusations. Mention only what you can confirm directly.",
+    reviewDisputeGuidanceTitle: "Guidance",
+    reviewDisputeSummaryTitle: "Removal summary",
+    reviewDisputeCommunityTitle: "Community post",
+    reviewDisputePublicResponseTitle: "Public response",
+    changeCompetitor: "Change competitor",
+    resetCompetitor: "Reset to recommended competitor",
+    hideCompetitorOptions: "Hide competitor options",
+    competitorPickerTitle: "Choose a competitor for this report",
+    competitorSearchTitle: "Search another competitor",
+    competitorSearchPlaceholder: "Business name and address",
+    competitorSearchButton: "Search",
+    competitorSearchingButton: "Searching...",
+    competitorResolvedPlace: "Resolved place",
+    competitorUseSearched: "Use searched competitor",
+    competitorSelected: "Selected",
+    competitorRecommended: "Recommended",
+    competitorUseThis: "Use this competitor",
+    competitorSearchEmpty:
+      "Nearby auto-matched competitors were limited here. Search for a better comparison manually.",
+    competitorSearchPrompt: "Enter a business name and address to search.",
+    competitorSearchingMessage: "Searching for a competitor...",
+    competitorSearchReviewMatch: "Review the match, then use it as the competitor.",
+    competitorUpdated: "Competitor updated for this report.",
+    competitorUpdatedSaved:
+      "Competitor updated. Save Current Listing to keep this selection.",
+    loadingListing: "Analyzing listing...",
+    loadingHeadline: "Summarizing what matters first...",
+    loadingSummary: "Checking foundation, customer choice, and competitor context.",
+    loadingPriority: "Prioritizing the first actions...",
+    loadingCustomerChoice: "Checking first-impression risk...",
+    loadingFoundation: "Checking profile basics",
+    loadingGeneric: "Loading...",
+    unavailableHeadline: "Diagnosis unavailable",
+    unavailableFoundation: "Could not load profile basics",
+    retryMoreSpecific: "Try again with a more specific business name and address.",
+    loadedHistoryItem: "Loaded history item.",
+    clearHistoryConfirm: "Clear all history and reset the display. Continue?",
+    loadingSavedListing: "Loading saved listing...",
+    savedListingLoaded: "Saved listing loaded.",
+    savedListingsEmpty: "No saved listings yet",
+    savedListingDefaultName: "Saved Listing",
+    savedListingAddressUnavailable: "Address not available",
+    savedListingUpdated: "Updated",
+    savedListingJustNow: "Just now",
+    savedListingSavedForDashboard: "Saved for quick re-open from this dashboard.",
+    savedListingComparedWith: "Compared with",
+    savedListingSelectedCompetitor: "Selected competitor",
+    savedListingChangeFallback: "We'll compare changes after your next check",
+    loadSavedPrompt: "Enter your email to load saved listings.",
+    savedListingsLoaded: "Saved listings loaded.",
+    savedListingDirectLink:
+      "Showing this saved listing from a direct link. Enter your email to load all saved listings.",
+    noHistoryYet: "No history yet",
+    deleteLabel: "Delete",
+    openLatestReport: "Open Latest Report",
+    historyScoreLabel: "Score",
+    missingQuery: "Please enter a business name and address.",
+    analysisComplete: "Analysis complete.",
+    reportGeneratedPrefix: "Report generated: ",
+    languageToggleLabel: "Language",
+    reviewDisputeNoDraft: "No draft generated yet.",
+    reviewDisputeDefaultHelp: "Guidance on how to present this clearly",
+    reviewDisputeNoGuidance: "No additional guidance right now.",
+    reviewDisputeMissingText: "Paste the suspicious review text before generating drafts.",
+    reviewDisputeGenerating: "Generating drafts...",
+    reviewDisputeGenerated: "Drafts generated.",
+    feedbackMissingType: "Choose the feedback type first.",
+    feedbackMissingMessage: "Add a short note before sending feedback.",
+    feedbackSending: "Sending feedback...",
+    feedbackSent: "Feedback sent. Thank you.",
+    saveListingMissingAnalysis: "Analyze a listing before saving it.",
+    saveListingInvalidEmail: "Enter a valid email address before saving a listing.",
+    saveListingMissingCompetitor: "A competitor must be selected before weekly reports can be created.",
+    saveListingSaving: "Saving listing...",
+    saveListingSaved: "Listing saved. You can reopen it anytime from Saved Listings.",
+    noImmediateActions: "No immediate actions required.",
+    invalidJsonResponse: "The server returned an invalid response.",
+    requestFailedHttp: "Request failed with HTTP {status}.",
+    collectingData: "Collecting data",
+    compareWithPrefix: "Compared with",
+    selectedCompetitorFallback: "Selected competitor",
+    nearbyCompetitorFallback: "Nearby competitor",
+    contextAttachPrefix: "Context we'll attach",
+    noContextAttached: "No current report attached. You can still send general product feedback.",
+    distanceMetersAway: "{count}m away",
+    distanceKmAway: "{count}km away",
+    reviewCountShort: "{count} reviews",
+    reviewScaleSimilar: "Similar review scale",
+    reviewScaleLarger: "Larger review scale",
+    reviewScaleSmaller: "Smaller review scale",
+    compareUpdatePending: "Updating competitor comparison...",
+    weeklyUpdatePending: "Updating weekly report...",
+    competitorUpdateComparisonError: "Could not update competitor comparison.",
+    competitorUpdateWeeklyError: "Could not update weekly report.",
+    competitorConfirmFailed: "Could not confirm the selected competitor. Please try again.",
+    competitorSearchNotFound: "Could not find that competitor.",
+    competitorSearchSameBusiness: "Choose a different business than the one you are analyzing.",
+    compareTrackingSetup: "Available after two daily snapshots are saved.",
+    compareTrackingNext: "Available after the next daily snapshot is saved.",
+    compareTrackingSavedReport: "Not available in this saved report.",
+    compareTrackingUnavailable: "Currently unavailable.",
+    weeklyTrackingSetup: "Meaningful trends usually appear after about 7 days of daily snapshots.",
+    weeklyTrackingNext:
+      "Tracking now. Meaningful trends usually appear after about 7 days of daily snapshots.",
+    weeklyTrackingSavedReport: "Not available in this saved report.",
+    weeklyTrackingUnavailable: "Currently unavailable.",
+    compareDataUnavailable: "Comparison data is unavailable.",
+    compareLabelYourTotalReviews: "Your total reviews",
+    compareLabelCompetitorTotalReviews: "Competitor total reviews",
+    compareLabelTotalReviewDifference: "Total review difference",
+    compareLabelCurrentReviewTotals: "Current review totals",
+    compareAvailableAfterFirstSnapshot: "Available after the first daily snapshot is saved.",
+    compareLabelYourDailyChange: "Your daily change",
+    compareLabelCompetitorDailyChange: "Competitor daily change",
+    compareLabelGrowthDifference: "Growth difference",
+    compareLabelDailyChanges: "Daily changes",
+    photoComparisonUnavailable: "No photo comparison data",
+    photoLabelYourCount: "Your photo count",
+    photoLabelCompetitorAverage: "Competitor average",
+    photoLabelMissingPhotos: "Missing photos",
+    photoAdviceUnavailable: "No photo advice available",
+    recommendedShotPrefix: "Recommended shot",
+    noGoogleBasicsTasks: "No additional Google basics tasks right now",
+    noGoogleBasicsPenalties: "No Google basics penalties",
+    totalPenaltyPrefix: "Total penalty",
+    businessNameLabel: "Business Name",
+    addressLabel: "Address",
+    phoneLabel: "Phone",
+    websiteLabel: "Website",
+    availableLabel: "Available",
+    notAvailableLabel: "Not available",
+    photoCountLabel: "Photo Count",
+    weeklyDataUnavailable: "Weekly report data is unavailable.",
+    weeklyLabelReportPeriod: "Report period",
+    weeklyLabelYourGrowth: "Your weekly review growth",
+    weeklyLabelCompetitorGrowth: "Competitor weekly review growth",
+    weeklyLabelGrowthDifference: "Weekly growth difference",
+    weeklyLabelInsight: "Weekly insight",
+    weeklyLabelChanges: "Weekly changes",
+    couldNotLoadSavedListings: "Could not load saved listings.",
+    couldNotLoadSavedListing: "Could not load saved listing.",
+    couldNotGenerateReviewDrafts: "Could not generate review dispute drafts.",
+    couldNotSendFeedback: "Could not send feedback right now.",
+    couldNotSaveListing: "Could not save this listing.",
+    deleteSavedListingNeedEmail: "Enter the same email address used to save this listing.",
+    couldNotDeleteSavedListing: "Could not delete this saved listing.",
+    savedListingDeleted: "Saved listing deleted.",
+    nextRatingMilestone: "Next rating milestone",
+    estimatedReviewsNeededPrefix: "Estimated 5-star reviews needed to reach {milestone}",
+    estimatedReviewsNeededWithCount: "Estimated 5-star reviews needed to reach {milestone}: {count}",
+    compareAgainAfterNextCheck: "We'll compare progress again after your next check",
+    estimateBasedOnRating: "Estimate based on current displayed rating and total reviews",
+    revisitReasonLabel: "Revisit reason",
+    reviewCountDownSinceLastCheck: "Review count is down since the last saved check",
+    visibleTrustWeaker: "Visible trust may be weaker than it was before.",
+    nextCheckConfirmDrop: "Next check: confirm whether the drop persists.",
+    notAvailableYet: "Not available yet",
+    reviewMonitoringLabel: "Review monitoring",
+    collectingReviewHistory: "Collecting review history",
+    availableAfterTwoThemeSnapshots: "Available after two saved review-theme snapshots.",
+    nextCheckKeepMonitoring: "Next check: keep monitoring until another saved snapshot is available.",
+    themeTrendLabel: "Theme trend",
+    competitorGapLabel: "Competitor gap",
+    notEnoughCompetitorHistory: "Not enough competitor history yet",
+    savedListingFallbackName: "Saved Listing",
+    analysisFailed: "Analysis failed.",
+  },
+  ja: {
+    documentTitle: "Googleマップ店舗分析",
+    appTitle: "Googleマップ店舗分析",
+    analyzePlaceholder: "店舗名と住所を入力",
+    analyzeButton: "店舗を分析",
+    introText:
+      "Googleマップ上の自店舗を分析し、競合比較とレビュー・写真・見つけやすさの改善点を確認できます。",
+    savedListingsTitle: "保存した店舗",
+    savedEmailPlaceholder: "保存した店舗を管理するメールアドレス",
+    loadSaved: "保存済みを読み込む",
+    saveCurrent: "現在の店舗を保存",
+    savedMsgDefault:
+      "分析後に保存すると、このアプリから最新レポートをすぐ開き直せます。",
+    reportTitle: "Googleマップ分析レポート",
+    nextActionsTitle: "次のアクション",
+    competitiveGapTitle: "競合差分",
+    customerChoiceTitle: "顧客視点",
+    googleBasicsTitle: "Google基本情報チェック",
+    foundationEyebrow: "Google基本情報",
+    weeklyReportTitle: "週間レポート",
+    reviewSupportTitle: "レビュー対応サポート",
+    photoComparisonTitle: "写真比較",
+    recommendedPhotosTitle: "推奨写真",
+    googleBasicsTasksTitle: "Google基本タスク",
+    googleBasicsBreakdownTitle: "Google基本内訳",
+    businessDetailsTitle: "店舗詳細",
+    exportPdf: "PDFを書き出す",
+    historyTitle: "履歴",
+    clearHistory: "履歴を消去",
+    historyHint: "履歴をクリックするとAPIを使わずに結果を再表示できます",
+    feedbackTitle: "かんたんフィードバック",
+    feedbackEyebrow: "ベータ版フィードバック",
+    feedbackModalTitle: "かんたんフィードバック",
+    feedbackIntro:
+      "短くて大丈夫です。役立った・分かりにくい・足りない・不具合、のどれかが分かるだけでも学びになります。",
+    feedbackCtaCopy:
+      "レポートを見たあとに、役立った点・分かりにくかった点・足りない点を短く教えてください。現在のレポート文脈は自動で添付します。",
+    feedbackButton: "レポートの感想を送る",
+    feedbackTypeTitle: "どの種類のフィードバックですか？",
+    feedbackTypeUseful: "役立つ結果だった",
+    feedbackTypeConfusing: "出力が分かりにくい",
+    feedbackTypeBug: "不具合・壊れている動線",
+    feedbackTypeMissing: "欲しい機能がない",
+    feedbackTypeOther: "その他",
+    feedbackMessageLabel: "短いメモ",
+    feedbackMessagePlaceholder: "役立った点、分かりにくかった点、足りない点などを書いてください",
+    feedbackEmailLabel: "追加確認用メール（任意）",
+    feedbackOptionalPlaceholder: "任意",
+    feedbackPrivacyNote:
+      "状況が分かる最低限の文脈だけで十分です。センシティブな情報は避けてください。",
+    feedbackSubmit: "フィードバックを送信",
+    reviewSupportButton: "レビュー対応アシスタントを開く",
+    reviewDisputeEyebrow: "レビュー対応ユーティリティ",
+    reviewDisputeTitle: "レビュー対応アシスタント",
+    reviewDisputeIntro:
+      "説明は短く、事実ベースで、落ち着いたトーンに保ちます。このツールは削除を保証するものではありません。",
+    reviewDisputeClose: "閉じる",
+    reviewDisputeSnapshotTitle: "レビュー概要",
+    reviewDisputeBusinessNameLabel: "店舗名",
+    reviewDisputeBusinessNamePlaceholder: "例: Example Dental",
+    reviewDisputeReviewerNameLabel: "レビュアー名",
+    reviewDisputeReviewDateLabel: "レビュー日",
+    reviewDisputeReviewRatingLabel: "星評価",
+    reviewDisputeBusinessLaunchLabel: "事業開始日",
+    reviewDisputeServiceLaunchLabel: "サービス開始日",
+    reviewDisputeReviewTextLabel: "レビュー本文",
+    reviewDisputeReviewTextPlaceholder: "疑わしいレビュー本文を貼り付けてください",
+    reviewDisputeIssueTypeTitle: "想定される論点",
+    reviewDisputeCategoryNotCustomer: "実際の顧客ではない可能性",
+    reviewDisputeCategoryConflict: "利害関係の可能性",
+    reviewDisputeCategoryHarassment: "嫌がらせ・攻撃的表現",
+    reviewDisputeCategoryImpossible: "事実上ありえない主張",
+    reviewDisputeCategoryOffTopic: "無関係・論点外",
+    reviewDisputeCategoryOther: "その他",
+    reviewDisputeIssueTypeNote: "論点は1〜2個に絞るのがおすすめです。",
+    reviewDisputeEvidenceTitle: "証拠チェックリスト",
+    reviewDisputeEvidenceCrm: "CRMに該当顧客が見当たらない",
+    reviewDisputeEvidenceTransaction: "取引記録が存在しない",
+    reviewDisputeEvidenceLaunch: "レビュー時点でサービス未開始だった",
+    reviewDisputeEvidenceTimeline: "関連する時系列を整理済み",
+    reviewDisputeEvidenceScreenshots: "補足スクリーンショットを用意済み",
+    reviewDisputeEvidenceRelevant: "直接関係する証拠だけに絞っている",
+    reviewDisputeActionsTitle: "すでに取った対応",
+    reviewDisputeActionFlagged: "GBPでフラグ済み",
+    reviewDisputeActionRemoval: "削除申請済み",
+    reviewDisputeActionAppeal: "再申請・appeal済み",
+    reviewDisputeActionCommunity: "Help Communityへ投稿済み",
+    reviewDisputeActionReply: "公開返信を準備中",
+    reviewDisputeHelpTitle: "欲しい支援",
+    reviewDisputeHelpLabel: "どんな guidance が欲しいですか？",
+    reviewDisputeHelpPlaceholder: "任意",
+    reviewDisputeGenerate: "下書きを生成",
+    reviewDisputeGenerateNote:
+      "不必要な断定や非難は避け、直接確認できる事実だけを書きましょう。",
+    reviewDisputeGuidanceTitle: "ガイダンス",
+    reviewDisputeSummaryTitle: "削除申請用サマリー",
+    reviewDisputeCommunityTitle: "Community投稿案",
+    reviewDisputePublicResponseTitle: "公開返信案",
+    changeCompetitor: "競合を変更",
+    resetCompetitor: "推奨競合に戻す",
+    hideCompetitorOptions: "競合候補を隠す",
+    competitorPickerTitle: "このレポートで比較する競合を選択",
+    competitorSearchTitle: "別の競合を検索",
+    competitorSearchPlaceholder: "店舗名と住所",
+    competitorSearchButton: "検索",
+    competitorSearchingButton: "検索中...",
+    competitorResolvedPlace: "見つかった店舗",
+    competitorUseSearched: "この検索結果を競合に使う",
+    competitorSelected: "選択中",
+    competitorRecommended: "推奨",
+    competitorUseThis: "この競合を使う",
+    competitorSearchEmpty:
+      "近隣の自動候補だけでは比較しづらいので、より適切な競合を手動検索してください。",
+    competitorSearchPrompt: "検索する店舗名と住所を入力してください。",
+    competitorSearchingMessage: "競合候補を検索しています...",
+    competitorSearchReviewMatch: "一致内容を確認してから競合に設定してください。",
+    competitorUpdated: "このレポートの競合を更新しました。",
+    competitorUpdatedSaved:
+      "競合を更新しました。この選択を残すには現在の店舗を保存してください。",
+    loadingListing: "店舗を分析しています...",
+    loadingHeadline: "まず重要なポイントを整理しています...",
+    loadingSummary: "Google基本情報・顧客視点・競合文脈を確認しています。",
+    loadingPriority: "最初に着手すべき項目を整理しています...",
+    loadingCustomerChoice: "第一印象の不安要素を確認しています...",
+    loadingFoundation: "Google基本情報を確認しています",
+    loadingGeneric: "読み込み中...",
+    unavailableHeadline: "診断結果を表示できませんでした",
+    unavailableFoundation: "プロフィール基本情報を読み込めませんでした",
+    retryMoreSpecific: "より具体的な店舗名と住所で再度お試しください。",
+    loadedHistoryItem: "履歴の結果を読み込みました。",
+    clearHistoryConfirm: "履歴をすべて消去し、表示もリセットします。続けますか？",
+    loadingSavedListing: "保存した店舗を読み込み中...",
+    savedListingLoaded: "保存した店舗を読み込みました。",
+    savedListingsEmpty: "保存した店舗はまだありません",
+    savedListingDefaultName: "保存した店舗",
+    savedListingAddressUnavailable: "住所情報なし",
+    savedListingUpdated: "更新",
+    savedListingJustNow: "たった今",
+    savedListingSavedForDashboard: "このダッシュボードからすぐ再表示できるよう保存しています。",
+    savedListingComparedWith: "比較対象",
+    savedListingSelectedCompetitor: "選択中の競合",
+    savedListingChangeFallback: "次回の確認後に変化を比較します",
+    loadSavedPrompt: "保存済みを読み込むにはメールアドレスを入力してください。",
+    savedListingsLoaded: "保存済みを読み込みました。",
+    savedListingDirectLink:
+      "この保存済みレポートを直接表示しています。すべての保存済みを読み込むにはメールアドレスを入力してください。",
+    noHistoryYet: "履歴はまだありません",
+    deleteLabel: "削除",
+    openLatestReport: "最新レポートを開く",
+    historyScoreLabel: "スコア",
+    missingQuery: "店舗名と住所を入力してください。",
+    analysisComplete: "分析が完了しました。",
+    reportGeneratedPrefix: "レポート生成: ",
+    languageToggleLabel: "表示言語",
+    reviewDisputeNoDraft: "まだ下書きは生成されていません。",
+    reviewDisputeDefaultHelp: "どう整理して伝えるべきか知りたい",
+    reviewDisputeNoGuidance: "追加のガイダンスは今のところありません。",
+    reviewDisputeMissingText: "まず疑わしいレビュー本文を貼り付けてください。",
+    reviewDisputeGenerating: "下書きを生成しています...",
+    reviewDisputeGenerated: "下書きを生成しました。",
+    feedbackMissingType: "まずフィードバックの種類を選んでください。",
+    feedbackMissingMessage: "送信前に短いメモを入力してください。",
+    feedbackSending: "フィードバックを送信しています...",
+    feedbackSent: "フィードバックを送信しました。ありがとうございます。",
+    saveListingMissingAnalysis: "保存する前に店舗を分析してください。",
+    saveListingInvalidEmail: "保存する前に有効なメールアドレスを入力してください。",
+    saveListingMissingCompetitor: "週間レポートを作るには競合を選ぶ必要があります。",
+    saveListingSaving: "保存しています...",
+    saveListingSaved: "保存しました。保存した店舗からいつでも開き直せます。",
+    noImmediateActions: "今すぐ必要な追加アクションはありません。",
+    invalidJsonResponse: "サーバーが不正なレスポンスを返しました。",
+    requestFailedHttp: "HTTP {status} でリクエストに失敗しました。",
+    collectingData: "データを収集中",
+    compareWithPrefix: "比較対象",
+    selectedCompetitorFallback: "選択中の競合",
+    nearbyCompetitorFallback: "近隣の競合候補",
+    contextAttachPrefix: "添付する文脈",
+    noContextAttached: "現在のレポートは添付されません。一般的なプロダクトフィードバックとして送れます。",
+    distanceMetersAway: "{count}m先",
+    distanceKmAway: "{count}km先",
+    reviewCountShort: "レビュー {count} 件",
+    reviewScaleSimilar: "レビュー規模が近い",
+    reviewScaleLarger: "レビュー規模が大きい",
+    reviewScaleSmaller: "レビュー規模が小さい",
+    compareUpdatePending: "競合比較を更新しています...",
+    weeklyUpdatePending: "週間レポートを更新しています...",
+    competitorUpdateComparisonError: "競合比較を更新できませんでした。",
+    competitorUpdateWeeklyError: "週間レポートを更新できませんでした。",
+    competitorConfirmFailed: "選択した競合を確認できませんでした。もう一度お試しください。",
+    competitorSearchNotFound: "その競合候補は見つかりませんでした。",
+    competitorSearchSameBusiness: "分析中の店舗とは別の店舗を選んでください。",
+    compareTrackingSetup: "日次スナップショットが2件そろうと表示されます。",
+    compareTrackingNext: "次の日次スナップショットが保存されると表示されます。",
+    compareTrackingSavedReport: "この保存済みレポートでは利用できません。",
+    compareTrackingUnavailable: "現在は利用できません。",
+    weeklyTrackingSetup: "意味のある傾向は、日次スナップショットが約7日分そろうと見えやすくなります。",
+    weeklyTrackingNext:
+      "現在追跡中です。意味のある傾向は、日次スナップショットが約7日分そろうと見えやすくなります。",
+    weeklyTrackingSavedReport: "この保存済みレポートでは利用できません。",
+    weeklyTrackingUnavailable: "現在は利用できません。",
+    compareDataUnavailable: "競合比較データを表示できません。",
+    compareLabelYourTotalReviews: "自店舗の総レビュー数",
+    compareLabelCompetitorTotalReviews: "競合の総レビュー数",
+    compareLabelTotalReviewDifference: "総レビュー差",
+    compareLabelCurrentReviewTotals: "現在のレビュー総数",
+    compareAvailableAfterFirstSnapshot: "最初の日次スナップショットが保存されると表示されます。",
+    compareLabelYourDailyChange: "自店舗の日次増減",
+    compareLabelCompetitorDailyChange: "競合の日次増減",
+    compareLabelGrowthDifference: "増減差",
+    compareLabelDailyChanges: "日次変化",
+    photoComparisonUnavailable: "写真比較データはまだありません",
+    photoLabelYourCount: "自店舗の写真数",
+    photoLabelCompetitorAverage: "競合平均",
+    photoLabelMissingPhotos: "不足写真数",
+    photoAdviceUnavailable: "写真アドバイスはまだありません",
+    recommendedShotPrefix: "推奨ショット",
+    noGoogleBasicsTasks: "現時点で追加のGoogle基本タスクはありません",
+    noGoogleBasicsPenalties: "Google基本情報の減点はありません",
+    totalPenaltyPrefix: "合計減点",
+    businessNameLabel: "店舗名",
+    addressLabel: "住所",
+    phoneLabel: "電話番号",
+    websiteLabel: "ウェブサイト",
+    availableLabel: "あり",
+    notAvailableLabel: "なし",
+    photoCountLabel: "写真数",
+    weeklyDataUnavailable: "週間レポートデータを表示できません。",
+    weeklyLabelReportPeriod: "対象期間",
+    weeklyLabelYourGrowth: "自店舗の週間レビュー増加",
+    weeklyLabelCompetitorGrowth: "競合の週間レビュー増加",
+    weeklyLabelGrowthDifference: "週間増加差",
+    weeklyLabelInsight: "週間インサイト",
+    weeklyLabelChanges: "週間変化",
+    couldNotLoadSavedListings: "保存済み一覧を読み込めませんでした。",
+    couldNotLoadSavedListing: "保存した店舗を読み込めませんでした。",
+    couldNotGenerateReviewDrafts: "レビュー対応の下書きを生成できませんでした。",
+    couldNotSendFeedback: "いまはフィードバックを送信できませんでした。",
+    couldNotSaveListing: "この店舗を保存できませんでした。",
+    deleteSavedListingNeedEmail: "この店舗を保存したときと同じメールアドレスを入力してください。",
+    couldNotDeleteSavedListing: "この保存済み店舗を削除できませんでした。",
+    savedListingDeleted: "保存済み店舗を削除しました。",
+    nextRatingMilestone: "次の評価マイルストーン",
+    estimatedReviewsNeededPrefix: "{milestone} までに必要な推定5つ星レビュー数",
+    estimatedReviewsNeededWithCount: "{milestone} までに必要な推定5つ星レビュー数: {count}",
+    compareAgainAfterNextCheck: "次回の確認後に進み具合を比較します",
+    estimateBasedOnRating: "現在の表示評価と総レビュー数をもとにした目安です",
+    revisitReasonLabel: "再確認する理由",
+    reviewCountDownSinceLastCheck: "前回の保存確認以降、レビュー数が減っています",
+    visibleTrustWeaker: "見た目の信頼感が以前より弱くなっている可能性があります。",
+    nextCheckConfirmDrop: "次回確認: 減少が続いているかを見てください。",
+    notAvailableYet: "まだ利用できません",
+    reviewMonitoringLabel: "レビュー監視",
+    collectingReviewHistory: "レビュー履歴を収集中",
+    availableAfterTwoThemeSnapshots: "保存済みレビュー傾向スナップショットが2件そろうと表示されます。",
+    nextCheckKeepMonitoring: "次回確認: 次の保存済みスナップショットがたまるまで監視を続けてください。",
+    themeTrendLabel: "テーマ傾向",
+    competitorGapLabel: "競合ギャップ",
+    notEnoughCompetitorHistory: "競合履歴がまだ足りません",
+    savedListingFallbackName: "保存した店舗",
+    analysisFailed: "分析に失敗しました。",
+  },
+};
 
 let currentResult = null;
+let currentLanguage = DEFAULT_LANGUAGE;
+let currentSavedListings = [];
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let competitorSearchInFlight = false;
@@ -541,44 +1031,6 @@ let competitorSearchState = {
   message: "",
   isError: false,
 };
-
-const uiLang = (() => {
-  try {
-    const url = new URL(window.location.href);
-    const explicit = (url.searchParams.get("lang") || "").trim().toLowerCase();
-    if (explicit === "ja" || explicit === "en") return explicit;
-  } catch {
-    // noop
-  }
-
-  const browserLang =
-    (Array.isArray(navigator.languages) && navigator.languages[0]) ||
-    navigator.language ||
-    "en";
-  return String(browserLang).toLowerCase().startsWith("ja") ? "ja" : "en";
-})();
-
-function uiText(en, ja) {
-  return uiLang === "ja" ? ja : en;
-}
-
-function applyStaticLocale() {
-  document.documentElement.lang = uiLang;
-
-  document.querySelectorAll("[data-en][data-ja]").forEach((el) => {
-    el.textContent = uiText(el.getAttribute("data-en") || "", el.getAttribute("data-ja") || "");
-  });
-
-  document.querySelectorAll("[data-en-placeholder][data-ja-placeholder]").forEach((el) => {
-    el.setAttribute(
-      "placeholder",
-      uiText(
-        el.getAttribute("data-en-placeholder") || "",
-        el.getAttribute("data-ja-placeholder") || ""
-      )
-    );
-  });
-}
 
 // ===== helpers =====
 function escapeHtml(s) {
@@ -601,13 +1053,251 @@ function safeJsonParse(text, fallback = null) {
   }
 }
 
+function normalizeLanguage(value, fallback = DEFAULT_LANGUAGE) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (!raw) return fallback;
+  if (raw === "jp") return "ja";
+  if (raw.startsWith("ja")) return "ja";
+  if (raw.startsWith("en")) return "en";
+  return fallback;
+}
+
+function t(key) {
+  const dict = COPY[currentLanguage] || COPY.en;
+  return dict[key] ?? COPY.en[key] ?? key;
+}
+
+function loadStoredLanguage() {
+  try {
+    return normalizeLanguage(localStorage.getItem(APP_LANGUAGE_KEY), "");
+  } catch {
+    return "";
+  }
+}
+
+function saveStoredLanguage(lang) {
+  try {
+    localStorage.setItem(APP_LANGUAGE_KEY, normalizeLanguage(lang));
+  } catch {
+    // noop
+  }
+}
+
+function getUrlLanguage() {
+  const url = new URL(window.location.href);
+  return normalizeLanguage(url.searchParams.get("lang"), "");
+}
+
+function setUrlLanguage(lang) {
+  const next = normalizeLanguage(lang);
+  const url = new URL(window.location.href);
+  url.searchParams.set("lang", next);
+  window.history.replaceState({}, "", url.toString());
+}
+
+function withCurrentLanguage(url) {
+  const next = new URL(url, window.location.origin);
+  next.searchParams.set("lang", currentLanguage);
+  return `${next.pathname}${next.search}${next.hash}`;
+}
+
+function renderLanguageToggle() {
+  const label = t("languageToggleLabel");
+  document.documentElement.lang = currentLanguage;
+
+  if (langToggleEn) {
+    langToggleEn.classList.toggle("is-active", currentLanguage === "en");
+    langToggleEn.setAttribute("aria-pressed", currentLanguage === "en" ? "true" : "false");
+  }
+
+  if (langToggleJa) {
+    langToggleJa.classList.toggle("is-active", currentLanguage === "ja");
+    langToggleJa.setAttribute("aria-pressed", currentLanguage === "ja" ? "true" : "false");
+  }
+
+  const toggleContainer = document.querySelector(".language-toggle");
+  if (toggleContainer) toggleContainer.setAttribute("aria-label", label);
+}
+
+function renderStaticCopy() {
+  document.title = t("documentTitle");
+  if (appTitleEl) appTitleEl.textContent = t("appTitle");
+  if (input) input.placeholder = t("analyzePlaceholder");
+  if (btn) btn.textContent = t("analyzeButton");
+  if (introTextEl) introTextEl.textContent = t("introText");
+  if (savedListingsTitleEl) savedListingsTitleEl.textContent = t("savedListingsTitle");
+  if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");
+  if (loadSavedBtn) loadSavedBtn.textContent = t("loadSaved");
+  if (saveListingBtn) saveListingBtn.textContent = t("saveCurrent");
+  if (savedMsgEl && !savedMsgEl.classList.contains("error") && !savedListingsEl?.children?.length) {
+    savedMsgEl.textContent = t("savedMsgDefault");
+  }
+  if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
+  if (nextActionsTitleEl) nextActionsTitleEl.textContent = t("nextActionsTitle");
+  if (competitiveGapTitleEl) competitiveGapTitleEl.textContent = t("competitiveGapTitle");
+  if (customerChoiceTitleEl) customerChoiceTitleEl.textContent = t("customerChoiceTitle");
+  if (googleBasicsTitleEl) googleBasicsTitleEl.textContent = t("googleBasicsTitle");
+  if (foundationEyebrowEl) foundationEyebrowEl.textContent = t("foundationEyebrow");
+  if (weeklyReportTitleEl) weeklyReportTitleEl.textContent = t("weeklyReportTitle");
+  if (reviewSupportTitleEl) reviewSupportTitleEl.textContent = t("reviewSupportTitle");
+  if (photoComparisonTitleEl) photoComparisonTitleEl.textContent = t("photoComparisonTitle");
+  if (recommendedPhotosTitleEl) {
+    recommendedPhotosTitleEl.textContent = t("recommendedPhotosTitle");
+  }
+  if (googleBasicsTasksTitleEl) {
+    googleBasicsTasksTitleEl.textContent = t("googleBasicsTasksTitle");
+  }
+  if (googleBasicsBreakdownTitleEl) {
+    googleBasicsBreakdownTitleEl.textContent = t("googleBasicsBreakdownTitle");
+  }
+  if (businessDetailsTitleEl) businessDetailsTitleEl.textContent = t("businessDetailsTitle");
+  if (historyTitleEl) historyTitleEl.textContent = t("historyTitle");
+  if (historyHintEl) historyHintEl.textContent = t("historyHint");
+  if (feedbackTitleEl) feedbackTitleEl.textContent = t("feedbackTitle");
+  if (feedbackEyebrowEl) feedbackEyebrowEl.textContent = t("feedbackEyebrow");
+  if (feedbackModalTitleEl) feedbackModalTitleEl.textContent = t("feedbackModalTitle");
+  if (feedbackIntroEl) feedbackIntroEl.textContent = t("feedbackIntro");
+  if (feedbackTypeTitleEl) feedbackTypeTitleEl.textContent = t("feedbackTypeTitle");
+  if (feedbackTypeUsefulLabelEl) feedbackTypeUsefulLabelEl.lastChild.textContent = ` ${t("feedbackTypeUseful")}`;
+  if (feedbackTypeConfusingLabelEl) feedbackTypeConfusingLabelEl.lastChild.textContent = ` ${t("feedbackTypeConfusing")}`;
+  if (feedbackTypeBugLabelEl) feedbackTypeBugLabelEl.lastChild.textContent = ` ${t("feedbackTypeBug")}`;
+  if (feedbackTypeMissingLabelEl) feedbackTypeMissingLabelEl.lastChild.textContent = ` ${t("feedbackTypeMissing")}`;
+  if (feedbackTypeOtherLabelEl) feedbackTypeOtherLabelEl.lastChild.textContent = ` ${t("feedbackTypeOther")}`;
+  if (feedbackMessageLabelEl) feedbackMessageLabelEl.textContent = t("feedbackMessageLabel");
+  if (feedbackMessageEl) feedbackMessageEl.placeholder = t("feedbackMessagePlaceholder");
+  if (feedbackEmailLabelEl) feedbackEmailLabelEl.textContent = t("feedbackEmailLabel");
+  if (feedbackEmailEl) feedbackEmailEl.placeholder = t("feedbackOptionalPlaceholder");
+  if (feedbackPrivacyNoteEl) feedbackPrivacyNoteEl.textContent = t("feedbackPrivacyNote");
+  if (feedbackCtaCopyEl) feedbackCtaCopyEl.textContent = t("feedbackCtaCopy");
+  if (openFeedbackBtn) openFeedbackBtn.textContent = t("feedbackButton");
+  if (feedbackSubmitBtn) feedbackSubmitBtn.textContent = t("feedbackSubmit");
+  if (openReviewDisputeAssistantBtn) {
+    openReviewDisputeAssistantBtn.textContent = t("reviewSupportButton");
+  }
+  if (reviewDisputeEyebrowEl) reviewDisputeEyebrowEl.textContent = t("reviewDisputeEyebrow");
+  if (reviewDisputeTitleEl) reviewDisputeTitleEl.textContent = t("reviewDisputeTitle");
+  if (reviewDisputeIntroEl) reviewDisputeIntroEl.textContent = t("reviewDisputeIntro");
+  if (closeReviewDisputeAssistantBtn) closeReviewDisputeAssistantBtn.textContent = t("reviewDisputeClose");
+  if (closeFeedbackBtn) closeFeedbackBtn.textContent = t("reviewDisputeClose");
+  if (reviewDisputeSnapshotTitleEl) reviewDisputeSnapshotTitleEl.textContent = t("reviewDisputeSnapshotTitle");
+  if (reviewDisputeBusinessNameLabelEl) reviewDisputeBusinessNameLabelEl.textContent = t("reviewDisputeBusinessNameLabel");
+  if (reviewDisputeBusinessNameEl) reviewDisputeBusinessNameEl.placeholder = t("reviewDisputeBusinessNamePlaceholder");
+  if (reviewDisputeReviewerNameLabelEl) reviewDisputeReviewerNameLabelEl.textContent = t("reviewDisputeReviewerNameLabel");
+  if (reviewDisputeReviewerNameEl) reviewDisputeReviewerNameEl.placeholder = t("feedbackOptionalPlaceholder");
+  if (reviewDisputeReviewDateLabelEl) reviewDisputeReviewDateLabelEl.textContent = t("reviewDisputeReviewDateLabel");
+  if (reviewDisputeReviewRatingLabelEl) reviewDisputeReviewRatingLabelEl.textContent = t("reviewDisputeReviewRatingLabel");
+  if (reviewDisputeBusinessLaunchLabelEl) reviewDisputeBusinessLaunchLabelEl.textContent = t("reviewDisputeBusinessLaunchLabel");
+  if (reviewDisputeServiceLaunchLabelEl) reviewDisputeServiceLaunchLabelEl.textContent = t("reviewDisputeServiceLaunchLabel");
+  if (reviewDisputeReviewTextLabelEl) reviewDisputeReviewTextLabelEl.textContent = t("reviewDisputeReviewTextLabel");
+  if (reviewDisputeReviewTextEl) reviewDisputeReviewTextEl.placeholder = t("reviewDisputeReviewTextPlaceholder");
+  if (reviewDisputeIssueTypeTitleEl) reviewDisputeIssueTypeTitleEl.textContent = t("reviewDisputeIssueTypeTitle");
+  if (reviewDisputeCategoryNotCustomerLabelEl) reviewDisputeCategoryNotCustomerLabelEl.lastChild.textContent = ` ${t("reviewDisputeCategoryNotCustomer")}`;
+  if (reviewDisputeCategoryConflictLabelEl) reviewDisputeCategoryConflictLabelEl.lastChild.textContent = ` ${t("reviewDisputeCategoryConflict")}`;
+  if (reviewDisputeCategoryHarassmentLabelEl) reviewDisputeCategoryHarassmentLabelEl.lastChild.textContent = ` ${t("reviewDisputeCategoryHarassment")}`;
+  if (reviewDisputeCategoryImpossibleLabelEl) reviewDisputeCategoryImpossibleLabelEl.lastChild.textContent = ` ${t("reviewDisputeCategoryImpossible")}`;
+  if (reviewDisputeCategoryOffTopicLabelEl) reviewDisputeCategoryOffTopicLabelEl.lastChild.textContent = ` ${t("reviewDisputeCategoryOffTopic")}`;
+  if (reviewDisputeCategoryOtherLabelEl) reviewDisputeCategoryOtherLabelEl.lastChild.textContent = ` ${t("reviewDisputeCategoryOther")}`;
+  if (reviewDisputeIssueTypeNoteEl) reviewDisputeIssueTypeNoteEl.textContent = t("reviewDisputeIssueTypeNote");
+  if (reviewDisputeEvidenceTitleEl) reviewDisputeEvidenceTitleEl.textContent = t("reviewDisputeEvidenceTitle");
+  if (reviewDisputeEvidenceCrmLabelEl) reviewDisputeEvidenceCrmLabelEl.lastChild.textContent = ` ${t("reviewDisputeEvidenceCrm")}`;
+  if (reviewDisputeEvidenceTransactionLabelEl) reviewDisputeEvidenceTransactionLabelEl.lastChild.textContent = ` ${t("reviewDisputeEvidenceTransaction")}`;
+  if (reviewDisputeEvidenceLaunchLabelEl) reviewDisputeEvidenceLaunchLabelEl.lastChild.textContent = ` ${t("reviewDisputeEvidenceLaunch")}`;
+  if (reviewDisputeEvidenceTimelineLabelEl) reviewDisputeEvidenceTimelineLabelEl.lastChild.textContent = ` ${t("reviewDisputeEvidenceTimeline")}`;
+  if (reviewDisputeEvidenceScreenshotsLabelEl) reviewDisputeEvidenceScreenshotsLabelEl.lastChild.textContent = ` ${t("reviewDisputeEvidenceScreenshots")}`;
+  if (reviewDisputeEvidenceRelevantLabelEl) reviewDisputeEvidenceRelevantLabelEl.lastChild.textContent = ` ${t("reviewDisputeEvidenceRelevant")}`;
+  if (reviewDisputeActionsTitleEl) reviewDisputeActionsTitleEl.textContent = t("reviewDisputeActionsTitle");
+  if (reviewDisputeActionFlaggedLabelEl) reviewDisputeActionFlaggedLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionFlagged")}`;
+  if (reviewDisputeActionRemovalLabelEl) reviewDisputeActionRemovalLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionRemoval")}`;
+  if (reviewDisputeActionAppealLabelEl) reviewDisputeActionAppealLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionAppeal")}`;
+  if (reviewDisputeActionCommunityLabelEl) reviewDisputeActionCommunityLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionCommunity")}`;
+  if (reviewDisputeActionReplyLabelEl) reviewDisputeActionReplyLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionReply")}`;
+  if (reviewDisputeHelpTitleEl) reviewDisputeHelpTitleEl.textContent = t("reviewDisputeHelpTitle");
+  if (reviewDisputeHelpLabelEl) reviewDisputeHelpLabelEl.textContent = t("reviewDisputeHelpLabel");
+  if (reviewDisputeDesiredHelpEl) reviewDisputeDesiredHelpEl.placeholder = t("reviewDisputeHelpPlaceholder");
+  if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.textContent = t("reviewDisputeGenerate");
+  if (reviewDisputeGenerateNoteEl) reviewDisputeGenerateNoteEl.textContent = t("reviewDisputeGenerateNote");
+  if (reviewDisputeGuidanceTitleEl) reviewDisputeGuidanceTitleEl.textContent = t("reviewDisputeGuidanceTitle");
+  if (reviewDisputeSummaryTitleEl) reviewDisputeSummaryTitleEl.textContent = t("reviewDisputeSummaryTitle");
+  if (reviewDisputeCommunityTitleEl) reviewDisputeCommunityTitleEl.textContent = t("reviewDisputeCommunityTitle");
+  if (reviewDisputePublicResponseTitleEl) reviewDisputePublicResponseTitleEl.textContent = t("reviewDisputePublicResponseTitle");
+  if (changeCompetitorBtn) changeCompetitorBtn.textContent = t("changeCompetitor");
+  if (resetCompetitorBtn && !resetCompetitorBtn.classList.contains("hidden")) {
+    resetCompetitorBtn.textContent = t("resetCompetitor");
+  }
+  const pdfBtnEl = document.getElementById("pdfBtn");
+  if (pdfBtnEl) pdfBtnEl.textContent = t("exportPdf");
+  const clearBtn = document.getElementById("clearHistory");
+  if (clearBtn) clearBtn.textContent = t("clearHistory");
+  renderFeedbackContextPreview(currentResult);
+}
+
+function applyLanguage(lang, options = {}) {
+  const next = normalizeLanguage(lang);
+  const {
+    persist = true,
+    syncUrl = false,
+  } = options;
+
+  currentLanguage = next;
+  renderLanguageToggle();
+  renderStaticCopy();
+
+  if (persist) saveStoredLanguage(next);
+  if (syncUrl) setUrlLanguage(next);
+
+  if (currentResult?.createdAt) {
+    setReportDate(currentResult.createdAt);
+  }
+
+  renderReviewSupportCta(currentResult);
+  renderFeedbackCta(currentResult);
+  renderFeedbackContextPreview(currentResult);
+
+  if (historyEl) {
+    renderHistory(loadHistory());
+  }
+
+  renderSavedListings(currentSavedListings);
+}
+
+async function detectInitialLanguage() {
+  const urlLang = getUrlLanguage();
+  if (urlLang) {
+    applyLanguage(urlLang, { persist: true, syncUrl: false });
+    return;
+  }
+
+  const stored = loadStoredLanguage();
+  if (stored) {
+    applyLanguage(stored, { persist: false, syncUrl: false });
+    return;
+  }
+
+  const navigatorPreferred = normalizeLanguage(
+    window.navigator?.languages?.[0] || window.navigator?.language || "",
+    DEFAULT_LANGUAGE
+  );
+  applyLanguage(navigatorPreferred, { persist: false, syncUrl: false });
+
+  try {
+    const detected = await fetchApiJson("/api/app-locale", { skipLanguageParam: true });
+    if (detected?.ok && detected?.lang) {
+      applyLanguage(detected.lang, { persist: false, syncUrl: false });
+    }
+  } catch {
+    // noop
+  }
+}
+
 function formatDateTime(value) {
   if (!value) return "";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return date.toLocaleString("en-US", {
+  const locale = currentLanguage === "ja" ? "ja-JP" : "en-US";
+
+  return date.toLocaleString(locale, {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -618,7 +1308,7 @@ function formatDateTime(value) {
 
 function formatReportDate(value) {
   const formatted = formatDateTime(value);
-  return formatted ? `Report generated: ${formatted}` : "";
+  return formatted ? `${t("reportGeneratedPrefix")}${formatted}` : "";
 }
 
 function setReportDate(value) {
@@ -626,7 +1316,7 @@ function setReportDate(value) {
   reportDateEl.textContent = formatReportDate(value);
 }
 
-function valueOrFallback(value, fallback = "Collecting data") {
+function valueOrFallback(value, fallback = t("collectingData")) {
   return Number.isFinite(value) ? String(value) : fallback;
 }
 
@@ -654,21 +1344,21 @@ function reviewCountTolerance(reviewCount) {
 function formatDistanceLabel(distanceMeters) {
   if (!Number.isFinite(distanceMeters)) return "";
   return distanceMeters < 1000
-    ? `${Math.round(distanceMeters)}m away`
-    : `${(distanceMeters / 1000).toFixed(1)}km away`;
+    ? t("distanceMetersAway").replace("{count}", String(Math.round(distanceMeters)))
+    : t("distanceKmAway").replace("{count}", (distanceMeters / 1000).toFixed(1));
 }
 
 function formatReviewCountLabel(reviewCount) {
   if (!Number.isFinite(reviewCount)) return "";
-  return `${Math.round(reviewCount)} reviews`;
+  return t("reviewCountShort").replace("{count}", String(Math.round(reviewCount)));
 }
 
 function competitorScaleLabel(reviewCount, myReviewCount) {
   if (!Number.isFinite(reviewCount) || !Number.isFinite(myReviewCount)) return "";
   const gap = Math.abs(Math.round(reviewCount) - Math.round(myReviewCount));
   const tolerance = reviewCountTolerance(myReviewCount);
-  if (gap <= tolerance) return "Similar review scale";
-  return reviewCount > myReviewCount ? "Larger review scale" : "Smaller review scale";
+  if (gap <= tolerance) return t("reviewScaleSimilar");
+  return reviewCount > myReviewCount ? t("reviewScaleLarger") : t("reviewScaleSmaller");
 }
 
 function resetCompetitorSearchState() {
@@ -764,8 +1454,16 @@ function buildFeedbackContext(result = currentResult) {
 function feedbackContextSummary(context) {
   const bits = [];
   if (context?.placeName) bits.push(context.placeName);
-  if (context?.competitorName) bits.push(`vs ${context.competitorName}`);
-  if (context?.savedListingId) bits.push("saved report context");
+  if (context?.competitorName) {
+    bits.push(
+      currentLanguage === "ja"
+        ? `${t("compareWithPrefix")}: ${context.competitorName}`
+        : `vs ${context.competitorName}`
+    );
+  }
+  if (context?.savedListingId) {
+    bits.push(currentLanguage === "ja" ? "保存済みレポートの文脈" : "saved report context");
+  }
   if (!bits.length && context?.query) bits.push(context.query);
   return bits.join(" • ");
 }
@@ -782,8 +1480,10 @@ function renderFeedbackCta(result) {
 
   if (feedbackCtaCopyEl) {
     feedbackCtaCopyEl.textContent = context?.savedListingId
-      ? "After you review this saved report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
-      : "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.";
+      ? currentLanguage === "ja"
+        ? "この保存済みレポートを見たあとに、役立った点・分かりにくかった点・足りない点を短く教えてください。現在のレポート文脈は自動で添付します。"
+        : "After you review this saved report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically."
+      : t("feedbackCtaCopy");
   }
 }
 
@@ -793,8 +1493,8 @@ function renderFeedbackContextPreview(result = currentResult) {
   const summary = feedbackContextSummary(context);
 
   feedbackContextPreviewEl.textContent = summary
-    ? `Context we'll attach: ${summary}`
-    : "No current report attached. You can still send general product feedback.";
+    ? `${t("contextAttachPrefix")}: ${summary}`
+    : t("noContextAttached");
 }
 
 function setSavedMessage(message, isError = false) {
@@ -811,19 +1511,27 @@ function setUrlSavedParam(savedId) {
 }
 
 async function fetchApiJson(url, options = {}) {
-  const res = await fetch(url, options);
+  const { skipLanguageParam = false, headers: rawHeaders, ...fetchOptions } = options || {};
+  const requestUrl = skipLanguageParam ? url : withCurrentLanguage(url);
+  const headers = new Headers(rawHeaders || {});
+  headers.set("x-app-lang", currentLanguage);
+
+  const res = await fetch(requestUrl, {
+    ...fetchOptions,
+    headers,
+  });
   const text = await res.text();
   const data = safeJsonParse(text, {
     ok: false,
     code: "INVALID_JSON",
-    message: "The server returned an invalid response.",
+    message: t("invalidJsonResponse"),
   });
 
   if (!res.ok) {
     return {
       ok: false,
       code: data?.code ?? "REQUEST_FAILED",
-      message: getApiMessage(data, `Request failed with HTTP ${res.status}.`),
+      message: getApiMessage(data, t("requestFailedHttp").replace("{status}", String(res.status))),
     };
   }
 
@@ -838,10 +1546,7 @@ function setReviewDisputeMessage(text = "", isError = false) {
 
 function clearReviewDisputeOutputs() {
   if (reviewDisputeGuidanceEl) {
-    reviewDisputeGuidanceEl.innerHTML = `<li>${uiText(
-      "No draft generated yet.",
-      "まだ下書きは生成されていません。"
-    )}</li>`;
+    reviewDisputeGuidanceEl.innerHTML = `<li>${escapeHtml(t("reviewDisputeNoDraft"))}</li>`;
   }
   if (reviewDisputeSummaryEl) reviewDisputeSummaryEl.value = "";
   if (reviewDisputeCommunityEl) reviewDisputeCommunityEl.value = "";
@@ -852,10 +1557,7 @@ function resetReviewDisputeForm() {
   if (reviewDisputeFormEl) reviewDisputeFormEl.reset();
   if (reviewDisputeBusinessNameEl) reviewDisputeBusinessNameEl.value = "";
   if (reviewDisputeDesiredHelpEl) {
-    reviewDisputeDesiredHelpEl.value = uiText(
-      "Guidance on how to present this clearly",
-      "事実を分かりやすく整理して伝えるための助言がほしいです"
-    );
+    reviewDisputeDesiredHelpEl.value = t("reviewDisputeDefaultHelp");
   }
 }
 
@@ -887,14 +1589,12 @@ function renderReviewSupportCta(result) {
 
   if (reviewSupportCtaCopyEl) {
     reviewSupportCtaCopyEl.textContent = reviewDropVisible
-      ? uiText(
-          "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate.",
-          "レビュー数の減少や信頼シグナルに違和感があるときは、事実を整理してから落ち着いた返信案を作れます。"
-        )
-      : uiText(
-          "Organize a suspicious review and generate calm, factual draft text before you escalate.",
-          "不審なレビューの論点を整理して、冷静で事実ベースの下書きを作ってから対応できます。"
-        );
+      ? currentLanguage === "ja"
+        ? "レビューや信頼シグナルに違和感がある場合は、エスカレーション前に事実整理と落ち着いた文面作成を進めましょう。"
+        : "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate."
+      : currentLanguage === "ja"
+        ? "怪しいレビューを整理し、エスカレーション前に落ち着いた事実ベースの文面を作れます。"
+        : "Organize a suspicious review and generate calm, factual draft text before you escalate.";
   }
 }
 
@@ -910,10 +1610,7 @@ function prefillReviewDisputeAssistant(result) {
   }
 
   if (reviewDisputeDesiredHelpEl && !reviewDisputeDesiredHelpEl.value.trim()) {
-    reviewDisputeDesiredHelpEl.value = uiText(
-      "Guidance on how to present this clearly",
-      "事実を分かりやすく整理して伝えるための助言がほしいです"
-    );
+    reviewDisputeDesiredHelpEl.value = t("reviewDisputeDefaultHelp");
   }
 }
 
@@ -996,7 +1693,6 @@ function collectReviewDisputeInput() {
     evidenceItems: evidenceKeys,
     actionsTaken: checkedValues("reviewDisputeAction"),
     desiredHelp: reviewDisputeDesiredHelpEl?.value?.trim() || "",
-    lang: uiLang,
   };
 }
 
@@ -1021,10 +1717,7 @@ function renderReviewDisputeDrafts(payload) {
     reviewDisputeGuidanceEl.innerHTML = "";
 
     if (!guidance.length) {
-      reviewDisputeGuidanceEl.innerHTML = `<li>${uiText(
-        "No additional guidance right now.",
-        "現時点で追加のガイダンスはありません。"
-      )}</li>`;
+      reviewDisputeGuidanceEl.innerHTML = `<li>${escapeHtml(t("reviewDisputeNoGuidance"))}</li>`;
     } else {
       guidance.forEach((line) => appendListRow(reviewDisputeGuidanceEl, "", line));
     }
@@ -1062,7 +1755,7 @@ function resetUI() {
   }
   if (changeCompetitorBtn) {
     changeCompetitorBtn.disabled = false;
-    changeCompetitorBtn.textContent = "Change competitor";
+    changeCompetitorBtn.textContent = t("changeCompetitor");
   }
   if (resetCompetitorBtn) {
     resetCompetitorBtn.classList.add("hidden");
@@ -1095,32 +1788,34 @@ function setLoading(isLoading) {
   btn.disabled = isLoading;
 
   if (isLoading) {
-    msg.textContent = "Analyzing listing...";
+    msg.textContent = t("loadingListing");
     showCard();
     renderFeedbackCta(null);
-    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Summarizing what matters first...";
+    if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = t("loadingHeadline");
     if (diagnosisSummaryEl) {
-      diagnosisSummaryEl.innerHTML = "<p>Checking foundation, customer choice, and competitor context.</p>";
+      diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(t("loadingSummary"))}</p>`;
     }
     if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
     if (priorityRowEl) priorityRowEl.innerHTML = "";
-    if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Prioritizing the first actions...</li>";
-    if (customerChoiceEl) customerChoiceEl.textContent = "Checking first-impression risk...";
-    if (foundationSummaryEl) foundationSummaryEl.textContent = "Checking profile basics";
+    if (primaryActionsListEl) {
+      primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("loadingPriority"))}</li>`;
+    }
+    if (customerChoiceEl) customerChoiceEl.textContent = t("loadingCustomerChoice");
+    if (foundationSummaryEl) foundationSummaryEl.textContent = t("loadingFoundation");
     if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
     if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
     scoreEl.textContent = "-";
     setReportDate(new Date().toISOString());
-    todosEl.innerHTML = "<li>Loading...</li>";
-    breakdownEl.innerHTML = "<li>Loading...</li>";
+    todosEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
+    breakdownEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
     penaltyEl.textContent = "";
-    summaryEl.innerHTML = "<div>Loading...</div>";
-    if (compareListEl) compareListEl.innerHTML = "<li>Loading...</li>";
-    if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>Loading...</li>";
+    summaryEl.innerHTML = `<div>${escapeHtml(t("loadingGeneric"))}</div>`;
+    if (compareListEl) compareListEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
+    if (weeklyReportListEl) weeklyReportListEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
     const photoCompareEl = document.getElementById("photoCompare");
-    if (photoCompareEl) photoCompareEl.innerHTML = "<li>Loading...</li>";
+    if (photoCompareEl) photoCompareEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
     const photoAdviceEl = document.getElementById("photoAdviceList");
-    if (photoAdviceEl) photoAdviceEl.innerHTML = "<li>Loading...</li>";
+    if (photoAdviceEl) photoAdviceEl.innerHTML = `<li>${escapeHtml(t("loadingGeneric"))}</li>`;
   }
 }
 
@@ -1128,15 +1823,17 @@ function showError(message) {
   msg.textContent = message;
   showCard();
   renderFeedbackCta(null);
-  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "Diagnosis unavailable";
+  if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = t("unavailableHeadline");
   if (diagnosisSummaryEl) {
     diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(message)}</p>`;
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
   if (priorityRowEl) priorityRowEl.innerHTML = "";
-  if (primaryActionsListEl) primaryActionsListEl.innerHTML = "<li>Try again with a more specific business name and address.</li>";
+  if (primaryActionsListEl) {
+    primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("retryMoreSpecific"))}</li>`;
+  }
   if (customerChoiceEl) customerChoiceEl.textContent = "";
-  if (foundationSummaryEl) foundationSummaryEl.textContent = "Could not load profile basics";
+  if (foundationSummaryEl) foundationSummaryEl.textContent = t("unavailableFoundation");
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
   if (foundationDetailsEl) foundationDetailsEl.innerHTML = "";
   scoreEl.textContent = "0";
@@ -1298,7 +1995,7 @@ function getCompetitorCandidates(data, limit = 5) {
     seen.add(placeId);
     candidates.push({
       placeId,
-      name: item?.name || "Nearby competitor",
+      name: item?.name || t("nearbyCompetitorFallback"),
       address: competitorAddress(item) || "",
       reviewCount: Number.isFinite(item?.user_ratings_total) ? Number(item.user_ratings_total) : null,
       distanceMeters: Number.isFinite(item?.distance_meters) ? Number(item.distance_meters) : null,
@@ -1311,7 +2008,7 @@ function getCompetitorCandidates(data, limit = 5) {
 
   function addSyntheticCandidate(placeId, fallback = {}) {
     if (!placeId || seen.has(placeId)) return false;
-    const name = fallback?.name || "Selected competitor";
+    const name = fallback?.name || t("selectedCompetitorFallback");
     const address = fallback?.address || "";
     seen.add(placeId);
     candidates.push({
@@ -1364,8 +2061,8 @@ function renderCompareMeta(competitor) {
   }
 
   compareMetaEl.innerHTML = `
-    <div class="compare__with">Compared with: ${escapeHtml(
-      competitor?.name || "Selected competitor"
+    <div class="compare__with">${escapeHtml(t("compareWithPrefix"))}: ${escapeHtml(
+      competitor?.name || t("selectedCompetitorFallback")
     )}</div>
     ${
       competitor?.address
@@ -1409,13 +2106,14 @@ function renderCompetitorControls(data) {
 
   compareControlsEl.classList.remove("hidden");
   changeCompetitorBtn.textContent = competitorChooserOpen
-    ? "Hide competitor options"
-    : "Change competitor";
+    ? t("hideCompetitorOptions")
+    : t("changeCompetitor");
   changeCompetitorBtn.disabled = competitorUpdateInFlight;
 
   const canReset =
     Boolean(recommendedPlaceId) && Boolean(selectedPlaceId) && recommendedPlaceId !== selectedPlaceId;
   resetCompetitorBtn.classList.toggle("hidden", !canReset);
+  resetCompetitorBtn.textContent = t("resetCompetitor");
   resetCompetitorBtn.disabled = competitorUpdateInFlight;
 
   competitorPickerEl.classList.toggle("hidden", !competitorChooserOpen);
@@ -1427,19 +2125,19 @@ function renderCompetitorControls(data) {
 
   const heading = document.createElement("div");
   heading.className = "compare__picker-title";
-  heading.textContent = "Choose a competitor for this report";
+  heading.textContent = t("competitorPickerTitle");
   competitorPickerEl.appendChild(heading);
 
   const searchBox = document.createElement("div");
   searchBox.className = "compare__search";
   searchBox.innerHTML = `
-    <div class="compare__search-title">Search another competitor</div>
+    <div class="compare__search-title">${escapeHtml(t("competitorSearchTitle"))}</div>
     <div class="compare__search-row">
       <input
         type="text"
         class="input compare__search-input"
         data-competitor-search-input
-        placeholder="Business name and address"
+        placeholder="${escapeAttr(t("competitorSearchPlaceholder"))}"
         value="${escapeAttr(competitorSearchState.query || "")}"
       />
       <button
@@ -1447,7 +2145,7 @@ function renderCompetitorControls(data) {
         class="btn compare__search-btn"
         data-competitor-search-btn
         ${competitorSearchInFlight ? "disabled" : ""}
-      >${competitorSearchInFlight ? "Searching..." : "Search"}</button>
+      >${escapeHtml(competitorSearchInFlight ? t("competitorSearchingButton") : t("competitorSearchButton"))}</button>
     </div>
     ${
       competitorSearchState.message
@@ -1460,7 +2158,7 @@ function renderCompetitorControls(data) {
       competitorSearchState.result
         ? `<div class="compare__search-result">
             <div class="compare__search-result-name">${escapeHtml(
-              competitorSearchState.result.name || "Resolved place"
+              competitorSearchState.result.name || t("competitorResolvedPlace")
             )}</div>
             ${
               competitorSearchState.result.address
@@ -1474,7 +2172,7 @@ function renderCompetitorControls(data) {
               class="btn"
               data-search-competitor-id="${escapeAttr(competitorSearchState.result.placeId)}"
               ${competitorUpdateInFlight ? "disabled" : ""}
-            >Use searched competitor</button>
+            >${escapeHtml(t("competitorUseSearched"))}</button>
           </div>`
         : ""
     }
@@ -1506,12 +2204,12 @@ function renderCompetitorControls(data) {
       }
       <span class="compare__option-state">${
         candidate.placeId === selectedPlaceId
-          ? "Selected"
+          ? t("competitorSelected")
           : candidate.placeId === recommendedPlaceId
             ? candidate.recommended
-              ? "Recommended"
-              : "Use this competitor"
-            : "Use this competitor"
+              ? t("competitorRecommended")
+              : t("competitorUseThis")
+            : t("competitorUseThis")
       }</span>
     `;
     list.appendChild(option);
@@ -1520,8 +2218,7 @@ function renderCompetitorControls(data) {
   if (!candidates.length) {
     const empty = document.createElement("div");
     empty.className = "compare__empty muted";
-    empty.textContent =
-      "Nearby auto-matched competitors were limited here. Search for a better comparison manually.";
+    empty.textContent = t("competitorSearchEmpty");
     list.appendChild(empty);
   }
 
@@ -1623,12 +2320,20 @@ function sentence(text) {
   return String(text || "").trim().replace(/\s+/g, " ");
 }
 
+function langText(en, ja) {
+  return currentLanguage === "ja" ? ja : en;
+}
+
 function humanJoin(values) {
   const items = uniqueStrings(
     (Array.isArray(values) ? values : []).map((value) => sentence(value))
   );
   if (!items.length) return "";
   if (items.length === 1) return items[0];
+  if (currentLanguage === "ja") {
+    if (items.length === 2) return `${items[0]}と${items[1]}`;
+    return `${items.slice(0, -1).join("、")}、${items[items.length - 1]}`;
+  }
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 }
@@ -1636,56 +2341,79 @@ function humanJoin(values) {
 function buildCompetitiveDetail(context) {
   if (Number.isFinite(context.totalDiff) && context.totalDiff < 0) {
     return sentence(
-      `Against ${context.competitorName}, the review count gap is ${Math.abs(
-        context.totalDiff
-      )}, which can make this listing feel less proven in a quick comparison.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} と比べるとレビュー差は ${Math.abs(
+            context.totalDiff
+          )} 件あり、短時間の比較では信頼感で不利に見える可能性があります。`
+        : `Against ${context.competitorName}, the review count gap is ${Math.abs(
+            context.totalDiff
+          )}, which can make this listing feel less proven in a quick comparison.`
     );
   }
 
   if (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0) {
     return sentence(
-      `Against ${context.competitorName}, recent review momentum is slower right now, so the gap could widen.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} と比べると直近のレビュー増加ペースが弱く、このままだと差が広がる可能性があります。`
+        : `Against ${context.competitorName}, recent review momentum is slower right now, so the gap could widen.`
     );
   }
 
   if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
     return sentence(
-      `Photo coverage is still thinner than nearby listings, which weakens first impressions before a visit.`
+      currentLanguage === "ja"
+        ? "近隣店舗と比べて写真がまだ少なく、来店前の第一印象を弱めています。"
+        : "Photo coverage is still thinner than nearby listings, which weakens first impressions before a visit."
     );
   }
 
   return sentence(
-    `This competitor does not currently show a clear visible advantage.`
+    currentLanguage === "ja"
+      ? "この競合には、現時点で目立った可視的優位は見えていません。"
+      : "This competitor does not currently show a clear visible advantage."
   );
 }
 
 function buildCustomerChoiceCopy(context) {
   if (context.primaryPriority === "foundation") {
     return sentence(
-      "Customers may hesitate before any deeper comparison because key details still feel incomplete or less trustworthy."
+      langText(
+        "Customers may hesitate before any deeper comparison because key details still feel incomplete or less trustworthy.",
+        "基本情報がまだ十分に整っておらず、詳しく比較される前の段階でためらわれる可能性があります。"
+      )
     );
   }
 
   if (context.materialReviewDrop) {
     return sentence(
-      `Review count is down by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
+      currentLanguage === "ja"
+        ? `前回の保存チェック以降、レビュー数が ${context.reviewDropCount} 件減っていて、見た目の信頼感が以前より弱くなっている可能性があります。`
+        : `Review count is down by ${context.reviewDropCount} since the last saved check, so visible trust may be weaker than before.`
     );
   }
 
   if (context.primaryPriority === "competitive_gap") {
     return sentence(
-      `When someone compares this listing with ${context.competitorName}, the competitor can feel more established at a glance because the visible proof is stronger.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} と並べて見たとき、可視化されている根拠が強いぶん、競合のほうがひと目で安心されやすい可能性があります。`
+        : `When someone compares this listing with ${context.competitorName}, the competitor can feel more established at a glance because the visible proof is stronger.`
     );
   }
 
   if (context.primaryPriority === "customer_choice") {
     return sentence(
-      "Nothing looks broken, but the first impression is not yet strong enough to make this listing the obvious pick."
+      langText(
+        "Nothing looks broken, but the first impression is not yet strong enough to make this listing the obvious pick.",
+        "大きく壊れている点はありませんが、第一印象だけでこの店舗を選びたくなる強さはまだ足りません。"
+      )
     );
   }
 
   return sentence(
-    "Customers already have enough visible proof to feel comfortable choosing this listing. The job now is keeping that confidence visible."
+    langText(
+      "Customers already have enough visible proof to feel comfortable choosing this listing. The job now is keeping that confidence visible.",
+      "この店舗情報には、安心して選ぶための見える根拠がすでにあります。次はその信頼感を見え続ける状態で保つことです。"
+    )
   );
 }
 
@@ -1733,10 +2461,18 @@ function buildCustomerChoiceView(data) {
     }
 
     if (!bullets.length && strengths) {
-      bullets.push(`Recent positive reviews often mention ${strengths}.`);
+      bullets.push(
+        currentLanguage === "ja"
+          ? `最近の高評価レビューでは ${strengths} がよく挙がっています。`
+          : `Recent positive reviews often mention ${strengths}.`
+      );
     }
     if (bullets.length < 3 && !underestimatedFrictions.length && frictions) {
-      bullets.push(`Some recent lower reviews mention ${frictions}.`);
+      bullets.push(
+        currentLanguage === "ja"
+          ? `最近の低評価レビューでは ${frictions} に触れる声があります。`
+          : `Some recent lower reviews mention ${frictions}.`
+      );
     }
     if (bullets.length < 3) {
       blindSpots.forEach((item) => bullets.push(sentence(item)));
@@ -1748,11 +2484,17 @@ function buildCustomerChoiceView(data) {
       priorityAction: sentence(
         reviewClues.priorityAction ||
           actions[0] ||
-          "Keep the strongest trust signals easier to notice before a visit."
+          langText(
+            "Keep the strongest trust signals easier to notice before a visit.",
+            "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
+          )
       ),
-      note: `Based on ${reviewClues.reviewCountInSample} recent visible review${
-        reviewClues.reviewCountInSample === 1 ? "" : "s"
-      }.`,
+      note:
+        currentLanguage === "ja"
+          ? `直近で見えているレビュー ${reviewClues.reviewCountInSample} 件をもとにしています。`
+          : `Based on ${reviewClues.reviewCountInSample} recent visible review${
+              reviewClues.reviewCountInSample === 1 ? "" : "s"
+            }.`,
     };
   }
 
@@ -1760,9 +2502,16 @@ function buildCustomerChoiceView(data) {
     summary: buildCustomerChoiceCopy(context),
     bullets: [],
     priorityAction: sentence(
-      actions[0] || "Keep the strongest trust signals easier to notice before a visit."
+      actions[0] ||
+        langText(
+          "Keep the strongest trust signals easier to notice before a visit.",
+          "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
+        )
     ),
-    note: "Review-based clues will appear here when recent visible review text is available.",
+    note: langText(
+      "Review-based clues will appear here when recent visible review text is available.",
+      "直近で見えているレビュー本文がある場合、ここに review-based clues が表示されます。"
+    ),
   };
 }
 
@@ -1772,9 +2521,19 @@ function buildPrimaryActions(context) {
   if (context.primaryPriority === "foundation") {
     actions.push(...(Array.isArray(context.diagnosis?.todos) ? context.diagnosis.todos : []));
     if (!actions.length && Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Add enough photos to make the listing feel complete at a glance.");
+      actions.push(
+        langText(
+          "Add enough photos to make the listing feel complete at a glance.",
+          "ひと目で十分な情報量に見えるよう、写真を追加してください。"
+        )
+      );
     }
-    actions.push("Re-check competitor comparison after the basics are fixed.");
+    actions.push(
+      langText(
+        "Re-check competitor comparison after the basics are fixed.",
+        "基本情報を整えたあとで、競合比較を見直してください。"
+      )
+    );
     return uniqueStrings(actions).slice(0, 3);
   }
 
@@ -1783,65 +2542,128 @@ function buildPrimaryActions(context) {
       (Number.isFinite(context.totalDiff) && context.totalDiff < 0) ||
       (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0)
     ) {
-      actions.push("Strengthen your review request flow.");
+      actions.push(
+        langText(
+          "Strengthen your review request flow.",
+          "レビュー獲得の導線を強めてください。"
+        )
+      );
     }
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Improve photo coverage so the listing feels more proven at a glance.");
+      actions.push(
+        langText(
+          "Improve photo coverage so the listing feels more proven at a glance.",
+          "ひと目で根拠が伝わるように、写真の充実度を上げてください。"
+        )
+      );
     }
-    actions.push(`Re-check against ${context.competitorName} after the first improvements.`);
+    actions.push(
+      currentLanguage === "ja"
+        ? `最初の改善後に ${context.competitorName} ともう一度比較してください。`
+        : `Re-check against ${context.competitorName} after the first improvements.`
+    );
     return uniqueStrings(actions).slice(0, 3);
   }
 
   if (context.primaryPriority === "customer_choice") {
     if (context.materialReviewDrop) {
-      actions.push("Confirm whether the lower review count persists on the next saved check.");
-      actions.push("Keep review request flow steady to rebuild visible proof.");
-      actions.push(`Re-check against ${context.competitorName} to see whether the gap changed.`);
+      actions.push(
+        langText(
+          "Confirm whether the lower review count persists on the next saved check.",
+          "次回の保存チェックでもレビュー減少が続くか確認してください。"
+        )
+      );
+      actions.push(
+        langText(
+          "Keep review request flow steady to rebuild visible proof.",
+          "見える根拠を戻すために、レビュー獲得導線を安定して回してください。"
+        )
+      );
+      actions.push(
+        currentLanguage === "ja"
+          ? `${context.competitorName} と再比較して、差がどう変わったか見てください。`
+          : `Re-check against ${context.competitorName} to see whether the gap changed.`
+      );
       return uniqueStrings(actions).slice(0, 3);
     }
 
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
-      actions.push("Improve photo coverage and other first-impression proof.");
+      actions.push(
+        langText(
+          "Improve photo coverage and other first-impression proof.",
+          "写真やその他の第一印象の根拠を強めてください。"
+        )
+      );
     }
-    actions.push("Make your strongest trust signals easier to notice before a visit.");
-    actions.push(`Re-check the same competitor after the first-impression signals improve.`);
+    actions.push(
+      langText(
+        "Make your strongest trust signals easier to notice before a visit.",
+        "来店前に強い信頼シグナルがもっと見えるようにしてください。"
+      )
+    );
+    actions.push(
+      currentLanguage === "ja"
+        ? "第一印象のシグナルを改善したあとで、同じ競合をもう一度確認してください。"
+        : "Re-check the same competitor after the first-impression signals improve."
+    );
     return uniqueStrings(actions).slice(0, 3);
   }
 
-  actions.push("Keep review and photo momentum steady.");
-  actions.push("Watch for any slowdown in recent review growth.");
-  actions.push("Check the same competitor again after more data comes in.");
+  actions.push(
+    langText(
+      "Keep review and photo momentum steady.",
+      "レビューと写真の勢いを安定して保ってください。"
+    )
+  );
+  actions.push(
+    langText(
+      "Watch for any slowdown in recent review growth.",
+      "直近のレビュー増加が鈍らないか見てください。"
+    )
+  );
+  actions.push(
+    langText(
+      "Check the same competitor again after more data comes in.",
+      "データがもう少したまったら、同じ競合を再確認してください。"
+    )
+  );
   return uniqueStrings(actions).slice(0, 3);
 }
 
 function buildFoundationStatusView(context) {
   const details = [];
 
-  if (context.missing.includes("website")) details.push("Website link is missing.");
-  else details.push("Website link is in place.");
+  if (context.missing.includes("website")) details.push(langText("Website link is missing.", "Webサイトのリンクがありません。"));
+  else details.push(langText("Website link is in place.", "Webサイトのリンクは設定されています。"));
 
-  if (context.missing.includes("phone")) details.push("Phone number is missing.");
-  else details.push("Phone number is in place.");
+  if (context.missing.includes("phone")) details.push(langText("Phone number is missing.", "電話番号がありません。"));
+  else details.push(langText("Phone number is in place.", "電話番号は設定されています。"));
 
   if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
     details.push(
       context.missingPhotos >= 8
-        ? "Photo coverage still trails nearby listings."
-        : "Photo coverage is still a little thin."
+        ? langText("Photo coverage still trails nearby listings.", "写真の充実度はまだ近隣店舗に遅れています。")
+        : langText("Photo coverage is still a little thin.", "写真の充実度がまだ少し薄い状態です。")
     );
   } else {
-    details.push("Photo baseline looks healthy.");
+    details.push(langText("Photo baseline looks healthy.", "写真の基本ラインは問題ありません。"));
   }
 
   return {
     summary:
       context.foundationStatus === "needs_work"
-        ? "Needs work before deeper comparison"
-        : "Stable enough to stay in the background",
+        ? langText("Needs work before deeper comparison", "深い比較の前に見直しが必要")
+        : langText("Stable enough to stay in the background", "背景に回してよい安定状態"),
     copy:
       context.foundationStatus === "needs_work"
-        ? "Missing basics are still weakening trust, so fix those before reading too much into the competitor gap."
-        : "The core profile basics look healthy, so this stays in the background while you focus on choice and comparison.",
+        ? langText(
+            "Missing basics are still weakening trust, so fix those before reading too much into the competitor gap.",
+            "基本情報の不足がまだ信頼感を弱めているので、競合差を読み込みすぎる前にそこを直すべきです。"
+          )
+        : langText(
+            "The core profile basics look healthy, so this stays in the background while you focus on choice and comparison.",
+            "コアの基本情報は健全なので、ここは背景に置いて選ばれやすさと競合比較に集中できます。"
+          ),
     details: uniqueStrings(details).slice(0, 3),
   };
 }
@@ -1853,56 +2675,116 @@ function buildDiagnosisFirstView(data) {
   let summaryLines = [];
 
   if (context.primaryPriority === "foundation") {
-    headline = "Fix the profile basics before you over-focus on competitors.";
+    headline = langText(
+      "Fix the profile basics before you over-focus on competitors.",
+      "競合を気にしすぎる前に、まず基本情報を整えましょう。"
+    );
     summaryLines = [
-      "Missing basics are still weakening trust before most customers even compare options.",
-      "The immediate job is staying credible and easy to choose, not optimizing for a score.",
-      "Once the basics are in place, the competitor view becomes more useful."
+      langText(
+        "Missing basics are still weakening trust before most customers even compare options.",
+        "基本情報の不足が、比較の前段階で信頼感を弱めています。"
+      ),
+      langText(
+        "The immediate job is staying credible and easy to choose, not optimizing for a score.",
+        "いま優先すべきなのはスコア最適化より、信頼されやすく選ばれやすい状態にすることです。"
+      ),
+      langText(
+        "Once the basics are in place, the competitor view becomes more useful.",
+        "基本が整ってからのほうが、競合比較は意味のある判断材料になります。"
+      )
     ];
   } else if (context.materialReviewDrop) {
-    headline = "Visible trust may have weakened since the last saved check.";
+    headline = langText(
+      "Visible trust may have weakened since the last saved check.",
+      "前回の保存チェック以降、見た目の信頼感が弱くなっている可能性があります。"
+    );
     summaryLines = [
-      `Your review count is down by ${context.reviewDropCount} since the last saved check.`,
+      currentLanguage === "ja"
+        ? `前回の保存チェック以降、レビュー数が ${context.reviewDropCount} 件減っています。`
+        : `Your review count is down by ${context.reviewDropCount} since the last saved check.`,
       Number.isFinite(context.totalDiff) && context.totalDiff < 0
         ? buildCompetitiveDetail(context)
-        : "A sudden review drop can make the listing feel less established in a quick comparison.",
-      "Confirm whether the drop persists and re-check the same competitor."
+        : langText(
+            "A sudden review drop can make the listing feel less established in a quick comparison.",
+            "急なレビュー減少は、短時間の比較で店舗情報を弱く見せることがあります。"
+          ),
+      langText(
+        "Confirm whether the drop persists and re-check the same competitor.",
+        "減少が続くか確認し、同じ競合で再チェックしてください。"
+      )
     ];
   } else if (context.primaryPriority === "competitive_gap") {
-    headline = "The profile basics are solid, but the side-by-side comparison is still weak.";
+    headline = langText(
+      "The profile basics are solid, but the side-by-side comparison is still weak.",
+      "基本情報は整っていますが、横並び比較ではまだ弱さがあります。"
+    );
     summaryLines = [
-      "Core profile basics look mostly healthy, so checklist completion is not the bottleneck.",
+      langText(
+        "Core profile basics look mostly healthy, so checklist completion is not the bottleneck.",
+        "基本情報は概ね健全なので、いまのボトルネックは checklist の不足ではありません。"
+      ),
       buildCompetitiveDetail(context),
-      `The next job is strengthening why someone would choose this listing over ${context.competitorName}.`
+      currentLanguage === "ja"
+        ? `${context.competitorName} よりこちらを選ぶ理由を、もっとはっきり見せるのが次の仕事です。`
+        : `The next job is strengthening why someone would choose this listing over ${context.competitorName}.`
     ];
   } else if (context.primaryPriority === "customer_choice") {
-    headline = "The listing is decent, but the reason to choose it is still not obvious.";
+    headline = langText(
+      "The listing is decent, but the reason to choose it is still not obvious.",
+      "店舗情報自体は悪くありませんが、選ぶ理由はまだ一目では伝わりません。"
+    );
     summaryLines = [
-      "Nothing looks fundamentally broken in the Google basics.",
+      langText(
+        "Nothing looks fundamentally broken in the Google basics.",
+        "Google basics に大きな破綻は見えていません。"
+      ),
       buildCompetitiveDetail(context),
-      "The next step is making the strongest proof visible in the first few seconds."
+      langText(
+        "The next step is making the strongest proof visible in the first few seconds.",
+        "次は強い根拠を最初の数秒で見えるようにすることです。"
+      )
     ];
   } else {
-    headline = "The listing looks healthy, and there is no urgent first-view problem right now.";
+    headline = langText(
+      "The listing looks healthy, and there is no urgent first-view problem right now.",
+      "店舗情報は健全に見えていて、現時点で急ぐ first-view の問題はありません。"
+    );
     summaryLines = [
-      "This snapshot does not show a major foundation issue or a large competitor gap.",
-      "The job now is maintenance, not rescue.",
-      "Keep visible proof active and re-check the same competitor over time."
+      langText(
+        "This snapshot does not show a major foundation issue or a large competitor gap.",
+        "この時点では、大きな foundation issue も大きな competitor gap も見えていません。"
+      ),
+      langText(
+        "The job now is maintenance, not rescue.",
+        "いまの仕事は rescue ではなく maintenance です。"
+      ),
+      langText(
+        "Keep visible proof active and re-check the same competitor over time.",
+        "見える根拠を維持しながら、同じ競合を継続的に見直してください。"
+      )
     ];
   }
 
   const priorityItems = [
     {
-      label: "Google basics",
-      value: context.foundationStatus === "needs_work" ? "Needs work" : "In place",
+      label: langText("Google basics", "Google basics"),
+      value: context.foundationStatus === "needs_work"
+        ? langText("Needs work", "要対応")
+        : langText("In place", "整備済み"),
       tone: context.foundationStatus === "needs_work" ? "warning" : "good",
     },
     {
-      label: "Customer choice",
+      label: langText("Customer choice", "顧客視点"),
       value: context.materialReviewDrop
-        ? "Trust dropped"
-        : context.customerChoiceRisk.charAt(0).toUpperCase() +
-          context.customerChoiceRisk.slice(1),
+        ? langText("Trust dropped", "信頼低下")
+        : currentLanguage === "ja"
+          ? context.customerChoiceRisk === "high"
+            ? "高め"
+            : context.customerChoiceRisk === "medium"
+              ? "中程度"
+              : "低め"
+          : context.customerChoiceRisk.charAt(0).toUpperCase() +
+            context.customerChoiceRisk.slice(1),
       tone:
         context.materialReviewDrop || context.customerChoiceRisk === "high"
           ? "warning"
@@ -1911,15 +2793,15 @@ function buildDiagnosisFirstView(data) {
             : "good",
     },
     {
-      label: "Competitive gap",
+      label: langText("Competitive gap", "競合差"),
       value:
         context.competitiveGapStatus === "behind"
-          ? "Behind"
+          ? langText("Behind", "後れ")
           : context.competitiveGapStatus === "ahead"
-            ? "Ahead"
+            ? langText("Ahead", "優位")
             : context.competitiveGapStatus === "close"
-              ? "Close"
-              : "Tracking",
+              ? langText("Close", "接近")
+              : langText("Tracking", "追跡中"),
       tone:
         context.competitiveGapStatus === "behind"
           ? "warning"
@@ -1933,8 +2815,13 @@ function buildDiagnosisFirstView(data) {
 
   const competitorMeta =
     context.competitorName && context.competitorName !== "the selected competitor"
-      ? `Compared with ${context.competitorName}`
-      : "Tracking the selected competitor context";
+      ? currentLanguage === "ja"
+        ? `${context.competitorName} と比較中`
+        : `Compared with ${context.competitorName}`
+      : langText(
+          "Tracking the selected competitor context",
+          "選択中の競合文脈を追跡中"
+        );
 
   return {
     headline,
@@ -1953,10 +2840,7 @@ function renderSimpleList(listEl, items) {
 
   const safeItems = uniqueStrings(items);
   if (!safeItems.length) {
-    listEl.innerHTML = `<li>${uiText(
-      "No immediate actions required.",
-      "現時点で追加アクションはありません。"
-    )}</li>`;
+    listEl.innerHTML = `<li>${escapeHtml(t("noImmediateActions"))}</li>`;
     return;
   }
 
@@ -2011,7 +2895,7 @@ function renderCustomerChoiceView(view) {
       ${
         priorityAction
           ? `<div class="customer-choice-card__priority">
-              <span class="customer-choice-card__eyebrow">Priority action</span>
+              <span class="customer-choice-card__eyebrow">${escapeHtml(langText("Priority action", "優先アクション"))}</span>
               <div>${escapeHtml(priorityAction)}</div>
             </div>`
           : ""
@@ -2052,8 +2936,8 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
   }
 
   competitorUpdateInFlight = true;
-  if (compareListEl) compareListEl.innerHTML = "<li>Updating competitor comparison...</li>";
-  if (weeklyReportListEl) weeklyReportListEl.innerHTML = "<li>Updating weekly report...</li>";
+  if (compareListEl) compareListEl.innerHTML = `<li>${escapeHtml(t("compareUpdatePending"))}</li>`;
+  if (weeklyReportListEl) weeklyReportListEl.innerHTML = `<li>${escapeHtml(t("weeklyUpdatePending"))}</li>`;
   renderCompetitorControls(currentResult);
 
   try {
@@ -2066,11 +2950,11 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
     ]);
 
     if (!compare?.ok) {
-      throw new Error(getApiMessage(compare, "Could not update competitor comparison."));
+      throw new Error(getApiMessage(compare, t("competitorUpdateComparisonError")));
     }
 
     if (!weeklyReport?.ok) {
-      throw new Error(getApiMessage(weeklyReport, "Could not update weekly report."));
+      throw new Error(getApiMessage(weeklyReport, t("competitorUpdateWeeklyError")));
     }
 
     const compareCompetitorPlaceId = compare?.competitor?.placeId ?? null;
@@ -2079,7 +2963,7 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
       compareCompetitorPlaceId !== competitorPlaceId ||
       weeklyCompetitorPlaceId !== competitorPlaceId
     ) {
-      throw new Error("Could not confirm the selected competitor. Please try again.");
+      throw new Error(t("competitorConfirmFailed"));
     }
 
     const selectedCompetitor = getSelectedCompetitor(
@@ -2111,16 +2995,11 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
     renderInsight(currentResult);
     competitorChooserOpen = options.keepOpen === true;
     renderCompetitorControls(currentResult);
-    msg.textContent = uiText(
-      "Competitor updated for this report.",
-      "このレポートの競合を更新しました。"
-    );
-    setSavedMessage(
-      uiText(
-        "Competitor updated. Save Current Listing to keep this selection.",
-        "競合を更新しました。この選択を残すには現在の店舗を保存してください。"
-      )
-    );
+    msg.textContent =
+      currentLanguage === "ja"
+        ? "このレポートの競合を更新しました。"
+        : "Competitor updated for this report.";
+    setSavedMessage(t("competitorUpdatedSaved"));
   } catch (error) {
     renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
     renderWeeklyReport(currentResult?.weeklyReport);
@@ -2138,14 +3017,14 @@ async function handleCompetitorSearch() {
 
   const query = String(competitorSearchState.query || "").trim();
   if (!query) {
-    competitorSearchState.message = "Enter a business name and address to search.";
+    competitorSearchState.message = t("competitorSearchPrompt");
     competitorSearchState.isError = true;
     renderCompetitorControls(currentResult);
     return;
   }
 
   competitorSearchInFlight = true;
-  competitorSearchState.message = "Searching for a competitor...";
+  competitorSearchState.message = t("competitorSearchingMessage");
   competitorSearchState.isError = false;
   competitorSearchState.result = null;
   renderCompetitorControls(currentResult);
@@ -2153,10 +3032,10 @@ async function handleCompetitorSearch() {
   try {
     const resolved = await fetchResolvedPlace(query);
     if (!resolved?.placeId) {
-      throw new Error(getApiMessage(resolved, "Could not find that competitor."));
+      throw new Error(getApiMessage(resolved, t("competitorSearchNotFound")));
     }
     if (resolved.placeId === currentResult?.placeId) {
-      throw new Error("Choose a different business than the one you are analyzing.");
+      throw new Error(t("competitorSearchSameBusiness"));
     }
 
     competitorSearchState.result = {
@@ -2164,7 +3043,7 @@ async function handleCompetitorSearch() {
       name: resolved.name || query,
       address: resolved.address || "",
     };
-    competitorSearchState.message = "Review the match, then use it as the competitor.";
+    competitorSearchState.message = t("competitorSearchReviewMatch");
     competitorSearchState.isError = false;
   } catch (error) {
     competitorSearchState.result = null;
@@ -2188,13 +3067,13 @@ function compareTrackingCopy(compare) {
   switch (compare?.status) {
     case "setup_required":
     case "collecting_daily_data":
-      return "Available after two daily snapshots are saved.";
+      return t("compareTrackingSetup");
     case "collecting_history":
-      return "Available after the next daily snapshot is saved.";
+      return t("compareTrackingNext");
     case "cached_only":
-      return "Not available in this saved report.";
+      return t("compareTrackingSavedReport");
     default:
-      return "Currently unavailable.";
+      return t("compareTrackingUnavailable");
   }
 }
 
@@ -2202,13 +3081,13 @@ function weeklyTrackingCopy(report) {
   switch (report?.status) {
     case "setup_required":
     case "collecting_daily_data":
-      return "Meaningful trends usually appear after about 7 days of daily snapshots.";
+      return t("weeklyTrackingSetup");
     case "collecting_history":
-      return "Tracking now. Meaningful trends usually appear after about 7 days of daily snapshots.";
+      return t("weeklyTrackingNext");
     case "cached_only":
-      return "Not available in this saved report.";
+      return t("weeklyTrackingSavedReport");
     default:
-      return "Currently unavailable.";
+      return t("weeklyTrackingUnavailable");
   }
 }
 
@@ -2228,7 +3107,7 @@ function renderCompare(compare, competitor) {
   renderCompareMeta(competitor);
 
   if (!compare?.ok) {
-    compareListEl.innerHTML = `<li>${escapeHtml(getApiMessage(compare, "Comparison data is unavailable."))}</li>`;
+    compareListEl.innerHTML = `<li>${escapeHtml(getApiMessage(compare, t("compareDataUnavailable")))}</li>`;
     return;
   }
 
@@ -2244,47 +3123,47 @@ function renderCompare(compare, competitor) {
   if (hasReviewTotals) {
     appendListRow(
       compareListEl,
-      "Your total reviews",
+      t("compareLabelYourTotalReviews"),
       valueOrFallback(compare.my?.todayTotal, "-")
     );
     appendListRow(
       compareListEl,
-      "Competitor total reviews",
+      t("compareLabelCompetitorTotalReviews"),
       valueOrFallback(compare.competitor?.todayTotal, "-")
     );
     appendListRow(
       compareListEl,
-      "Total review difference",
+      t("compareLabelTotalReviewDifference"),
       valueOrFallback(compare.total_diff, "-")
     );
   } else {
     appendListRow(
       compareListEl,
-      "Current review totals",
+      t("compareLabelCurrentReviewTotals"),
       compare?.status === "cached_only"
-        ? "Not available in this saved report."
-        : "Available after the first daily snapshot is saved."
+        ? t("compareTrackingSavedReport")
+        : t("compareAvailableAfterFirstSnapshot")
     );
   }
 
   if (compare?.status === "ready") {
     appendListRow(
       compareListEl,
-      "Your daily change",
+      t("compareLabelYourDailyChange"),
       valueOrFallback(compare.my?.delta)
     );
     appendListRow(
       compareListEl,
-      "Competitor daily change",
+      t("compareLabelCompetitorDailyChange"),
       valueOrFallback(compare.competitor?.delta)
     );
     appendListRow(
       compareListEl,
-      "Growth difference",
+      t("compareLabelGrowthDifference"),
       valueOrFallback(compare.delta_diff)
     );
   } else {
-    appendListRow(compareListEl, "Daily changes", compareTrackingCopy(compare));
+    appendListRow(compareListEl, t("compareLabelDailyChanges"), compareTrackingCopy(compare));
   }
 }
 
@@ -2295,14 +3174,14 @@ function renderPhotoCompare(photo) {
   el.innerHTML = "";
 
   if (!photo) {
-    el.innerHTML = "<li>No photo comparison data</li>";
+    el.innerHTML = `<li>${escapeHtml(t("photoComparisonUnavailable"))}</li>`;
     return;
   }
 
   const rows = [
-    `Your photo count: ${valueOrFallback(photo.myPhotos, "-")}`,
-    `Competitor average: ${valueOrFallback(photo.competitorPhotoAvg)}`,
-    `Missing photos: ${valueOrFallback(photo.missingPhotos, "0")}`,
+    `${t("photoLabelYourCount")}: ${valueOrFallback(photo.myPhotos, "-")}`,
+    `${t("photoLabelCompetitorAverage")}: ${valueOrFallback(photo.competitorPhotoAvg, "-")}`,
+    `${t("photoLabelMissingPhotos")}: ${valueOrFallback(photo.missingPhotos, "0")}`,
   ];
 
   for (const row of rows) {
@@ -2319,10 +3198,7 @@ function renderPhotoAdvice(photoAdvice) {
   el.innerHTML = "";
 
   if (!photoAdvice) {
-    el.innerHTML = `<li>${uiText(
-      "No photo advice available",
-      "推奨写真の提案はまだありません"
-    )}</li>`;
+    el.innerHTML = `<li>${escapeHtml(t("photoAdviceUnavailable"))}</li>`;
     return;
   }
 
@@ -2337,7 +3213,7 @@ function renderPhotoAdvice(photoAdvice) {
 
   shots.forEach((s) => {
     const li = document.createElement("li");
-    li.textContent = uiText(`Recommended shot: ${s}`, `推奨ショット: ${s}`);
+    li.textContent = `${t("recommendedShotPrefix")}: ${s}`;
     el.appendChild(li);
   });
 }
@@ -2351,7 +3227,7 @@ function renderTodos(todosArr, missingArr) {
     (Array.isArray(missingArr) && missingArr.length ? missingArr : []);
 
   if (!list.length) {
-    todosEl.innerHTML = "<li>No additional Google basics tasks right now</li>";
+    todosEl.innerHTML = `<li>${escapeHtml(t("noGoogleBasicsTasks"))}</li>`;
     return;
   }
 
@@ -2368,7 +3244,7 @@ function renderBreakdown(diagnosis) {
 
   const missingOnly = bd.filter((r) => r?.missing);
   if (!missingOnly.length) {
-    breakdownEl.innerHTML = "<li>No Google basics penalties</li>";
+    breakdownEl.innerHTML = `<li>${escapeHtml(t("noGoogleBasicsPenalties"))}</li>`;
     penaltyEl.textContent = "";
     return;
   }
@@ -2384,26 +3260,26 @@ function renderBreakdown(diagnosis) {
   }
 
   const p = Number.isFinite(diagnosis?.penalty) ? diagnosis.penalty : sum;
-  penaltyEl.textContent = `Total penalty: -${p}`;
+  penaltyEl.textContent = `${t("totalPenaltyPrefix")}: -${p}`;
 }
 
 function renderSummary(details) {
   const name = details?.name ?? "-";
   const address = details?.formatted_address ?? details?.address ?? "-";
-  const phone = details?.international_phone_number ?? "Not available";
+  const phone = details?.international_phone_number ?? t("notAvailableLabel");
   const website = details?.website ?? null;
   const photos = details?.photos?.length ?? 0;
 
   summaryEl.innerHTML = `
-    <div><b>Business Name:</b> ${escapeHtml(name)}</div>
-    <div><b>Address:</b> ${escapeHtml(address)}</div>
-    <div><b>Phone:</b> ${escapeHtml(phone)}</div>
-    <div><b>Website:</b> ${
+    <div><b>${escapeHtml(t("businessNameLabel"))}:</b> ${escapeHtml(name)}</div>
+    <div><b>${escapeHtml(t("addressLabel"))}:</b> ${escapeHtml(address)}</div>
+    <div><b>${escapeHtml(t("phoneLabel"))}:</b> ${escapeHtml(phone)}</div>
+    <div><b>${escapeHtml(t("websiteLabel"))}:</b> ${
       website
-        ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">Available</a>`
-        : "Not available"
+        ? `<a href="${escapeAttr(website)}" target="_blank" rel="noopener">${escapeHtml(t("availableLabel"))}</a>`
+        : escapeHtml(t("notAvailableLabel"))
     }</div>
-    <div><b>Photo Count:</b> ${photos}</div>
+    <div><b>${escapeHtml(t("photoCountLabel"))}:</b> ${photos}</div>
   `;
 }
 
@@ -2413,7 +3289,7 @@ function renderWeeklyReport(report) {
   weeklyReportListEl.innerHTML = "";
 
   if (!report?.ok) {
-    weeklyReportListEl.innerHTML = `<li>${escapeHtml(getApiMessage(report, "Weekly report data is unavailable."))}</li>`;
+    weeklyReportListEl.innerHTML = `<li>${escapeHtml(getApiMessage(report, t("weeklyDataUnavailable")))}</li>`;
     return;
   }
 
@@ -2426,48 +3302,48 @@ function renderWeeklyReport(report) {
   if (hasTotalDiff) {
     appendListRow(
       weeklyReportListEl,
-      "Total review difference",
+      t("compareLabelTotalReviewDifference"),
       valueOrFallback(report.totalDiff, "-")
     );
   } else {
     appendListRow(
       weeklyReportListEl,
-      "Total review difference",
+      t("compareLabelTotalReviewDifference"),
       report?.status === "cached_only"
-        ? "Not available in this saved report."
-        : "Available after the first daily snapshot is saved."
+        ? t("weeklyTrackingSavedReport")
+        : t("compareAvailableAfterFirstSnapshot")
     );
   }
 
   appendListRow(
     weeklyReportListEl,
-    "Report period",
+    t("weeklyLabelReportPeriod"),
     `${report.weekAgo ?? "-"} → ${report.today ?? "-"}`
   );
 
   if (report?.status === "ready") {
     appendListRow(
       weeklyReportListEl,
-      "Your weekly review growth",
+      t("weeklyLabelYourGrowth"),
       valueOrFallback(report.my?.weeklyGain)
     );
     appendListRow(
       weeklyReportListEl,
-      "Competitor weekly review growth",
+      t("weeklyLabelCompetitorGrowth"),
       valueOrFallback(report.competitor?.weeklyGain)
     );
     appendListRow(
       weeklyReportListEl,
-      "Weekly growth difference",
+      t("weeklyLabelGrowthDifference"),
       valueOrFallback(report.weeklyGainDiff)
     );
     appendListRow(
       weeklyReportListEl,
-      "Weekly insight",
+      t("weeklyLabelInsight"),
       report.insight ?? "-"
     );
   } else {
-    appendListRow(weeklyReportListEl, "Weekly changes", weeklyTrackingCopy(report));
+    appendListRow(weeklyReportListEl, t("weeklyLabelChanges"), weeklyTrackingCopy(report));
   }
 }
 
@@ -2513,7 +3389,7 @@ async function showResult(data, options = {}) {
     compare = data?.compare ?? {
       ok: true,
       status: "cached_only",
-      message: "Comparison data is not available in this saved report.",
+      message: t("compareTrackingSavedReport"),
       my: { todayTotal: null, delta: null },
       competitor: { todayTotal: null, delta: null },
       total_diff: null,
@@ -2522,14 +3398,14 @@ async function showResult(data, options = {}) {
     weeklyReport = data?.weeklyReport ?? {
       ok: true,
       status: "cached_only",
-      message: "Weekly report data is not available in this saved report.",
+      message: t("weeklyTrackingSavedReport"),
       my: { weeklyGain: null },
       competitor: { weeklyGain: null },
       totalDiff: null,
       weeklyGainDiff: null,
       weekAgo: "-",
       today: "-",
-      insight: "Weekly report data is not available in this saved report.",
+      insight: t("weeklyTrackingSavedReport"),
     };
   }
 
@@ -2708,7 +3584,7 @@ function buildSavedListingMilestoneBlock(progress) {
 
   const label = document.createElement("div");
   label.className = "saved__milestone-label";
-  label.textContent = "Next rating milestone";
+  label.textContent = t("nextRatingMilestone");
 
   const main = document.createElement("div");
   main.className = "saved__milestone-main";
@@ -2720,18 +3596,20 @@ function buildSavedListingMilestoneBlock(progress) {
     : null;
   main.textContent =
     estimate === null
-      ? `Estimated 5-star reviews needed to reach ${nextMilestone}`
-      : `Estimated 5-star reviews needed to reach ${nextMilestone}: ${estimate}`;
+      ? t("estimatedReviewsNeededPrefix").replace("{milestone}", nextMilestone)
+      : t("estimatedReviewsNeededWithCount")
+          .replace("{milestone}", nextMilestone)
+          .replace("{count}", String(estimate));
 
   const support = document.createElement("div");
   support.className = "saved__milestone-support";
   support.textContent =
-    progress?.supportingCopy || "We'll compare progress again after your next check";
+    progress?.supportingCopy || t("compareAgainAfterNextCheck");
 
   const note = document.createElement("div");
   note.className = "saved__milestone-note";
   note.textContent =
-    progress?.note || "Estimate based on current displayed rating and total reviews";
+    progress?.note || t("estimateBasedOnRating");
 
   milestoneBlock.appendChild(label);
   milestoneBlock.appendChild(main);
@@ -2749,22 +3627,26 @@ function buildSavedListingRevisitBlock(signal) {
 
   const label = document.createElement("div");
   label.className = "saved__revisit-label";
-  label.textContent = "Revisit reason";
+  label.textContent = t("revisitReasonLabel");
 
   const main = document.createElement("div");
   main.className = "saved__revisit-main";
-  main.textContent = signal?.reason || "Review count is down since the last saved check";
+  main.textContent = signal?.reason || t("reviewCountDownSinceLastCheck");
 
   const support = document.createElement("div");
   support.className = "saved__revisit-support";
   support.textContent =
-    signal?.customerImpact || "Visible trust may be weaker than it was before.";
+    signal?.customerImpact || t("visibleTrustWeaker");
 
   const nextCheck = document.createElement("div");
   nextCheck.className = "saved__revisit-note";
   nextCheck.textContent = signal?.nextCheck
-    ? `Next check: ${signal.nextCheck}`
-    : "Next check: confirm whether the drop persists.";
+    ? currentLanguage === "ja"
+      ? `次回確認: ${signal.nextCheck}`
+      : `Next check: ${signal.nextCheck}`
+    : currentLanguage === "ja"
+      ? t("nextCheckConfirmDrop")
+      : t("nextCheckConfirmDrop");
 
   revisitBlock.appendChild(label);
   revisitBlock.appendChild(main);
@@ -2781,9 +3663,20 @@ function savedMonitoringTone(status, value) {
   return "quiet";
 }
 
-function savedMonitoringLabel(value, fallback = "Not available yet") {
+function savedMonitoringLabel(value, fallback = t("notAvailableYet")) {
   if (!value) return fallback;
-  return String(value).replace(/_/g, " ");
+
+  const labels = {
+    improving: langText("Improving", "改善中"),
+    worsening: langText("Worsening", "悪化傾向"),
+    mixed: langText("Mixed", "混在"),
+    steady: langText("Steady", "横ばい"),
+    narrowing: langText("Narrowing", "差が縮小"),
+    widening: langText("Widening", "差が拡大"),
+    unchanged: langText("Unchanged", "変化なし"),
+  };
+
+  return labels[String(value)] || String(value).replace(/_/g, " ");
 }
 
 function buildSavedListingMonitoringBlock(monitoring) {
@@ -2796,24 +3689,27 @@ function buildSavedListingMonitoringBlock(monitoring) {
 
   const label = document.createElement("div");
   label.className = "saved__monitoring-label";
-  label.textContent = "Review monitoring";
+  label.textContent = t("reviewMonitoringLabel");
   block.appendChild(label);
 
   if (monitoring.status !== "ready") {
     const main = document.createElement("div");
     main.className = "saved__monitoring-main";
-    main.textContent = "Collecting review history";
+    main.textContent = t("collectingReviewHistory");
 
     const support = document.createElement("div");
     support.className = "saved__monitoring-support";
     support.textContent =
-      monitoring?.notableShift || "Available after two saved review-theme snapshots.";
+      monitoring?.notableShift ||
+      t("availableAfterTwoThemeSnapshots");
 
     const nextAction = document.createElement("div");
     nextAction.className = "saved__monitoring-note";
     nextAction.textContent = monitoring?.nextAction
-      ? `Next check: ${monitoring.nextAction}`
-      : "Next check: keep monitoring until another saved snapshot is available.";
+      ? currentLanguage === "ja"
+        ? `次回確認: ${monitoring.nextAction}`
+        : `Next check: ${monitoring.nextAction}`
+      : t("nextCheckKeepMonitoring");
 
     block.appendChild(main);
     block.appendChild(support);
@@ -2827,7 +3723,7 @@ function buildSavedListingMonitoringBlock(monitoring) {
   const trendItem = document.createElement("div");
   trendItem.className = "saved__monitoring-item";
   trendItem.innerHTML = `
-    <div class="saved__monitoring-item-label">Theme trend</div>
+    <div class="saved__monitoring-item-label">${escapeHtml(t("themeTrendLabel"))}</div>
     <div class="saved__monitoring-item-value">
       <span class="saved__badge saved__badge--${escapeAttr(
         savedMonitoringTone(monitoring.status, monitoring?.trend)
@@ -2838,11 +3734,16 @@ function buildSavedListingMonitoringBlock(monitoring) {
   const gapItem = document.createElement("div");
   gapItem.className = "saved__monitoring-item";
   gapItem.innerHTML = `
-    <div class="saved__monitoring-item-label">Competitor gap</div>
+    <div class="saved__monitoring-item-label">${escapeHtml(t("competitorGapLabel"))}</div>
     <div class="saved__monitoring-item-value">
       <span class="saved__badge saved__badge--${escapeAttr(
         savedMonitoringTone(monitoring.status, monitoring?.gapDirection)
-      )}">${escapeHtml(savedMonitoringLabel(monitoring?.gapDirection, "Not enough competitor history yet"))}</span>
+      )}">${escapeHtml(
+        savedMonitoringLabel(
+          monitoring?.gapDirection,
+          t("notEnoughCompetitorHistory")
+        )
+      )}</span>
     </div>
   `;
 
@@ -2853,14 +3754,20 @@ function buildSavedListingMonitoringBlock(monitoring) {
   if (monitoring?.notableShift) {
     const shift = document.createElement("div");
     shift.className = "saved__monitoring-support";
-    shift.textContent = `Last notable shift: ${monitoring.notableShift}`;
+    shift.textContent =
+      currentLanguage === "ja"
+        ? `直近の大きな変化: ${monitoring.notableShift}`
+        : `Last notable shift: ${monitoring.notableShift}`;
     block.appendChild(shift);
   }
 
   if (monitoring?.nextAction) {
     const nextAction = document.createElement("div");
     nextAction.className = "saved__monitoring-note";
-    nextAction.textContent = `Next action: ${monitoring.nextAction}`;
+    nextAction.textContent =
+      currentLanguage === "ja"
+        ? `次のアクション: ${monitoring.nextAction}`
+        : `Next action: ${monitoring.nextAction}`;
     block.appendChild(nextAction);
   }
 
@@ -2869,14 +3776,12 @@ function buildSavedListingMonitoringBlock(monitoring) {
 
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
+  currentSavedListings = Array.isArray(listings) ? listings.slice() : [];
 
   savedListingsEl.innerHTML = "";
 
   if (!Array.isArray(listings) || !listings.length) {
-    savedListingsEl.innerHTML = `<li class="muted">${uiText(
-      "No saved listings yet",
-      "保存した店舗はまだありません"
-    )}</li>`;
+    savedListingsEl.innerHTML = `<li class="muted">${escapeHtml(t("savedListingsEmpty"))}</li>`;
     return;
   }
 
@@ -2889,21 +3794,24 @@ function renderSavedListings(listings) {
 
     const title = document.createElement("div");
     title.className = "saved__title";
-    title.textContent = item.name || item.q || item.placeId || "Saved Listing";
+    title.textContent =
+      item.name ||
+      item.q ||
+      item.placeId ||
+      t("savedListingFallbackName");
 
     const meta = document.createElement("div");
     meta.className = "saved__meta";
     meta.innerHTML = `
-      <div>${escapeHtml(item.address || uiText("Address not available", "住所情報はまだありません"))}</div>
-      <div>${escapeHtml(
-        uiText("Updated", "更新日")
-      )}: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || uiText("Just now", "たった今"))}</div>
-      <div>${escapeHtml(
-        uiText(
-          "Saved for quick re-open from this dashboard.",
-          "このダッシュボードからすぐ開き直せるよう保存されています。"
-        )
-      )}</div>
+      <div>${escapeHtml(item.address || (currentLanguage === "ja" ? "住所情報なし" : "Address not available"))}</div>
+      <div>${
+        currentLanguage === "ja" ? "更新" : "Updated"
+      }: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || (currentLanguage === "ja" ? "たった今" : "Just now"))}</div>
+      <div>${
+        currentLanguage === "ja"
+          ? "このダッシュボードからすぐ再表示できるよう保存しています。"
+          : "Saved for quick re-open from this dashboard."
+      }</div>
     `;
 
     let competitorBlock = null;
@@ -2911,9 +3819,7 @@ function renderSavedListings(listings) {
       competitorBlock = document.createElement("div");
       competitorBlock.className = "saved__competitor";
       competitorBlock.innerHTML = `
-        <div>${escapeHtml(uiText("Compared with", "比較対象"))}: ${escapeHtml(
-          item?.competitorName || uiText("Selected competitor", "選択中の競合")
-        )}</div>
+        <div>${escapeHtml(t("savedListingComparedWith"))}: ${escapeHtml(item?.competitorName || t("savedListingSelectedCompetitor"))}</div>
         ${
           item?.competitorAddress
             ? `<div class="saved__competitor-address">${escapeHtml(item.competitorAddress)}</div>`
@@ -2943,7 +3849,11 @@ function renderSavedListings(listings) {
 
     const summaryLines = Array.isArray(item?.changeSummary?.lines)
       ? item.changeSummary.lines.slice(0, 3)
-      : ["We'll compare changes after your next check"];
+      : [
+          currentLanguage === "ja"
+            ? "次回の確認後に変化を比較します"
+            : "We'll compare changes after your next check",
+        ];
 
     summaryLines.forEach((line) => {
       const tag = document.createElement("div");
@@ -2974,14 +3884,15 @@ function renderSavedListings(listings) {
     openBtn.className = "btn";
     openBtn.dataset.action = "open";
     openBtn.dataset.savedId = item.id;
-    openBtn.textContent = uiText("Open Latest Report", "最新レポートを開く");
+    openBtn.textContent =
+      t("openLatestReport");
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "btn";
     deleteBtn.dataset.action = "delete";
     deleteBtn.dataset.savedId = item.id;
-    deleteBtn.textContent = uiText("Delete", "削除");
+    deleteBtn.textContent = t("deleteLabel");
 
     actions.appendChild(openBtn);
     actions.appendChild(deleteBtn);
@@ -3065,12 +3976,7 @@ async function refreshSavedListings(options = {}) {
   if (!isLikelyEmail(email)) {
     renderSavedListings([]);
     if (!options.quiet) {
-      setSavedMessage(
-        uiText(
-          "Enter your email to load saved listings.",
-          "保存した店舗を読み込むにはメールアドレスを入力してください。"
-        )
-      );
+      setSavedMessage(t("loadSavedPrompt"));
     }
     return;
   }
@@ -3078,23 +3984,23 @@ async function refreshSavedListings(options = {}) {
   persistSubscriberEmail(email);
   const response = await fetchSavedListings(email);
   if (!response?.ok) {
-    throw new Error(getApiMessage(response, "Could not load saved listings."));
+    throw new Error(getApiMessage(response, t("couldNotLoadSavedListings")));
   }
 
   renderSavedListings(response.listings);
   if (!options.quiet) {
-    setSavedMessage(uiText("Saved listings loaded.", "保存した店舗を読み込みました。"));
+    setSavedMessage(t("savedListingsLoaded"));
   }
 }
 
 async function openSavedListing(id, options = {}) {
   resetUI();
   setLoading(true);
-  msg.textContent = uiText("Loading saved listing...", "保存した店舗を読み込んでいます...");
+  msg.textContent = t("loadingSavedListing");
 
   try {
     const data = await fetchSavedReport(id);
-    if (!data?.ok) throw new Error(getApiMessage(data, "Could not load saved listing."));
+    if (!data?.ok) throw new Error(getApiMessage(data, t("couldNotLoadSavedListing")));
 
     if (data?.savedListing?.q) {
       input.value = data.savedListing.q;
@@ -3111,14 +4017,11 @@ async function openSavedListing(id, options = {}) {
     if (options.pushState !== false) {
       setUrlSavedParam(id);
     }
-    msg.textContent = uiText("Saved listing loaded.", "保存した店舗を読み込みました。");
+    msg.textContent = t("savedListingLoaded");
     setSavedMessage(
       options.ensureSavedListingVisible && !isLikelyEmail(getSubscriberEmail())
-        ? uiText(
-            "Showing this saved listing from a direct link. Enter your email to load all saved listings.",
-            "共有リンクからこの保存店舗を表示しています。全件を読むにはメールアドレスを入力してください。"
-          )
-        : uiText("Saved listing loaded.", "保存した店舗を読み込みました。")
+        ? t("savedListingDirectLink")
+        : t("savedListingLoaded")
     );
   } catch (error) {
     showError(error?.message || String(error));
@@ -3158,10 +4061,7 @@ function renderHistory(list) {
   historyEl.innerHTML = "";
 
   if (!list.length) {
-    historyEl.innerHTML = `<li class="muted">${uiText(
-      "No history yet",
-      "履歴はまだありません"
-    )}</li>`;
+    historyEl.innerHTML = `<li class="muted">${escapeHtml(t("noHistoryYet"))}</li>`;
     return;
   }
 
@@ -3174,14 +4074,14 @@ function renderHistory(list) {
     showBtn.className = "btn history__show";
     showBtn.dataset.action = "show";
     showBtn.dataset.index = String(idx);
-    showBtn.textContent = `${h.when} / Score ${h.score} / ${h.name ?? "-"} / ${h.q}`;
+    showBtn.textContent = `${h.when} / ${t("historyScoreLabel")} ${h.score} / ${h.name ?? "-"} / ${h.q}`;
 
     const delBtn = document.createElement("button");
     delBtn.type = "button";
     delBtn.className = "btn history__delete";
     delBtn.dataset.action = "delete";
     delBtn.dataset.index = String(idx);
-    delBtn.textContent = "Delete";
+    delBtn.textContent = t("deleteLabel");
 
     li.appendChild(showBtn);
     li.appendChild(delBtn);
@@ -3265,35 +4165,21 @@ if (reviewDisputeFormEl) {
     event.preventDefault();
 
     const payload = collectReviewDisputeInput();
-    if (!payload.reviewText) {
-      setReviewDisputeMessage(
-        uiText(
-          "Paste the suspicious review text before generating drafts.",
-          "下書きを生成する前に、問題のあるレビュー本文を貼り付けてください。"
-        ),
-        true
-      );
+      if (!payload.reviewText) {
+      setReviewDisputeMessage(t("reviewDisputeMissingText"), true);
       return;
     }
 
     try {
-      setReviewDisputeMessage(uiText("Generating drafts...", "下書きを生成しています..."));
+      setReviewDisputeMessage(t("reviewDisputeGenerating"));
       if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.disabled = true;
       const response = await fetchReviewDisputeDraft(payload);
       if (!response?.ok) {
-        throw new Error(
-          getApiMessage(
-            response,
-            uiText(
-              "Could not generate review dispute drafts.",
-              "レビュー削除アシスタントの下書きを生成できませんでした。"
-            )
-          )
-        );
+        throw new Error(getApiMessage(response, t("couldNotGenerateReviewDrafts")));
       }
 
       renderReviewDisputeDrafts(response);
-      setReviewDisputeMessage(uiText("Drafts generated.", "下書きを生成しました。"));
+      setReviewDisputeMessage(t("reviewDisputeGenerated"));
     } catch (error) {
       setReviewDisputeMessage(error?.message || String(error), true);
     } finally {
@@ -3308,20 +4194,20 @@ if (feedbackFormEl) {
 
     const payload = collectFeedbackInput();
     if (!payload.type) {
-      setFeedbackMessage("Choose the feedback type first.", true);
+      setFeedbackMessage(t("feedbackMissingType"), true);
       return;
     }
     if (!payload.message) {
-      setFeedbackMessage("Add a short note before sending feedback.", true);
+      setFeedbackMessage(t("feedbackMissingMessage"), true);
       return;
     }
 
     try {
-      setFeedbackMessage("Sending feedback...");
+      setFeedbackMessage(t("feedbackSending"));
       if (feedbackSubmitBtn) feedbackSubmitBtn.disabled = true;
       const response = await submitQuickFeedback(payload);
       if (!response?.ok) {
-        throw new Error(getApiMessage(response, "Could not send feedback right now."));
+        throw new Error(getApiMessage(response, t("couldNotSendFeedback")));
       }
 
       if (payload.email && isLikelyEmail(payload.email)) {
@@ -3332,7 +4218,7 @@ if (feedbackFormEl) {
       }
 
       resetFeedbackForm();
-      setFeedbackMessage("Feedback sent. Thank you.");
+      setFeedbackMessage(t("feedbackSent"));
     } catch (error) {
       setFeedbackMessage(error?.message || String(error), true);
     } finally {
@@ -3347,40 +4233,25 @@ if (saveListingBtn) {
       const payload = buildSavePayload();
 
       if (!currentResult || !payload.placeId) {
-        throw new Error("Analyze a listing before saving it.");
+        throw new Error(t("saveListingMissingAnalysis"));
       }
 
       if (!isLikelyEmail(payload.email)) {
-        throw new Error(
-          uiText(
-            "Enter a valid email address before saving a listing.",
-            "店舗を保存する前に有効なメールアドレスを入力してください。"
-          )
-        );
+        throw new Error(t("saveListingInvalidEmail"));
       }
 
       if (!payload.competitorPlaceId) {
-        throw new Error(
-          uiText(
-            "A competitor must be selected before weekly reports can be created.",
-            "週次レポートを作る前に競合を1件選択してください。"
-          )
-        );
+        throw new Error(t("saveListingMissingCompetitor"));
       }
 
       persistSubscriberEmail(payload.email);
-      setSavedMessage(uiText("Saving listing...", "店舗を保存しています..."));
+      setSavedMessage(t("saveListingSaving"));
       const response = await saveListingSubscription(payload);
       if (!response?.ok) {
-        throw new Error(getApiMessage(response, "Could not save this listing."));
+        throw new Error(getApiMessage(response, t("couldNotSaveListing")));
       }
 
-      setSavedMessage(
-        uiText(
-          "Listing saved. You can reopen it anytime from Saved Listings.",
-          "店舗を保存しました。保存した店舗からいつでも最新レポートを開き直せます。"
-        )
-      );
+      setSavedMessage(t("saveListingSaved"));
       await refreshSavedListings({ quiet: true });
     } catch (error) {
       setSavedMessage(error?.message || String(error), true);
@@ -3461,20 +4332,15 @@ if (savedListingsEl) {
       try {
         const email = getSubscriberEmail();
         if (!isLikelyEmail(email)) {
-          throw new Error(
-            uiText(
-              "Enter the same email address used to save this listing.",
-              "この店舗を保存したときと同じメールアドレスを入力してください。"
-            )
-          );
+          throw new Error(t("deleteSavedListingNeedEmail"));
         }
 
         const removed = await removeSavedListing(id, email);
         if (!removed?.ok) {
-          throw new Error(getApiMessage(removed, "Could not delete this saved listing."));
+          throw new Error(getApiMessage(removed, t("couldNotDeleteSavedListing")));
         }
 
-        setSavedMessage(uiText("Saved listing deleted.", "保存した店舗を削除しました。"));
+        setSavedMessage(t("savedListingDeleted"));
         await refreshSavedListings({ quiet: true });
       } catch (error) {
         setSavedMessage(error?.message || String(error), true);
@@ -3502,7 +4368,7 @@ if (historyEl) {
             currentResult = hydrated;
             if (saveListingBtn) saveListingBtn.disabled = false;
             setUrlSavedParam(null);
-            msg.textContent = "Loaded history item.";
+            msg.textContent = t("loadedHistoryItem");
           })
           .catch((e) => showError(e?.message || String(e)));
       }
@@ -3519,7 +4385,7 @@ if (historyEl) {
 
 if (clearHistoryBtn) {
   clearHistoryBtn.addEventListener("click", () => {
-    if (!confirm("Clear all history and reset the display. Continue?")) return;
+    if (!confirm(t("clearHistoryConfirm"))) return;
     saveHistory([]);
     renderHistory([]);
     resetUI();
@@ -3539,23 +4405,33 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+if (langToggleEn) {
+  langToggleEn.addEventListener("click", () => {
+    applyLanguage("en", { persist: true, syncUrl: true });
+  });
+}
+
+if (langToggleJa) {
+  langToggleJa.addEventListener("click", () => {
+    applyLanguage("ja", { persist: true, syncUrl: true });
+  });
+}
+
 btn.addEventListener("click", async () => {
   resetUI();
 
   const q = input.value.trim();
   if (!q) {
     hideCard();
-    msg.textContent = "Please enter a business name and address.";
+    msg.textContent = t("missingQuery");
     return;
   }
 
   setLoading(true);
 
   try {
-    const data = await fetchApiJson(
-      `/api/diagnose?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(uiLang)}`
-    );
-    if (!data?.ok) throw new Error(getApiMessage(data, "Analysis failed."));
+    const data = await fetchApiJson(`/api/diagnose?q=${encodeURIComponent(q)}`);
+    if (!data?.ok) throw new Error(getApiMessage(data, t("analysisFailed")));
 
     const details = data?.details ?? {};
     const diagnosis = data?.diagnosis ?? data;
@@ -3575,7 +4451,7 @@ btn.addEventListener("click", async () => {
       data: hydrated,
     });
     setUrlSavedParam(null);
-    msg.textContent = uiText("Analysis complete.", "診断が完了しました。");
+    msg.textContent = t("analysisComplete");
   } catch (e) {
     showError(e?.message || String(e));
   } finally {
@@ -3584,11 +4460,14 @@ btn.addEventListener("click", async () => {
 });
 
 // init
-applyStaticLocale();
+renderLanguageToggle();
+renderStaticCopy();
 renderHistory(loadHistory());
 renderSavedListings([]);
 
 (async () => {
+  await detectInitialLanguage();
+
   const savedId = new URL(window.location.href).searchParams.get("saved");
 
   if (savedId) {

@@ -639,6 +639,7 @@ const COPY = {
     savedListingChangeFallback: "We'll compare changes after your next check",
     loadSavedPrompt: "Enter your email to load saved listings.",
     savedListingsLoaded: "Saved listings loaded.",
+    noSavedListingsForEmail: "No saved listings were found for this email yet.",
     savedListingDirectLink:
       "Showing this saved listing from a direct link. Enter your email to load all saved listings.",
     noHistoryYet: "No history yet",
@@ -900,6 +901,7 @@ const COPY = {
     savedListingChangeFallback: "次回の確認後に変化を比較します",
     loadSavedPrompt: "保存済みを読み込むにはメールアドレスを入力してください。",
     savedListingsLoaded: "保存済みを読み込みました。",
+    noSavedListingsForEmail: "このメールアドレスに紐づく保存済み店舗はまだありません。",
     savedListingDirectLink:
       "この保存済みレポートを直接表示しています。すべての保存済みを読み込むにはメールアドレスを入力してください。",
     noHistoryYet: "履歴はまだありません",
@@ -1129,8 +1131,15 @@ function renderStaticCopy() {
   if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");
   if (loadSavedBtn) loadSavedBtn.textContent = t("loadSaved");
   if (saveListingBtn) saveListingBtn.textContent = t("saveCurrent");
-  if (savedMsgEl && !savedMsgEl.classList.contains("error") && !savedListingsEl?.children?.length) {
-    savedMsgEl.textContent = t("savedMsgDefault");
+  if (savedMsgEl && !savedMsgEl.classList.contains("error")) {
+    const currentSavedMsg = String(savedMsgEl.textContent || "").trim();
+    const defaultMessages = [
+      COPY.en.savedMsgDefault,
+      COPY.ja.savedMsgDefault,
+    ];
+    if (!currentSavedMsg || defaultMessages.includes(currentSavedMsg)) {
+      savedMsgEl.textContent = t("savedMsgDefault");
+    }
   }
   if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
   if (nextActionsTitleEl) nextActionsTitleEl.textContent = t("nextActionsTitle");
@@ -3990,7 +3999,11 @@ async function refreshSavedListings(options = {}) {
 
   renderSavedListings(response.listings);
   if (!options.quiet) {
-    setSavedMessage(t("savedListingsLoaded"));
+    setSavedMessage(
+      Array.isArray(response?.listings) && response.listings.length
+        ? t("savedListingsLoaded")
+        : t("noSavedListingsForEmail")
+    );
   }
 }
 

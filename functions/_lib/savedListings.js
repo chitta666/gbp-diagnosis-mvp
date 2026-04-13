@@ -924,7 +924,7 @@ export function buildSavedListingStatusSummary(
     return buildStatusSummary(
       isJapanese(lang) ? "要確認" : "Needs attention",
       "warning",
-      isJapanese(lang) ? "Webサイト未設定" : "Website missing"
+      isJapanese(lang) ? "ウェブサイト未設定" : "Website missing"
     );
   }
 

@@ -842,18 +842,18 @@ const COPY = {
     reviewDisputeActionsTitle: "すでに取った対応",
     reviewDisputeActionFlagged: "GBPでフラグ済み",
     reviewDisputeActionRemoval: "削除申請済み",
-    reviewDisputeActionAppeal: "再申請・appeal済み",
+    reviewDisputeActionAppeal: "再申請・再審査申請済み",
     reviewDisputeActionCommunity: "Help Communityへ投稿済み",
     reviewDisputeActionReply: "公開返信を準備中",
     reviewDisputeHelpTitle: "欲しい支援",
-    reviewDisputeHelpLabel: "どんな guidance が欲しいですか？",
+    reviewDisputeHelpLabel: "どんな支援が欲しいですか？",
     reviewDisputeHelpPlaceholder: "任意",
     reviewDisputeGenerate: "下書きを生成",
     reviewDisputeGenerateNote:
       "不必要な断定や非難は避け、直接確認できる事実だけを書きましょう。",
     reviewDisputeGuidanceTitle: "ガイダンス",
     reviewDisputeSummaryTitle: "削除申請用サマリー",
-    reviewDisputeCommunityTitle: "Community投稿案",
+    reviewDisputeCommunityTitle: "コミュニティ投稿案",
     reviewDisputePublicResponseTitle: "公開返信案",
     changeCompetitor: "競合を変更",
     resetCompetitor: "推奨競合に戻す",
@@ -1133,12 +1133,26 @@ function renderStaticCopy() {
   if (saveListingBtn) saveListingBtn.textContent = t("saveCurrent");
   if (savedMsgEl && !savedMsgEl.classList.contains("error")) {
     const currentSavedMsg = String(savedMsgEl.textContent || "").trim();
-    const defaultMessages = [
-      COPY.en.savedMsgDefault,
-      COPY.ja.savedMsgDefault,
+    const translatableSavedMessages = [
+      "savedMsgDefault",
+      "loadSavedPrompt",
+      "savedListingsLoaded",
+      "noSavedListingsForEmail",
+      "savedListingDirectLink",
+      "competitorUpdatedSaved",
+      "saveListingSaving",
+      "saveListingSaved",
+      "savedListingDeleted",
     ];
-    if (!currentSavedMsg || defaultMessages.includes(currentSavedMsg)) {
+
+    const matchingKey = translatableSavedMessages.find((key) =>
+      [COPY.en[key], COPY.ja[key]].includes(currentSavedMsg)
+    );
+
+    if (!currentSavedMsg) {
       savedMsgEl.textContent = t("savedMsgDefault");
+    } else if (matchingKey) {
+      savedMsgEl.textContent = t(matchingKey);
     }
   }
   if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");

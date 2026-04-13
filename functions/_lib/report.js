@@ -87,27 +87,40 @@ function pickNearestDefaultCompetitor({ competitors }) {
   return nearest?.place_id ?? list[0]?.place_id ?? null;
 }
 
-function buildPhotoAdvice(myPhotos, competitorPhotoAvg) {
+function buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang = "en") {
   const advice = [];
 
   if (competitorPhotoAvg == null) {
-    advice.push("Competitor photo data is still being collected.");
+    advice.push(
+      lang === "ja"
+        ? "競合の写真データはまだ収集中です。"
+        : "Competitor photo data is still being collected."
+    );
   } else if (myPhotos < competitorPhotoAvg) {
     advice.push(
-      `Your listing has ${competitorPhotoAvg - myPhotos} fewer photos than nearby competitors.`
+      lang === "ja"
+        ? `近隣競合より写真が ${competitorPhotoAvg - myPhotos} 枚少ない状態です。`
+        : `Your listing has ${competitorPhotoAvg - myPhotos} fewer photos than nearby competitors.`
     );
   } else {
-    advice.push("Your listing photo coverage is keeping pace with nearby competitors.");
+    advice.push(
+      lang === "ja"
+        ? "写真の掲載量は近隣競合に十分ついていけています。"
+        : "Your listing photo coverage is keeping pace with nearby competitors."
+    );
   }
 
   return {
-    recommendedShots: [
-      "Storefront / Exterior",
-      "Signature Dishes",
-      "Menu",
-      "Interior Atmosphere",
-      "Staff / Team",
-    ],
+    recommendedShots:
+      lang === "ja"
+        ? ["外観 / 店頭", "看板メニュー", "メニュー", "店内の雰囲気", "スタッフ / チーム"]
+        : [
+            "Storefront / Exterior",
+            "Signature Dishes",
+            "Menu",
+            "Interior Atmosphere",
+            "Staff / Team",
+          ],
     advice,
   };
 }
@@ -157,7 +170,7 @@ async function addCompetitorPhotoCounts({ key, competitors, limit = 3 }) {
   };
 }
 
-export async function buildListingReport({ key, placeId }) {
+export async function buildListingReport({ key, placeId, lang = "en" }) {
   const details = await fetchPlaceDetails({ key, placeId });
 
   if (!details?.ok) {
@@ -203,7 +216,7 @@ export async function buildListingReport({ key, placeId }) {
   const missingPhotos =
     competitorPhotoAvg != null ? Math.max(competitorPhotoAvg - myPhotos, 0) : null;
 
-  const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg);
+  const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang);
   const defaultCompetitorPlaceId = pickNearestDefaultCompetitor({
     competitors: enrichedCompetitors,
   });

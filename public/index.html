@@ -30,7 +30,12 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="row">
       <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save Current Listing</button>
     </div>
-    <div id="savedMsg" class="muted">
+    <div
+      id="savedMsg"
+      class="muted"
+      data-en="Analyze a listing, then save it so you can reopen the latest report quickly from this app."
+      data-ja="まず診断してから保存すると、このアプリで最新レポートをすぐ開き直せます。"
+    >
       Analyze a listing, then save it so you can reopen the latest report quickly from this app.
     </div>
     <ul id="savedListings" class="saved-list"></ul>
@@ -99,11 +104,26 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div id="reviewSupportCta" class="section review-support-cta hidden">
-      <h2 class="section__title">Review Support</h2>
-      <div id="reviewSupportCtaCopy" class="review-support-cta__copy muted">
+      <h2
+        class="section__title"
+        data-en="Review Support"
+        data-ja="レビュー対応サポート"
+      >Review Support</h2>
+      <div
+        id="reviewSupportCtaCopy"
+        class="review-support-cta__copy muted"
+        data-en="Organize a suspicious review and generate calm, factual draft text before you escalate."
+        data-ja="不審なレビューの論点を整理して、冷静で事実ベースの下書きを作ってから対応できます。"
+      >
         Organize a suspicious review and generate calm, factual draft text before you escalate.
       </div>
-      <button id="openReviewDisputeAssistantBtn" class="btn" type="button">
+      <button
+        id="openReviewDisputeAssistantBtn"
+        class="btn"
+        type="button"
+        data-en="Open Review Dispute Assistant"
+        data-ja="レビュー削除アシスタントを開く"
+      >
         Open Review Dispute Assistant
       </button>
     </div>
@@ -159,13 +179,32 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="assistant-modal__panel" role="dialog" aria-modal="true" aria-labelledby="reviewDisputeTitle">
       <div class="assistant-modal__header">
         <div>
-          <div class="assistant-modal__eyebrow">Review support utility</div>
-          <h2 id="reviewDisputeTitle" class="section__title">Review Dispute Assistant</h2>
-          <div class="assistant-modal__intro muted">
+          <div
+            class="assistant-modal__eyebrow"
+            data-en="Review support utility"
+            data-ja="レビュー対応ユーティリティ"
+          >Review support utility</div>
+          <h2
+            id="reviewDisputeTitle"
+            class="section__title"
+            data-en="Review Dispute Assistant"
+            data-ja="レビュー削除アシスタント"
+          >Review Dispute Assistant</h2>
+          <div
+            class="assistant-modal__intro muted"
+            data-en="Keep your explanation short, factual, and calm. This tool does not guarantee review removal."
+            data-ja="説明は短く、事実ベースで、落ち着いたトーンに保ちましょう。このツールはレビュー削除を保証するものではありません。"
+          >
             Keep your explanation short, factual, and calm. This tool does not guarantee review removal.
           </div>
         </div>
-        <button id="closeReviewDisputeAssistantBtn" class="btn assistant-modal__close" type="button">
+        <button
+          id="closeReviewDisputeAssistantBtn"
+          class="btn assistant-modal__close"
+          type="button"
+          data-en="Close"
+          data-ja="閉じる"
+        >
           Close
         </button>
       </div>
@@ -174,88 +213,150 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
       <form id="reviewDisputeForm" class="assistant-form">
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Review snapshot</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Review snapshot"
+            data-ja="レビュー情報"
+          >Review snapshot</h3>
           <div class="assistant-grid">
             <label class="assistant-field">
-              <span>Business name</span>
-              <input id="reviewDisputeBusinessName" class="input" type="text" placeholder="Example Dental" />
+              <span data-en="Business name" data-ja="店舗名">Business name</span>
+              <input
+                id="reviewDisputeBusinessName"
+                class="input"
+                type="text"
+                placeholder="Example Dental"
+                data-en-placeholder="Example Dental"
+                data-ja-placeholder="例: さくら歯科"
+              />
             </label>
             <label class="assistant-field">
-              <span>Reviewer name</span>
-              <input id="reviewDisputeReviewerName" class="input" type="text" placeholder="Optional" />
+              <span data-en="Reviewer name" data-ja="投稿者名">Reviewer name</span>
+              <input
+                id="reviewDisputeReviewerName"
+                class="input"
+                type="text"
+                placeholder="Optional"
+                data-en-placeholder="Optional"
+                data-ja-placeholder="任意"
+              />
             </label>
             <label class="assistant-field">
-              <span>Review date</span>
+              <span data-en="Review date" data-ja="レビュー投稿日">Review date</span>
               <input id="reviewDisputeReviewDate" class="input" type="date" />
             </label>
             <label class="assistant-field">
-              <span>Star rating</span>
+              <span data-en="Star rating" data-ja="評価">Star rating</span>
               <input id="reviewDisputeReviewRating" class="input" type="number" min="1" max="5" step="1" placeholder="1-5" />
             </label>
             <label class="assistant-field">
-              <span>Business launch date</span>
+              <span data-en="Business launch date" data-ja="店舗公開日">Business launch date</span>
               <input id="reviewDisputeBusinessLaunchDate" class="input" type="date" />
             </label>
             <label class="assistant-field">
-              <span>Service launch date</span>
+              <span data-en="Service launch date" data-ja="サービス開始日">Service launch date</span>
               <input id="reviewDisputeServiceLaunchDate" class="input" type="date" />
             </label>
           </div>
           <label class="assistant-field">
-            <span>Review text</span>
-            <textarea id="reviewDisputeReviewText" class="input assistant-textarea" rows="5" placeholder="Paste the suspicious review text here"></textarea>
+            <span data-en="Review text" data-ja="レビュー本文">Review text</span>
+            <textarea
+              id="reviewDisputeReviewText"
+              class="input assistant-textarea"
+              rows="5"
+              placeholder="Paste the suspicious review text here"
+              data-en-placeholder="Paste the suspicious review text here"
+              data-ja-placeholder="問題のあるレビュー本文をここに貼り付けてください"
+            ></textarea>
           </label>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Possible issue type</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Possible issue type"
+            data-ja="想定される論点"
+          >Possible issue type</h3>
           <div class="assistant-checklist assistant-checklist--compact">
-            <label><input type="checkbox" name="reviewDisputeCategory" value="not_a_real_customer" /> Not a real customer</label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="conflict_of_interest" /> Conflict of interest</label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="harassment_or_abuse" /> Harassment or abuse</label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="factually_impossible_claim" /> Factually impossible claim</label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="off_topic_or_irrelevant" /> Off-topic or irrelevant</label>
-            <label><input type="checkbox" name="reviewDisputeCategory" value="other" /> Other</label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="not_a_real_customer" /> <span data-en="Not a real customer" data-ja="実際の顧客ではない可能性">Not a real customer</span></label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="conflict_of_interest" /> <span data-en="Conflict of interest" data-ja="利害関係の可能性">Conflict of interest</span></label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="harassment_or_abuse" /> <span data-en="Harassment or abuse" data-ja="嫌がらせ・攻撃的表現">Harassment or abuse</span></label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="factually_impossible_claim" /> <span data-en="Factually impossible claim" data-ja="事実と整合しない主張">Factually impossible claim</span></label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="off_topic_or_irrelevant" /> <span data-en="Off-topic or irrelevant" data-ja="サービス体験と無関係">Off-topic or irrelevant</span></label>
+            <label><input type="checkbox" name="reviewDisputeCategory" value="other" /> <span data-en="Other" data-ja="その他">Other</span></label>
           </div>
-          <div class="muted assistant-note">Try to keep this to 1-2 issue types.</div>
+          <div
+            class="muted assistant-note"
+            data-en="Try to keep this to 1-2 issue types."
+            data-ja="論点は 1〜2 個に絞ると伝わりやすくなります。"
+          >Try to keep this to 1-2 issue types.</div>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Evidence checklist</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Evidence checklist"
+            data-ja="証拠チェックリスト"
+          >Evidence checklist</h3>
           <div class="assistant-checklist">
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="crm_no_customer_record" /> Reviewer is not found in CRM</label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="no_transaction_record" /> No transaction record exists</label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="service_not_launched_yet" /> Service was not launched yet</label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="timeline_documented" /> Relevant timeline is documented</label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="supporting_screenshots_ready" /> Supporting screenshots are ready</label>
-            <label><input type="checkbox" name="reviewDisputeEvidence" value="only_relevant_evidence_selected" /> Only directly relevant evidence is included</label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="crm_no_customer_record" /> <span data-en="Reviewer is not found in CRM" data-ja="CRM 上で該当顧客が見つからない">Reviewer is not found in CRM</span></label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="no_transaction_record" /> <span data-en="No transaction record exists" data-ja="取引記録が確認できない">No transaction record exists</span></label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="service_not_launched_yet" /> <span data-en="Service was not launched yet" data-ja="レビュー時点でサービスが未開始だった">Service was not launched yet</span></label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="timeline_documented" /> <span data-en="Relevant timeline is documented" data-ja="関連する時系列を整理済み">Relevant timeline is documented</span></label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="supporting_screenshots_ready" /> <span data-en="Supporting screenshots are ready" data-ja="補足スクリーンショットを用意済み">Supporting screenshots are ready</span></label>
+            <label><input type="checkbox" name="reviewDisputeEvidence" value="only_relevant_evidence_selected" /> <span data-en="Only directly relevant evidence is included" data-ja="直接関係する証拠だけに絞れている">Only directly relevant evidence is included</span></label>
           </div>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Actions already taken</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Actions already taken"
+            data-ja="すでに行った対応"
+          >Actions already taken</h3>
           <div class="assistant-checklist assistant-checklist--compact">
-            <label><input type="checkbox" name="reviewDisputeAction" value="flagged_in_gbp" /> Flagged in GBP</label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_removal_request" /> Submitted removal request</label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_appeal" /> Submitted appeal</label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="posted_help_community" /> Posted to Help Community</label>
-            <label><input type="checkbox" name="reviewDisputeAction" value="drafting_public_reply" /> Drafting a public reply</label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="flagged_in_gbp" /> <span data-en="Flagged in GBP" data-ja="GBP 上で報告済み">Flagged in GBP</span></label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_removal_request" /> <span data-en="Submitted removal request" data-ja="削除申請を送信済み">Submitted removal request</span></label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="submitted_appeal" /> <span data-en="Submitted appeal" data-ja="再審査を申請済み">Submitted appeal</span></label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="posted_help_community" /> <span data-en="Posted to Help Community" data-ja="Help Community に投稿済み">Posted to Help Community</span></label>
+            <label><input type="checkbox" name="reviewDisputeAction" value="drafting_public_reply" /> <span data-en="Drafting a public reply" data-ja="公開返信を準備中">Drafting a public reply</span></label>
           </div>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Desired help</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Desired help"
+            data-ja="求めている支援"
+          >Desired help</h3>
           <label class="assistant-field">
-            <span>What guidance are you looking for?</span>
-            <textarea id="reviewDisputeDesiredHelp" class="input assistant-textarea" rows="3" placeholder="Optional"></textarea>
+            <span data-en="What guidance are you looking for?" data-ja="どんな助言がほしいですか？">What guidance are you looking for?</span>
+            <textarea
+              id="reviewDisputeDesiredHelp"
+              class="input assistant-textarea"
+              rows="3"
+              placeholder="Optional"
+              data-en-placeholder="Optional"
+              data-ja-placeholder="任意"
+            ></textarea>
           </label>
         </div>
 
         <div class="assistant-actions">
-          <button id="reviewDisputeGenerateBtn" class="btn btn--primary" type="submit">
+          <button
+            id="reviewDisputeGenerateBtn"
+            class="btn btn--primary"
+            type="submit"
+            data-en="Generate drafts"
+            data-ja="下書きを生成する"
+          >
             Generate drafts
           </button>
-          <div class="muted assistant-note">
+          <div
+            class="muted assistant-note"
+            data-en="Avoid unnecessary accusations. Mention only what you can confirm directly."
+            data-ja="不要な断定は避け、直接確認できる事実だけを書きましょう。"
+          >
             Avoid unnecessary accusations. Mention only what you can confirm directly.
           </div>
         </div>
@@ -263,22 +364,38 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
 
       <div class="assistant-output">
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Guidance</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Guidance"
+            data-ja="ガイダンス"
+          >Guidance</h3>
           <ul id="reviewDisputeGuidance" class="list"></ul>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Removal summary</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Removal summary"
+            data-ja="削除申請用サマリー"
+          >Removal summary</h3>
           <textarea id="reviewDisputeSummary" class="input assistant-output__text" rows="7" readonly></textarea>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Community post</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Community post"
+            data-ja="Community 投稿案"
+          >Community post</h3>
           <textarea id="reviewDisputeCommunity" class="input assistant-output__text" rows="9" readonly></textarea>
         </div>
 
         <div class="assistant-section">
-          <h3 class="assistant-section__title">Public response</h3>
+          <h3
+            class="assistant-section__title"
+            data-en="Public response"
+            data-ja="公開返信案"
+          >Public response</h3>
           <textarea id="reviewDisputePublicResponse" class="input assistant-output__text" rows="7" readonly></textarea>
         </div>
       </div>
@@ -424,6 +541,44 @@ let competitorSearchState = {
   message: "",
   isError: false,
 };
+
+const uiLang = (() => {
+  try {
+    const url = new URL(window.location.href);
+    const explicit = (url.searchParams.get("lang") || "").trim().toLowerCase();
+    if (explicit === "ja" || explicit === "en") return explicit;
+  } catch {
+    // noop
+  }
+
+  const browserLang =
+    (Array.isArray(navigator.languages) && navigator.languages[0]) ||
+    navigator.language ||
+    "en";
+  return String(browserLang).toLowerCase().startsWith("ja") ? "ja" : "en";
+})();
+
+function uiText(en, ja) {
+  return uiLang === "ja" ? ja : en;
+}
+
+function applyStaticLocale() {
+  document.documentElement.lang = uiLang;
+
+  document.querySelectorAll("[data-en][data-ja]").forEach((el) => {
+    el.textContent = uiText(el.getAttribute("data-en") || "", el.getAttribute("data-ja") || "");
+  });
+
+  document.querySelectorAll("[data-en-placeholder][data-ja-placeholder]").forEach((el) => {
+    el.setAttribute(
+      "placeholder",
+      uiText(
+        el.getAttribute("data-en-placeholder") || "",
+        el.getAttribute("data-ja-placeholder") || ""
+      )
+    );
+  });
+}
 
 // ===== helpers =====
 function escapeHtml(s) {
@@ -683,7 +838,10 @@ function setReviewDisputeMessage(text = "", isError = false) {
 
 function clearReviewDisputeOutputs() {
   if (reviewDisputeGuidanceEl) {
-    reviewDisputeGuidanceEl.innerHTML = "<li>No draft generated yet.</li>";
+    reviewDisputeGuidanceEl.innerHTML = `<li>${uiText(
+      "No draft generated yet.",
+      "まだ下書きは生成されていません。"
+    )}</li>`;
   }
   if (reviewDisputeSummaryEl) reviewDisputeSummaryEl.value = "";
   if (reviewDisputeCommunityEl) reviewDisputeCommunityEl.value = "";
@@ -694,7 +852,10 @@ function resetReviewDisputeForm() {
   if (reviewDisputeFormEl) reviewDisputeFormEl.reset();
   if (reviewDisputeBusinessNameEl) reviewDisputeBusinessNameEl.value = "";
   if (reviewDisputeDesiredHelpEl) {
-    reviewDisputeDesiredHelpEl.value = "Guidance on how to present this clearly";
+    reviewDisputeDesiredHelpEl.value = uiText(
+      "Guidance on how to present this clearly",
+      "事実を分かりやすく整理して伝えるための助言がほしいです"
+    );
   }
 }
 
@@ -726,8 +887,14 @@ function renderReviewSupportCta(result) {
 
   if (reviewSupportCtaCopyEl) {
     reviewSupportCtaCopyEl.textContent = reviewDropVisible
-      ? "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate."
-      : "Organize a suspicious review and generate calm, factual draft text before you escalate.";
+      ? uiText(
+          "If a review or trust signal feels suspicious, organize the facts and draft a calm response before you escalate.",
+          "レビュー数の減少や信頼シグナルに違和感があるときは、事実を整理してから落ち着いた返信案を作れます。"
+        )
+      : uiText(
+          "Organize a suspicious review and generate calm, factual draft text before you escalate.",
+          "不審なレビューの論点を整理して、冷静で事実ベースの下書きを作ってから対応できます。"
+        );
   }
 }
 
@@ -743,7 +910,10 @@ function prefillReviewDisputeAssistant(result) {
   }
 
   if (reviewDisputeDesiredHelpEl && !reviewDisputeDesiredHelpEl.value.trim()) {
-    reviewDisputeDesiredHelpEl.value = "Guidance on how to present this clearly";
+    reviewDisputeDesiredHelpEl.value = uiText(
+      "Guidance on how to present this clearly",
+      "事実を分かりやすく整理して伝えるための助言がほしいです"
+    );
   }
 }
 
@@ -826,6 +996,7 @@ function collectReviewDisputeInput() {
     evidenceItems: evidenceKeys,
     actionsTaken: checkedValues("reviewDisputeAction"),
     desiredHelp: reviewDisputeDesiredHelpEl?.value?.trim() || "",
+    lang: uiLang,
   };
 }
 
@@ -850,7 +1021,10 @@ function renderReviewDisputeDrafts(payload) {
     reviewDisputeGuidanceEl.innerHTML = "";
 
     if (!guidance.length) {
-      reviewDisputeGuidanceEl.innerHTML = "<li>No additional guidance right now.</li>";
+      reviewDisputeGuidanceEl.innerHTML = `<li>${uiText(
+        "No additional guidance right now.",
+        "現時点で追加のガイダンスはありません。"
+      )}</li>`;
     } else {
       guidance.forEach((line) => appendListRow(reviewDisputeGuidanceEl, "", line));
     }
@@ -1779,7 +1953,10 @@ function renderSimpleList(listEl, items) {
 
   const safeItems = uniqueStrings(items);
   if (!safeItems.length) {
-    listEl.innerHTML = "<li>No immediate actions required.</li>";
+    listEl.innerHTML = `<li>${uiText(
+      "No immediate actions required.",
+      "現時点で追加アクションはありません。"
+    )}</li>`;
     return;
   }
 
@@ -1934,8 +2111,16 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
     renderInsight(currentResult);
     competitorChooserOpen = options.keepOpen === true;
     renderCompetitorControls(currentResult);
-    msg.textContent = "Competitor updated for this report.";
-    setSavedMessage("Competitor updated. Save Current Listing to keep this selection.");
+    msg.textContent = uiText(
+      "Competitor updated for this report.",
+      "このレポートの競合を更新しました。"
+    );
+    setSavedMessage(
+      uiText(
+        "Competitor updated. Save Current Listing to keep this selection.",
+        "競合を更新しました。この選択を残すには現在の店舗を保存してください。"
+      )
+    );
   } catch (error) {
     renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
     renderWeeklyReport(currentResult?.weeklyReport);
@@ -2134,7 +2319,10 @@ function renderPhotoAdvice(photoAdvice) {
   el.innerHTML = "";
 
   if (!photoAdvice) {
-    el.innerHTML = "<li>No photo advice available</li>";
+    el.innerHTML = `<li>${uiText(
+      "No photo advice available",
+      "推奨写真の提案はまだありません"
+    )}</li>`;
     return;
   }
 
@@ -2149,7 +2337,7 @@ function renderPhotoAdvice(photoAdvice) {
 
   shots.forEach((s) => {
     const li = document.createElement("li");
-    li.textContent = `Recommended shot: ${s}`;
+    li.textContent = uiText(`Recommended shot: ${s}`, `推奨ショット: ${s}`);
     el.appendChild(li);
   });
 }
@@ -2685,7 +2873,10 @@ function renderSavedListings(listings) {
   savedListingsEl.innerHTML = "";
 
   if (!Array.isArray(listings) || !listings.length) {
-    savedListingsEl.innerHTML = `<li class="muted">No saved listings yet</li>`;
+    savedListingsEl.innerHTML = `<li class="muted">${uiText(
+      "No saved listings yet",
+      "保存した店舗はまだありません"
+    )}</li>`;
     return;
   }
 
@@ -2703,9 +2894,16 @@ function renderSavedListings(listings) {
     const meta = document.createElement("div");
     meta.className = "saved__meta";
     meta.innerHTML = `
-      <div>${escapeHtml(item.address || "Address not available")}</div>
-      <div>Updated: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || "Just now")}</div>
-      <div>Saved for quick re-open from this dashboard.</div>
+      <div>${escapeHtml(item.address || uiText("Address not available", "住所情報はまだありません"))}</div>
+      <div>${escapeHtml(
+        uiText("Updated", "更新日")
+      )}: ${escapeHtml(formatDateTime(item.updatedAt || item.createdAt) || uiText("Just now", "たった今"))}</div>
+      <div>${escapeHtml(
+        uiText(
+          "Saved for quick re-open from this dashboard.",
+          "このダッシュボードからすぐ開き直せるよう保存されています。"
+        )
+      )}</div>
     `;
 
     let competitorBlock = null;
@@ -2713,7 +2911,9 @@ function renderSavedListings(listings) {
       competitorBlock = document.createElement("div");
       competitorBlock.className = "saved__competitor";
       competitorBlock.innerHTML = `
-        <div>Compared with: ${escapeHtml(item?.competitorName || "Selected competitor")}</div>
+        <div>${escapeHtml(uiText("Compared with", "比較対象"))}: ${escapeHtml(
+          item?.competitorName || uiText("Selected competitor", "選択中の競合")
+        )}</div>
         ${
           item?.competitorAddress
             ? `<div class="saved__competitor-address">${escapeHtml(item.competitorAddress)}</div>`
@@ -2774,14 +2974,14 @@ function renderSavedListings(listings) {
     openBtn.className = "btn";
     openBtn.dataset.action = "open";
     openBtn.dataset.savedId = item.id;
-    openBtn.textContent = "Open Latest Report";
+    openBtn.textContent = uiText("Open Latest Report", "最新レポートを開く");
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "btn";
     deleteBtn.dataset.action = "delete";
     deleteBtn.dataset.savedId = item.id;
-    deleteBtn.textContent = "Delete";
+    deleteBtn.textContent = uiText("Delete", "削除");
 
     actions.appendChild(openBtn);
     actions.appendChild(deleteBtn);
@@ -2865,7 +3065,12 @@ async function refreshSavedListings(options = {}) {
   if (!isLikelyEmail(email)) {
     renderSavedListings([]);
     if (!options.quiet) {
-      setSavedMessage("Enter your email to load saved listings.");
+      setSavedMessage(
+        uiText(
+          "Enter your email to load saved listings.",
+          "保存した店舗を読み込むにはメールアドレスを入力してください。"
+        )
+      );
     }
     return;
   }
@@ -2878,14 +3083,14 @@ async function refreshSavedListings(options = {}) {
 
   renderSavedListings(response.listings);
   if (!options.quiet) {
-    setSavedMessage("Saved listings loaded.");
+    setSavedMessage(uiText("Saved listings loaded.", "保存した店舗を読み込みました。"));
   }
 }
 
 async function openSavedListing(id, options = {}) {
   resetUI();
   setLoading(true);
-  msg.textContent = "Loading saved listing...";
+  msg.textContent = uiText("Loading saved listing...", "保存した店舗を読み込んでいます...");
 
   try {
     const data = await fetchSavedReport(id);
@@ -2906,11 +3111,14 @@ async function openSavedListing(id, options = {}) {
     if (options.pushState !== false) {
       setUrlSavedParam(id);
     }
-    msg.textContent = "Saved listing loaded.";
+    msg.textContent = uiText("Saved listing loaded.", "保存した店舗を読み込みました。");
     setSavedMessage(
       options.ensureSavedListingVisible && !isLikelyEmail(getSubscriberEmail())
-        ? "Showing this saved listing from a direct link. Enter your email to load all saved listings."
-        : "Saved listing loaded."
+        ? uiText(
+            "Showing this saved listing from a direct link. Enter your email to load all saved listings.",
+            "共有リンクからこの保存店舗を表示しています。全件を読むにはメールアドレスを入力してください。"
+          )
+        : uiText("Saved listing loaded.", "保存した店舗を読み込みました。")
     );
   } catch (error) {
     showError(error?.message || String(error));
@@ -2950,7 +3158,10 @@ function renderHistory(list) {
   historyEl.innerHTML = "";
 
   if (!list.length) {
-    historyEl.innerHTML = `<li class="muted">No history yet</li>`;
+    historyEl.innerHTML = `<li class="muted">${uiText(
+      "No history yet",
+      "履歴はまだありません"
+    )}</li>`;
     return;
   }
 
@@ -3055,20 +3266,34 @@ if (reviewDisputeFormEl) {
 
     const payload = collectReviewDisputeInput();
     if (!payload.reviewText) {
-      setReviewDisputeMessage("Paste the suspicious review text before generating drafts.", true);
+      setReviewDisputeMessage(
+        uiText(
+          "Paste the suspicious review text before generating drafts.",
+          "下書きを生成する前に、問題のあるレビュー本文を貼り付けてください。"
+        ),
+        true
+      );
       return;
     }
 
     try {
-      setReviewDisputeMessage("Generating drafts...");
+      setReviewDisputeMessage(uiText("Generating drafts...", "下書きを生成しています..."));
       if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.disabled = true;
       const response = await fetchReviewDisputeDraft(payload);
       if (!response?.ok) {
-        throw new Error(getApiMessage(response, "Could not generate review dispute drafts."));
+        throw new Error(
+          getApiMessage(
+            response,
+            uiText(
+              "Could not generate review dispute drafts.",
+              "レビュー削除アシスタントの下書きを生成できませんでした。"
+            )
+          )
+        );
       }
 
       renderReviewDisputeDrafts(response);
-      setReviewDisputeMessage("Drafts generated.");
+      setReviewDisputeMessage(uiText("Drafts generated.", "下書きを生成しました。"));
     } catch (error) {
       setReviewDisputeMessage(error?.message || String(error), true);
     } finally {
@@ -3126,22 +3351,35 @@ if (saveListingBtn) {
       }
 
       if (!isLikelyEmail(payload.email)) {
-        throw new Error("Enter a valid email address before saving a listing.");
+        throw new Error(
+          uiText(
+            "Enter a valid email address before saving a listing.",
+            "店舗を保存する前に有効なメールアドレスを入力してください。"
+          )
+        );
       }
 
       if (!payload.competitorPlaceId) {
-        throw new Error("A competitor must be selected before weekly reports can be created.");
+        throw new Error(
+          uiText(
+            "A competitor must be selected before weekly reports can be created.",
+            "週次レポートを作る前に競合を1件選択してください。"
+          )
+        );
       }
 
       persistSubscriberEmail(payload.email);
-      setSavedMessage("Saving listing...");
+      setSavedMessage(uiText("Saving listing...", "店舗を保存しています..."));
       const response = await saveListingSubscription(payload);
       if (!response?.ok) {
         throw new Error(getApiMessage(response, "Could not save this listing."));
       }
 
       setSavedMessage(
-        "Listing saved. You can reopen it anytime from Saved Listings."
+        uiText(
+          "Listing saved. You can reopen it anytime from Saved Listings.",
+          "店舗を保存しました。保存した店舗からいつでも最新レポートを開き直せます。"
+        )
       );
       await refreshSavedListings({ quiet: true });
     } catch (error) {
@@ -3223,7 +3461,12 @@ if (savedListingsEl) {
       try {
         const email = getSubscriberEmail();
         if (!isLikelyEmail(email)) {
-          throw new Error("Enter the same email address used to save this listing.");
+          throw new Error(
+            uiText(
+              "Enter the same email address used to save this listing.",
+              "この店舗を保存したときと同じメールアドレスを入力してください。"
+            )
+          );
         }
 
         const removed = await removeSavedListing(id, email);
@@ -3231,7 +3474,7 @@ if (savedListingsEl) {
           throw new Error(getApiMessage(removed, "Could not delete this saved listing."));
         }
 
-        setSavedMessage("Saved listing deleted.");
+        setSavedMessage(uiText("Saved listing deleted.", "保存した店舗を削除しました。"));
         await refreshSavedListings({ quiet: true });
       } catch (error) {
         setSavedMessage(error?.message || String(error), true);
@@ -3309,7 +3552,9 @@ btn.addEventListener("click", async () => {
   setLoading(true);
 
   try {
-    const data = await fetchApiJson(`/api/diagnose?q=${encodeURIComponent(q)}`);
+    const data = await fetchApiJson(
+      `/api/diagnose?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(uiLang)}`
+    );
     if (!data?.ok) throw new Error(getApiMessage(data, "Analysis failed."));
 
     const details = data?.details ?? {};
@@ -3330,7 +3575,7 @@ btn.addEventListener("click", async () => {
       data: hydrated,
     });
     setUrlSavedParam(null);
-    msg.textContent = "Analysis complete.";
+    msg.textContent = uiText("Analysis complete.", "診断が完了しました。");
   } catch (e) {
     showError(e?.message || String(e));
   } finally {
@@ -3339,6 +3584,7 @@ btn.addEventListener("click", async () => {
 });
 
 // init
+applyStaticLocale();
 renderHistory(loadHistory());
 renderSavedListings([]);
 

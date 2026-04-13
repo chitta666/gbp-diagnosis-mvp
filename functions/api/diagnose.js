@@ -1,5 +1,13 @@
 import { resolvePlaceIdFromQuery, buildListingReport } from "../_lib/report.js";
 
+function resolveLang(request, url) {
+  const explicit = (url.searchParams.get("lang") || "").trim().toLowerCase();
+  if (explicit === "ja" || explicit === "en") return explicit;
+
+  const acceptLanguage = String(request.headers.get("accept-language") || "").toLowerCase();
+  return acceptLanguage.includes("ja") ? "ja" : "en";
+}
+
 export async function onRequest({ request, env }) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -31,6 +39,7 @@ export async function onRequest({ request, env }) {
     }
 
     const url = new URL(request.url);
+    const lang = resolveLang(request, url);
     const q = (url.searchParams.get("q") || "").trim();
 
     if (!q) {
@@ -52,7 +61,7 @@ export async function onRequest({ request, env }) {
       });
     }
 
-    const report = await buildListingReport({ key, placeId: resolved.placeId });
+    const report = await buildListingReport({ key, placeId: resolved.placeId, lang });
     if (!report.ok) {
       console.error("diagnose build report failed", {
         q,

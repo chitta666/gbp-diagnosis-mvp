@@ -1,6 +1,10 @@
 import { resolvePlaceIdFromQuery, buildListingReport } from "../_lib/report.js";
 import { resolveRequestLanguage } from "../_lib/i18n.js";
 
+function t(lang, en, ja) {
+  return lang === "ja" ? ja : en;
+}
+
 export async function onRequest({ request, env }) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -23,20 +27,28 @@ export async function onRequest({ request, env }) {
 
   try {
     const key = env?.GOOGLE_MAPS_API_KEY;
+    const { lang } = resolveRequestLanguage({ request, fallback: "en" });
     if (!key) {
       return publicError(
         "SERVICE_UNAVAILABLE",
-        "The analysis service is temporarily unavailable.",
+        t(
+          lang,
+          "The analysis service is temporarily unavailable.",
+          "現在、分析サービスを一時的に利用できません。"
+        ),
         500
       );
     }
 
     const url = new URL(request.url);
     const q = (url.searchParams.get("q") || "").trim();
-    const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
     if (!q) {
-      return publicError("BAD_INPUT", "Enter a business name and address.", 400);
+      return publicError(
+        "BAD_INPUT",
+        t(lang, "Enter a business name and address.", "店舗名と住所を入力してください。"),
+        400
+      );
     }
 
     const resolved = await resolvePlaceIdFromQuery({ key, q, lang });
@@ -75,7 +87,11 @@ export async function onRequest({ request, env }) {
     console.error("diagnose failed", e);
     return publicError(
       "INTERNAL_ERROR",
-      "Something went wrong while analyzing this listing. Please try again.",
+      t(
+        lang,
+        "Something went wrong while analyzing this listing. Please try again.",
+        "店舗の分析中に問題が発生しました。もう一度お試しください。"
+      ),
       500
     );
   }

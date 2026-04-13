@@ -8,6 +8,10 @@ import { fetchCompetitorsAutoRadius } from "./competitors.js";
 import { buildDiagnosis } from "./diagnosis.js";
 import { buildReviewClues } from "./reviewClues.js";
 
+function t(lang, en, ja) {
+  return lang === "ja" ? ja : en;
+}
+
 export async function resolvePlaceIdFromQuery({ key, q, lang = "en" }) {
   try {
     const findUrl =
@@ -34,9 +38,16 @@ export async function resolvePlaceIdFromQuery({ key, q, lang = "en" }) {
       return {
         ok: false,
         code: "PLACE_NOT_FOUND",
-        message:
+        message: t(
+          lang,
           "We couldn't find that business. Try the business name with the full address.",
-        hint: "Try the business name with the full address.",
+          "その店舗は見つかりませんでした。店舗名と住所をフルで入れてもう一度お試しください。"
+        ),
+        hint: t(
+          lang,
+          "Try the business name with the full address.",
+          "店舗名と住所をフルで入れて再度お試しください。"
+        ),
         httpStatus: 404,
         upstreamStatus: found?.status ?? null,
         upstreamErrorMessage: found?.error_message ?? null,
@@ -87,27 +98,40 @@ function pickNearestDefaultCompetitor({ competitors }) {
   return nearest?.place_id ?? list[0]?.place_id ?? null;
 }
 
-function buildPhotoAdvice(myPhotos, competitorPhotoAvg) {
+function buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang = "en") {
   const advice = [];
 
   if (competitorPhotoAvg == null) {
-    advice.push("Competitor photo data is still being collected.");
+    advice.push(
+      lang === "ja"
+        ? "競合の写真データはまだ収集中です。"
+        : "Competitor photo data is still being collected."
+    );
   } else if (myPhotos < competitorPhotoAvg) {
     advice.push(
-      `Your listing has ${competitorPhotoAvg - myPhotos} fewer photos than nearby competitors.`
+      lang === "ja"
+        ? `近隣競合より写真が ${competitorPhotoAvg - myPhotos} 枚少ない状態です。`
+        : `Your listing has ${competitorPhotoAvg - myPhotos} fewer photos than nearby competitors.`
     );
   } else {
-    advice.push("Your listing photo coverage is keeping pace with nearby competitors.");
+    advice.push(
+      lang === "ja"
+        ? "写真の掲載量は近隣競合に十分ついていけています。"
+        : "Your listing photo coverage is keeping pace with nearby competitors."
+    );
   }
 
   return {
-    recommendedShots: [
-      "Storefront / Exterior",
-      "Signature Dishes",
-      "Menu",
-      "Interior Atmosphere",
-      "Staff / Team",
-    ],
+    recommendedShots:
+      lang === "ja"
+        ? ["外観 / 店頭", "看板メニュー", "メニュー", "店内の雰囲気", "スタッフ / チーム"]
+        : [
+            "Storefront / Exterior",
+            "Signature Dishes",
+            "Menu",
+            "Interior Atmosphere",
+            "Staff / Team",
+          ],
     advice,
   };
 }
@@ -164,7 +188,13 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     return {
       ok: false,
       code: details?.code || "PLACE_DETAILS_FAILED",
-      message: details?.message || "We couldn't load the business details for that listing.",
+      message:
+        details?.message ||
+        t(
+          lang,
+          "We couldn't load the business details for that listing.",
+          "その店舗の詳細情報を読み込めませんでした。"
+        ),
       hint: details?.hint ?? null,
       httpStatus: details?.httpStatus ?? 502,
       upstreamStatus: details?.upstreamStatus ?? details?.status ?? null,
@@ -179,7 +209,11 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     return {
       ok: false,
       code: "LOCATION_UNAVAILABLE",
-      message: "We couldn't determine the business location for comparison.",
+      message: t(
+        lang,
+        "We couldn't determine the business location for comparison.",
+        "比較に必要な店舗位置を特定できませんでした。"
+      ),
     };
   }
 
@@ -205,7 +239,7 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
   const missingPhotos =
     competitorPhotoAvg != null ? Math.max(competitorPhotoAvg - myPhotos, 0) : null;
 
-  const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg);
+  const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang);
   const defaultCompetitorPlaceId = pickNearestDefaultCompetitor({
     competitors: enrichedCompetitors,
   });

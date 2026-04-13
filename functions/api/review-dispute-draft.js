@@ -1,5 +1,17 @@
 import { buildReviewDisputeDrafts } from "../_lib/reviewDispute.js";
 
+function resolveLang(request, body = null) {
+  const explicit = String(body?.lang || "").trim().toLowerCase();
+  if (explicit === "ja" || explicit === "en") return explicit;
+
+  const acceptLanguage = String(request.headers.get("accept-language") || "").toLowerCase();
+  return acceptLanguage.includes("ja") ? "ja" : "en";
+}
+
+function t(lang, en, ja) {
+  return lang === "ja" ? ja : en;
+}
+
 export async function onRequest({ request }) {
   const headers = {
     "content-type": "application/json; charset=utf-8",
@@ -25,10 +37,15 @@ export async function onRequest({ request }) {
   }
 
   let body;
+  let lang = resolveLang(request);
   try {
     body = await request.json();
+    lang = resolveLang(request, body);
   } catch {
-    return json({ ok: false, error: "INVALID_JSON" }, 400);
+    return json(
+      { ok: false, error: "INVALID_JSON", message: t(lang, "Invalid JSON body.", "JSON の形式が正しくありません。") },
+      400
+    );
   }
 
   try {
@@ -44,7 +61,11 @@ export async function onRequest({ request }) {
       {
         ok: false,
         error: "INTERNAL_ERROR",
-        message: "Could not generate review dispute drafts right now.",
+        message: t(
+          lang,
+          "Could not generate review dispute drafts right now.",
+          "現在はレビュー削除アシスタントの下書きを生成できません。"
+        ),
       },
       500
     );

@@ -36,7 +36,7 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     <div class="row">
       <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save Current Listing</button>
     </div>
-    <div id="savedMsg" class="muted">
+    <div id="savedMsg" class="muted" data-i18n-key="savedMsgDefault">
       Analyze a listing, then save it so you can reopen the latest report quickly from this app.
     </div>
     <ul id="savedListings" class="saved-list"></ul>
@@ -1133,10 +1133,12 @@ function renderStaticCopy() {
   if (saveListingBtn) saveListingBtn.textContent = t("saveCurrent");
   if (savedMsgEl && !savedMsgEl.classList.contains("error")) {
     const currentSavedMsg = String(savedMsgEl.textContent || "").trim();
+    const currentSavedKey = String(savedMsgEl.dataset.i18nKey || "").trim();
     const translatableSavedMessages = [
       "savedMsgDefault",
       "loadSavedPrompt",
       "savedListingsLoaded",
+      "savedListingLoaded",
       "noSavedListingsForEmail",
       "savedListingDirectLink",
       "competitorUpdatedSaved",
@@ -1145,14 +1147,20 @@ function renderStaticCopy() {
       "savedListingDeleted",
     ];
 
-    const matchingKey = translatableSavedMessages.find((key) =>
-      [COPY.en[key], COPY.ja[key]].includes(currentSavedMsg)
-    );
+    const matchingKey =
+      (currentSavedKey && translatableSavedMessages.includes(currentSavedKey)
+        ? currentSavedKey
+        : "") ||
+      translatableSavedMessages.find((key) =>
+        [COPY.en[key], COPY.ja[key]].includes(currentSavedMsg)
+      );
 
-    if (!currentSavedMsg) {
+    if (!currentSavedMsg || !matchingKey) {
       savedMsgEl.textContent = t("savedMsgDefault");
+      savedMsgEl.dataset.i18nKey = "savedMsgDefault";
     } else if (matchingKey) {
       savedMsgEl.textContent = t(matchingKey);
+      savedMsgEl.dataset.i18nKey = matchingKey;
     }
   }
   if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
@@ -1524,6 +1532,13 @@ function setSavedMessage(message, isError = false) {
   if (!savedMsgEl) return;
   savedMsgEl.textContent = message;
   savedMsgEl.classList.toggle("error", Boolean(isError));
+  if (isError) delete savedMsgEl.dataset.i18nKey;
+}
+
+function setSavedMessageKey(key) {
+  if (!savedMsgEl) return;
+  savedMsgEl.dataset.i18nKey = key;
+  setSavedMessage(t(key));
 }
 
 function setUrlSavedParam(savedId) {
@@ -2656,8 +2671,8 @@ function buildPrimaryActions(context) {
 function buildFoundationStatusView(context) {
   const details = [];
 
-  if (context.missing.includes("website")) details.push(langText("Website link is missing.", "Webサイトのリンクがありません。"));
-  else details.push(langText("Website link is in place.", "Webサイトのリンクは設定されています。"));
+  if (context.missing.includes("website")) details.push(langText("Website link is missing.", "ウェブサイトのリンクがありません。"));
+  else details.push(langText("Website link is in place.", "ウェブサイトのリンクは設定されています。"));
 
   if (context.missing.includes("phone")) details.push(langText("Phone number is missing.", "電話番号がありません。"));
   else details.push(langText("Phone number is in place.", "電話番号は設定されています。"));
@@ -2759,7 +2774,7 @@ function buildDiagnosisFirstView(data) {
     summaryLines = [
       langText(
         "Nothing looks fundamentally broken in the Google basics.",
-        "Google basics に大きな破綻は見えていません。"
+        "Google基本情報に大きな破綻は見えていません。"
       ),
       buildCompetitiveDetail(context),
       langText(
@@ -2770,16 +2785,16 @@ function buildDiagnosisFirstView(data) {
   } else {
     headline = langText(
       "The listing looks healthy, and there is no urgent first-view problem right now.",
-      "店舗情報は健全に見えていて、現時点で急ぐ first-view の問題はありません。"
+      "店舗情報は健全に見えていて、現時点で急ぐ第一印象上の問題はありません。"
     );
     summaryLines = [
       langText(
         "This snapshot does not show a major foundation issue or a large competitor gap.",
-        "この時点では、大きな foundation issue も大きな competitor gap も見えていません。"
+        "この時点では、大きな基本情報の弱さも大きな競合差も見えていません。"
       ),
       langText(
         "The job now is maintenance, not rescue.",
-        "いまの仕事は rescue ではなく maintenance です。"
+        "いまの仕事は立て直しではなく、良い状態の維持です。"
       ),
       langText(
         "Keep visible proof active and re-check the same competitor over time.",
@@ -2790,7 +2805,7 @@ function buildDiagnosisFirstView(data) {
 
   const priorityItems = [
     {
-      label: langText("Google basics", "Google basics"),
+      label: langText("Google basics", "Google基本情報"),
       value: context.foundationStatus === "needs_work"
         ? langText("Needs work", "要対応")
         : langText("In place", "整備済み"),
@@ -3022,7 +3037,7 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
       currentLanguage === "ja"
         ? "このレポートの競合を更新しました。"
         : "Competitor updated for this report.";
-    setSavedMessage(t("competitorUpdatedSaved"));
+    setSavedMessageKey("competitorUpdatedSaved");
   } catch (error) {
     renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
     renderWeeklyReport(currentResult?.weeklyReport);
@@ -3483,7 +3498,10 @@ function buildInsight(diagnosis, compare, options = {}) {
       "system",
       "website",
       120,
-      "Your listing is missing a website, which weakens trust for customers comparing nearby options."
+      langText(
+        "Your listing is missing a website, which weakens trust for customers comparing nearby options.",
+        "ウェブサイトが未設定なので、近隣候補と比べる人にとって信頼感が弱まりやすくなっています。"
+      )
     );
   }
 
@@ -3492,7 +3510,10 @@ function buildInsight(diagnosis, compare, options = {}) {
       "system",
       "phone",
       98,
-      "Missing phone details make the listing feel harder to trust at a glance."
+      langText(
+        "Missing phone details make the listing feel harder to trust at a glance.",
+        "電話番号が見えないため、一目での信頼感が落ちやすくなっています。"
+      )
     );
   }
 
@@ -3502,15 +3523,24 @@ function buildInsight(diagnosis, compare, options = {}) {
       "photo-gap",
       missingPhotos >= 8 ? 94 : 82,
       missingPhotos >= 8
-        ? `You have about ${missingPhotos} fewer photos than nearby listings, so customers get less context before choosing.`
-        : `Add about ${missingPhotos} more photos to keep pace with nearby listings and give customers more confidence.`
+        ? langText(
+            `You have about ${missingPhotos} fewer photos than nearby listings, so customers get less context before choosing.`,
+            `近隣店舗より写真が約 ${missingPhotos} 枚少なく、選ぶ前に伝わる情報量が不足しています。`
+          )
+        : langText(
+            `Add about ${missingPhotos} more photos to keep pace with nearby listings and give customers more confidence.`,
+            `近隣店舗に並ぶには、あと約 ${missingPhotos} 枚の写真を足して安心感を補うのが有効です。`
+          )
     );
   } else if (missing.includes("photos")) {
     addCandidate(
       "system",
       "photos",
       76,
-      "Photo coverage is still thin, which gives customers less confidence when comparing options."
+      langText(
+        "Photo coverage is still thin, which gives customers less confidence when comparing options.",
+        "写真の厚みがまだ薄く、比較中のユーザーに十分な安心感を与えにくい状態です。"
+      )
     );
   }
 
@@ -3521,7 +3551,10 @@ function buildInsight(diagnosis, compare, options = {}) {
         "system",
         "completeness",
         90,
-        "Core listing details still look incomplete, which can make the business feel less established."
+        langText(
+          "Core listing details still look incomplete, which can make the business feel less established.",
+          "基本情報にまだ抜けがあり、店舗としての整い方が弱く見えやすい状態です。"
+        )
       );
     }
   }
@@ -3532,7 +3565,10 @@ function buildInsight(diagnosis, compare, options = {}) {
       "competitor",
       "review-gap",
       gap >= 200 ? 108 : gap >= 50 ? 94 : 82,
-      `Compared with ${competitorName}, your review count is behind by ${gap}, which may make the listing feel less established.`
+      langText(
+        `Compared with ${competitorName}, your review count is behind by ${gap}, which may make the listing feel less established.`,
+        `${competitorName} と比べてレビュー数が ${gap} 件少なく、店舗としての確かさが弱く見えやすい状態です。`
+      )
     );
   } else if (Number.isFinite(totalDiff) && totalDiff > 0) {
     addCandidate(
@@ -3540,17 +3576,29 @@ function buildInsight(diagnosis, compare, options = {}) {
       "review-lead",
       totalDiff >= 200 ? 62 : totalDiff >= 50 ? 58 : 56,
       totalDiff >= 200
-        ? `Compared with ${competitorName}, your review position already looks much more established.`
+        ? langText(
+            `Compared with ${competitorName}, your review position already looks much more established.`,
+            `${competitorName} と比べてレビュー面の土台はかなり強く見えています。`
+          )
         : totalDiff <= 50
-          ? `Compared with ${competitorName}, your review lead is still narrow, so steady review growth matters.`
-          : `Compared with ${competitorName}, your review position looks stronger right now.`
+          ? langText(
+              `Compared with ${competitorName}, your review lead is still narrow, so steady review growth matters.`,
+              `${competitorName} との差はまだ小さいので、安定したレビュー増加が重要です。`
+            )
+          : langText(
+              `Compared with ${competitorName}, your review position looks stronger right now.`,
+              `${competitorName} と比べると、現時点ではレビュー面でやや優位に見えます。`
+            )
     );
   } else if (Number.isFinite(totalDiff) && totalDiff === 0) {
     addCandidate(
       "competitor",
       "parity",
       60,
-      `You are close to ${competitorName} on reviews, so small changes could quickly affect how established the listing looks.`
+      langText(
+        `You are close to ${competitorName} on reviews, so small changes could quickly affect how established the listing looks.`,
+        `${competitorName} とレビュー数が近いので、小さな増減でも見え方がすぐ変わりやすい状態です。`
+      )
     );
   }
 
@@ -3559,7 +3607,10 @@ function buildInsight(diagnosis, compare, options = {}) {
       "competitor",
       "growth-gap",
       Math.abs(deltaDiff) >= 2 ? 88 : 74,
-      `Compared with ${competitorName}, recent review growth is slower right now, so the gap could widen.`
+      langText(
+        `Compared with ${competitorName}, recent review growth is slower right now, so the gap could widen.`,
+        `${competitorName} と比べて直近のレビュー増加が鈍く、このままだと差が広がる可能性があります。`
+      )
     );
   } else if (
     compare?.status === "ready" &&
@@ -3572,16 +3623,23 @@ function buildInsight(diagnosis, compare, options = {}) {
       "strength",
       "review-lead",
       52,
-      `Compared with ${competitorName}, your review position looks strong right now.`
+      langText(
+        `Compared with ${competitorName}, your review position looks strong right now.`,
+        `${competitorName} と比べると、いまのレビュー面は強く見えています。`
+      )
     );
   }
 
   if (!candidates.length && compare?.status && compare.status !== "ready") {
-    return "Tracking competitor changes now. Check back after more daily snapshots are saved.";
+    return currentLanguage === "ja"
+      ? "競合の変化を追跡中です。日次スナップショットがもう少したまってから再確認してください。"
+      : "Tracking competitor changes now. Check back after more daily snapshots are saved.";
   }
 
   if (!candidates.length) {
-    return "Core listing details look solid, and the profile is in a healthy position right now.";
+    return currentLanguage === "ja"
+      ? "基本情報はしっかりしていて、現時点のプロフィール状態は健全に見えます。"
+      : "Core listing details look solid, and the profile is in a healthy position right now.";
   }
 
   const sorted = candidates.sort((a, b) => b.priority - a.priority);
@@ -4000,7 +4058,7 @@ async function refreshSavedListings(options = {}) {
   if (!isLikelyEmail(email)) {
     renderSavedListings([]);
     if (!options.quiet) {
-      setSavedMessage(t("loadSavedPrompt"));
+      setSavedMessageKey("loadSavedPrompt");
     }
     return;
   }
@@ -4013,10 +4071,10 @@ async function refreshSavedListings(options = {}) {
 
   renderSavedListings(response.listings);
   if (!options.quiet) {
-    setSavedMessage(
+    setSavedMessageKey(
       Array.isArray(response?.listings) && response.listings.length
-        ? t("savedListingsLoaded")
-        : t("noSavedListingsForEmail")
+        ? "savedListingsLoaded"
+        : "noSavedListingsForEmail"
     );
   }
 }
@@ -4046,10 +4104,10 @@ async function openSavedListing(id, options = {}) {
       setUrlSavedParam(id);
     }
     msg.textContent = t("savedListingLoaded");
-    setSavedMessage(
+    setSavedMessageKey(
       options.ensureSavedListingVisible && !isLikelyEmail(getSubscriberEmail())
-        ? t("savedListingDirectLink")
-        : t("savedListingLoaded")
+        ? "savedListingDirectLink"
+        : "savedListingLoaded"
     );
   } catch (error) {
     showError(error?.message || String(error));
@@ -4273,13 +4331,13 @@ if (saveListingBtn) {
       }
 
       persistSubscriberEmail(payload.email);
-      setSavedMessage(t("saveListingSaving"));
+      setSavedMessageKey("saveListingSaving");
       const response = await saveListingSubscription(payload);
       if (!response?.ok) {
         throw new Error(getApiMessage(response, t("couldNotSaveListing")));
       }
 
-      setSavedMessage(t("saveListingSaved"));
+      setSavedMessageKey("saveListingSaved");
       await refreshSavedListings({ quiet: true });
     } catch (error) {
       setSavedMessage(error?.message || String(error), true);
@@ -4368,7 +4426,7 @@ if (savedListingsEl) {
           throw new Error(getApiMessage(removed, t("couldNotDeleteSavedListing")));
         }
 
-        setSavedMessage(t("savedListingDeleted"));
+        setSavedMessageKey("savedListingDeleted");
         await refreshSavedListings({ quiet: true });
       } catch (error) {
         setSavedMessage(error?.message || String(error), true);

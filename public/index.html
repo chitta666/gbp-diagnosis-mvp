@@ -1720,6 +1720,7 @@ function collectReviewDisputeInput() {
   }));
 
   return {
+    lang: currentLanguage(),
     businessName: reviewDisputeBusinessNameEl?.value?.trim() || "",
     reviewerName: reviewDisputeReviewerNameEl?.value?.trim() || "",
     reviewDate: reviewDisputeReviewDateEl?.value || "",

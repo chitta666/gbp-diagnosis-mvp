@@ -49,7 +49,10 @@ export async function onRequest({ request }) {
   }
 
   try {
-    const drafted = buildReviewDisputeDrafts(body);
+    const drafted = buildReviewDisputeDrafts({
+      ...body,
+      lang,
+    });
     if (!drafted.ok) {
       return json(drafted, 400);
     }

@@ -250,6 +250,63 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
         </div>
 
         <div class="assistant-section">
+          <h3 id="reviewDisputeTriageTitle" class="assistant-section__title">Case triage</h3>
+          <div id="reviewDisputeTriageIntro" class="muted assistant-note">
+            Use quick yes / no / unknown answers. Leave anything uncertain as unknown.
+          </div>
+          <div class="assistant-grid assistant-grid--triage">
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageCustomerRecordLabel">Can you match this review to a customer record?</span>
+              <select id="reviewDisputeTriageCustomerRecord" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriagePaymentRecordLabel">Can you match this review to a payment or transaction record?</span>
+              <select id="reviewDisputeTriagePaymentRecord" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageBookingRecordLabel">Can you match this review to a booking record?</span>
+              <select id="reviewDisputeTriageBookingRecord" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriagePredatesBusinessLabel">Does the review appear to predate the business launch?</span>
+              <select id="reviewDisputeTriagePredatesBusiness" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriagePredatesServiceLabel">Does the review appear to predate the service launch?</span>
+              <select id="reviewDisputeTriagePredatesService" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriagePersonalInfoLabel">Does the review expose personal or sensitive information?</span>
+              <select id="reviewDisputeTriagePersonalInfo" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageThreatLabel">Does the review contain threats, harassment, or abusive language?</span>
+              <select id="reviewDisputeTriageThreat" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageConflictLabel">Does this look like a conflict-of-interest case?</span>
+              <select id="reviewDisputeTriageConflict" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageImpossibleLabel">Does the review describe something factually impossible?</span>
+              <select id="reviewDisputeTriageImpossible" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageAppointmentOnlyLabel">Is this an appointment-only business?</span>
+              <select id="reviewDisputeTriageAppointmentOnly" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageClusterLabel">Is there a cluster of low ratings without clear service detail?</span>
+              <select id="reviewDisputeTriageCluster" class="input assistant-select"></select>
+            </label>
+            <label class="assistant-field">
+              <span id="reviewDisputeTriageIdentityLabel">How well does the reviewer identity match your records?</span>
+              <select id="reviewDisputeTriageIdentity" class="input assistant-select"></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="assistant-section">
           <h3 id="reviewDisputeHelpTitle" class="assistant-section__title">Desired help</h3>
           <label class="assistant-field">
             <span id="reviewDisputeHelpLabel">What guidance are you looking for?</span>
@@ -267,24 +324,56 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
         </div>
       </form>
 
-      <div class="assistant-output">
+      <div id="reviewDisputeOutput" class="assistant-output">
         <div class="assistant-section">
+          <h3 id="reviewDisputeTriageResultTitle" class="assistant-section__title">Triage summary</h3>
+          <div id="reviewDisputeTriageEmpty" class="muted">Generate drafts to assess whether this case is worth pursuing for removal.</div>
+          <div id="reviewDisputeTriageCard" class="assistant-triage hidden">
+            <div class="assistant-triage__topline">
+              <div id="reviewDisputeTriageCategory" class="assistant-triage__category"></div>
+              <div id="reviewDisputeTriageConfidence" class="assistant-triage__confidence muted"></div>
+            </div>
+            <div id="reviewDisputeTriageWarning" class="assistant-warning hidden"></div>
+            <div class="assistant-triage__grid">
+              <div>
+                <div id="reviewDisputeTriageReasonsLabel" class="assistant-triage__label">Why this result</div>
+                <ul id="reviewDisputeTriageReasons" class="list"></ul>
+              </div>
+              <div>
+                <div id="reviewDisputeTriageActionsLabel" class="assistant-triage__label">Recommended path</div>
+                <ul id="reviewDisputeTriageActions" class="list"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="reviewDisputeActionPathPanel" class="assistant-section assistant-action-path hidden">
+          <h3 id="reviewDisputeActionPathTitle" class="assistant-section__title">Suggested order</h3>
+          <div id="reviewDisputeActionPathBody" class="assistant-action-path__body muted">
+            Generate drafts to see which path should come first.
+          </div>
+        </div>
+
+        <div id="reviewDisputeGuidanceSection" class="assistant-section assistant-section--output">
           <h3 id="reviewDisputeGuidanceTitle" class="assistant-section__title">Guidance</h3>
           <ul id="reviewDisputeGuidance" class="list"></ul>
         </div>
 
-        <div class="assistant-section">
+        <div id="reviewDisputeSummarySection" class="assistant-section assistant-section--output">
           <h3 id="reviewDisputeSummaryTitle" class="assistant-section__title">Removal summary</h3>
+          <div id="reviewDisputeSummaryNote" class="assistant-output__note muted"></div>
           <textarea id="reviewDisputeSummary" class="input assistant-output__text" rows="7" readonly></textarea>
         </div>
 
-        <div class="assistant-section">
+        <div id="reviewDisputeCommunitySection" class="assistant-section assistant-section--output">
           <h3 id="reviewDisputeCommunityTitle" class="assistant-section__title">Community post</h3>
+          <div id="reviewDisputeCommunityNote" class="assistant-output__note muted"></div>
           <textarea id="reviewDisputeCommunity" class="input assistant-output__text" rows="9" readonly></textarea>
         </div>
 
-        <div class="assistant-section">
+        <div id="reviewDisputePublicResponseSection" class="assistant-section assistant-section--output">
           <h3 id="reviewDisputePublicResponseTitle" class="assistant-section__title">Public response</h3>
+          <div id="reviewDisputePublicResponseNote" class="assistant-output__note muted"></div>
           <textarea id="reviewDisputePublicResponse" class="input assistant-output__text" rows="7" readonly></textarea>
         </div>
       </div>
@@ -441,13 +530,48 @@ const reviewDisputeActionRemovalLabelEl = document.getElementById("reviewDispute
 const reviewDisputeActionAppealLabelEl = document.getElementById("reviewDisputeActionAppealLabel");
 const reviewDisputeActionCommunityLabelEl = document.getElementById("reviewDisputeActionCommunityLabel");
 const reviewDisputeActionReplyLabelEl = document.getElementById("reviewDisputeActionReplyLabel");
+const reviewDisputeTriageTitleEl = document.getElementById("reviewDisputeTriageTitle");
+const reviewDisputeTriageIntroEl = document.getElementById("reviewDisputeTriageIntro");
+const reviewDisputeTriageCustomerRecordLabelEl = document.getElementById("reviewDisputeTriageCustomerRecordLabel");
+const reviewDisputeTriagePaymentRecordLabelEl = document.getElementById("reviewDisputeTriagePaymentRecordLabel");
+const reviewDisputeTriageBookingRecordLabelEl = document.getElementById("reviewDisputeTriageBookingRecordLabel");
+const reviewDisputeTriagePredatesBusinessLabelEl = document.getElementById("reviewDisputeTriagePredatesBusinessLabel");
+const reviewDisputeTriagePredatesServiceLabelEl = document.getElementById("reviewDisputeTriagePredatesServiceLabel");
+const reviewDisputeTriagePersonalInfoLabelEl = document.getElementById("reviewDisputeTriagePersonalInfoLabel");
+const reviewDisputeTriageThreatLabelEl = document.getElementById("reviewDisputeTriageThreatLabel");
+const reviewDisputeTriageConflictLabelEl = document.getElementById("reviewDisputeTriageConflictLabel");
+const reviewDisputeTriageImpossibleLabelEl = document.getElementById("reviewDisputeTriageImpossibleLabel");
+const reviewDisputeTriageAppointmentOnlyLabelEl = document.getElementById("reviewDisputeTriageAppointmentOnlyLabel");
+const reviewDisputeTriageClusterLabelEl = document.getElementById("reviewDisputeTriageClusterLabel");
+const reviewDisputeTriageIdentityLabelEl = document.getElementById("reviewDisputeTriageIdentityLabel");
 const reviewDisputeHelpTitleEl = document.getElementById("reviewDisputeHelpTitle");
 const reviewDisputeHelpLabelEl = document.getElementById("reviewDisputeHelpLabel");
 const reviewDisputeGenerateNoteEl = document.getElementById("reviewDisputeGenerateNote");
+const reviewDisputeTriageResultTitleEl = document.getElementById("reviewDisputeTriageResultTitle");
+const reviewDisputeTriageEmptyEl = document.getElementById("reviewDisputeTriageEmpty");
+const reviewDisputeTriageCardEl = document.getElementById("reviewDisputeTriageCard");
+const reviewDisputeTriageCategoryEl = document.getElementById("reviewDisputeTriageCategory");
+const reviewDisputeTriageConfidenceEl = document.getElementById("reviewDisputeTriageConfidence");
+const reviewDisputeTriageWarningEl = document.getElementById("reviewDisputeTriageWarning");
+const reviewDisputeTriageReasonsLabelEl = document.getElementById("reviewDisputeTriageReasonsLabel");
+const reviewDisputeTriageReasonsEl = document.getElementById("reviewDisputeTriageReasons");
+const reviewDisputeTriageActionsLabelEl = document.getElementById("reviewDisputeTriageActionsLabel");
+const reviewDisputeTriageActionsEl = document.getElementById("reviewDisputeTriageActions");
+const reviewDisputeActionPathPanelEl = document.getElementById("reviewDisputeActionPathPanel");
+const reviewDisputeActionPathTitleEl = document.getElementById("reviewDisputeActionPathTitle");
+const reviewDisputeActionPathBodyEl = document.getElementById("reviewDisputeActionPathBody");
 const reviewDisputeGuidanceTitleEl = document.getElementById("reviewDisputeGuidanceTitle");
 const reviewDisputeSummaryTitleEl = document.getElementById("reviewDisputeSummaryTitle");
 const reviewDisputeCommunityTitleEl = document.getElementById("reviewDisputeCommunityTitle");
 const reviewDisputePublicResponseTitleEl = document.getElementById("reviewDisputePublicResponseTitle");
+const reviewDisputeOutputEl = document.getElementById("reviewDisputeOutput");
+const reviewDisputeGuidanceSectionEl = document.getElementById("reviewDisputeGuidanceSection");
+const reviewDisputeSummarySectionEl = document.getElementById("reviewDisputeSummarySection");
+const reviewDisputeCommunitySectionEl = document.getElementById("reviewDisputeCommunitySection");
+const reviewDisputePublicResponseSectionEl = document.getElementById("reviewDisputePublicResponseSection");
+const reviewDisputeSummaryNoteEl = document.getElementById("reviewDisputeSummaryNote");
+const reviewDisputeCommunityNoteEl = document.getElementById("reviewDisputeCommunityNote");
+const reviewDisputePublicResponseNoteEl = document.getElementById("reviewDisputePublicResponseNote");
 const reviewDisputeFormEl = document.getElementById("reviewDisputeForm");
 const reviewDisputeMsgEl = document.getElementById("reviewDisputeMsg");
 const reviewDisputeBusinessNameEl = document.getElementById("reviewDisputeBusinessName");
@@ -457,6 +581,18 @@ const reviewDisputeReviewRatingEl = document.getElementById("reviewDisputeReview
 const reviewDisputeBusinessLaunchDateEl = document.getElementById("reviewDisputeBusinessLaunchDate");
 const reviewDisputeServiceLaunchDateEl = document.getElementById("reviewDisputeServiceLaunchDate");
 const reviewDisputeReviewTextEl = document.getElementById("reviewDisputeReviewText");
+const reviewDisputeTriageCustomerRecordEl = document.getElementById("reviewDisputeTriageCustomerRecord");
+const reviewDisputeTriagePaymentRecordEl = document.getElementById("reviewDisputeTriagePaymentRecord");
+const reviewDisputeTriageBookingRecordEl = document.getElementById("reviewDisputeTriageBookingRecord");
+const reviewDisputeTriagePredatesBusinessEl = document.getElementById("reviewDisputeTriagePredatesBusiness");
+const reviewDisputeTriagePredatesServiceEl = document.getElementById("reviewDisputeTriagePredatesService");
+const reviewDisputeTriagePersonalInfoEl = document.getElementById("reviewDisputeTriagePersonalInfo");
+const reviewDisputeTriageThreatEl = document.getElementById("reviewDisputeTriageThreat");
+const reviewDisputeTriageConflictEl = document.getElementById("reviewDisputeTriageConflict");
+const reviewDisputeTriageImpossibleEl = document.getElementById("reviewDisputeTriageImpossible");
+const reviewDisputeTriageAppointmentOnlyEl = document.getElementById("reviewDisputeTriageAppointmentOnly");
+const reviewDisputeTriageClusterEl = document.getElementById("reviewDisputeTriageCluster");
+const reviewDisputeTriageIdentityEl = document.getElementById("reviewDisputeTriageIdentity");
 const reviewDisputeDesiredHelpEl = document.getElementById("reviewDisputeDesiredHelp");
 const reviewDisputeGenerateBtn = document.getElementById("reviewDisputeGenerateBtn");
 const reviewDisputeGuidanceEl = document.getElementById("reviewDisputeGuidance");
@@ -583,12 +719,71 @@ const COPY = {
     reviewDisputeActionAppeal: "Submitted appeal",
     reviewDisputeActionCommunity: "Posted to Help Community",
     reviewDisputeActionReply: "Drafting a public reply",
+    reviewDisputeTriageTitle: "Case triage",
+    reviewDisputeTriageIntro: "Use quick yes / no / unknown answers. Leave anything uncertain as unknown.",
+    reviewDisputeTriageCustomerRecordLabel: "Can you match this review to a customer record?",
+    reviewDisputeTriagePaymentRecordLabel: "Can you match this review to a payment or transaction record?",
+    reviewDisputeTriageBookingRecordLabel: "Can you match this review to a booking record?",
+    reviewDisputeTriagePredatesBusinessLabel: "Does the review appear to predate the business launch?",
+    reviewDisputeTriagePredatesServiceLabel: "Does the review appear to predate the service launch?",
+    reviewDisputeTriagePersonalInfoLabel: "Does the review expose personal or sensitive information?",
+    reviewDisputeTriageThreatLabel: "Does the review contain threats, harassment, or abusive language?",
+    reviewDisputeTriageConflictLabel: "Does this look like a conflict-of-interest case?",
+    reviewDisputeTriageImpossibleLabel: "Does the review describe something factually impossible?",
+    reviewDisputeTriageAppointmentOnlyLabel: "Is this an appointment-only business?",
+    reviewDisputeTriageClusterLabel: "Is there a cluster of low ratings without clear service detail?",
+    reviewDisputeTriageIdentityLabel: "How well does the reviewer identity match your records?",
+    reviewDisputeTriageUnknown: "Unknown",
+    reviewDisputeTriageYes: "Yes",
+    reviewDisputeTriageNo: "No",
+    reviewDisputeTriageIdentityHigh: "High match",
+    reviewDisputeTriageIdentityMedium: "Medium match",
+    reviewDisputeTriageIdentityLow: "Low match",
+    reviewDisputeTriageIdentityUnknown: "Still unknown",
     reviewDisputeHelpTitle: "Desired help",
     reviewDisputeHelpLabel: "What guidance are you looking for?",
     reviewDisputeHelpPlaceholder: "Optional",
     reviewDisputeGenerate: "Generate drafts",
     reviewDisputeGenerateNote:
       "Avoid unnecessary accusations. Mention only what you can confirm directly.",
+    reviewDisputeTriageResultTitle: "Triage summary",
+    reviewDisputeTriageEmpty: "Generate drafts to assess whether this case is worth pursuing for removal.",
+    reviewDisputeTriageReasonsLabel: "Why this result",
+    reviewDisputeTriageActionsLabel: "Recommended path",
+    reviewDisputeActionPathTitle: "Suggested order",
+    reviewDisputeActionPathEmpty: "Generate drafts to see which path should come first.",
+    reviewDisputeActionPathWorth:
+      "Start with the removal summary, then use the community post if you need a clearer escalation path. Keep the public response ready in case the review stays live.",
+    reviewDisputeActionPathUnclear:
+      "Start with the public response while you decide whether to report. Keep the removal summary ready in parallel, and escalate to the community only if the case still looks worth pursuing.",
+    reviewDisputeActionPathRecovery:
+      "Start with the public response and review recovery work. Use the removal summary only if stronger direct evidence appears later.",
+    reviewDisputeTriageCategoryWorth: "Worth pursuing for removal",
+    reviewDisputeTriageCategoryUnclear: "Unclear case",
+    reviewDisputeTriageCategoryRecovery: "Likely better handled with response + recovery",
+    reviewDisputeTriageConfidenceHigh: "Confidence: high",
+    reviewDisputeTriageConfidenceMedium: "Confidence: medium",
+    reviewDisputeTriageConfidenceLow: "Confidence: low",
+    reviewDisputePriorityStartHere: "Start here",
+    reviewDisputePriorityParallel: "Use in parallel",
+    reviewDisputePriorityOptional: "Optional fallback",
+    reviewDisputeSummaryNoteWorth: "Start here if you plan to report the review now.",
+    reviewDisputeSummaryNoteUnclear: "Keep this ready if you decide to report while the case is still mixed.",
+    reviewDisputeSummaryNoteRecovery: "Use this only if stronger direct evidence appears later.",
+    reviewDisputeCommunityNoteWorth: "Use this next if you need a clearer escalation post.",
+    reviewDisputeCommunityNoteUnclear: "Escalate here only if the case still looks worth pursuing after a first report.",
+    reviewDisputeCommunityNoteRecovery: "Optional fallback only if the case changes materially.",
+    reviewDisputePublicResponseNoteWorth: "Keep this ready in case the review remains live.",
+    reviewDisputePublicResponseNoteUnclear: "Start here while removal is still uncertain.",
+    reviewDisputePublicResponseNoteRecovery: "Start here and pair it with review recovery work.",
+    reviewDisputeTriageActionCollectEvidence: "Collect the strongest direct evidence",
+    reviewDisputeTriageActionSubmitRemoval: "Submit a removal request",
+    reviewDisputeTriageActionPrepareAppeal: "Prepare a one-time appeal",
+    reviewDisputeTriageActionPrepareCommunity: "Prepare a Help Community post",
+    reviewDisputeTriageActionDraftResponse: "Draft a calm public response",
+    reviewDisputeTriageActionMonitorImpact: "Monitor review impact",
+    reviewDisputeTriageActionRecoveryPlan: "Start a review recovery plan",
+    reviewDisputeTriageActionAvoidOverInvesting: "Avoid over-investing in removal attempts",
     reviewDisputeGuidanceTitle: "Guidance",
     reviewDisputeSummaryTitle: "Removal summary",
     reviewDisputeCommunityTitle: "Community post",
@@ -845,12 +1040,71 @@ const COPY = {
     reviewDisputeActionAppeal: "再審査を申請済み",
     reviewDisputeActionCommunity: "Googleのヘルプコミュニティへ投稿済み",
     reviewDisputeActionReply: "公開返信を準備中",
+    reviewDisputeTriageTitle: "ケース切り分け",
+    reviewDisputeTriageIntro: "分かる範囲で、はい / いいえ / 不明 を選んでください。不明のままでも大丈夫です。",
+    reviewDisputeTriageCustomerRecordLabel: "このレビューを顧客記録に結び付けられますか？",
+    reviewDisputeTriagePaymentRecordLabel: "このレビューを支払い・取引記録に結び付けられますか？",
+    reviewDisputeTriageBookingRecordLabel: "このレビューを予約記録に結び付けられますか？",
+    reviewDisputeTriagePredatesBusinessLabel: "レビュー時期は事業開始前に見えますか？",
+    reviewDisputeTriagePredatesServiceLabel: "レビュー時期はサービス開始前に見えますか？",
+    reviewDisputeTriagePersonalInfoLabel: "個人情報や機微情報が含まれていますか？",
+    reviewDisputeTriageThreatLabel: "脅迫・嫌がらせ・攻撃的表現が含まれていますか？",
+    reviewDisputeTriageConflictLabel: "利害関係が疑われるケースですか？",
+    reviewDisputeTriageImpossibleLabel: "内容に事実上ありえない記述がありますか？",
+    reviewDisputeTriageAppointmentOnlyLabel: "この事業は予約制ですか？",
+    reviewDisputeTriageClusterLabel: "具体性の乏しい低評価が短期間に集中していますか？",
+    reviewDisputeTriageIdentityLabel: "レビュアー情報はどの程度記録と一致しますか？",
+    reviewDisputeTriageUnknown: "不明",
+    reviewDisputeTriageYes: "はい",
+    reviewDisputeTriageNo: "いいえ",
+    reviewDisputeTriageIdentityHigh: "高い一致",
+    reviewDisputeTriageIdentityMedium: "中程度の一致",
+    reviewDisputeTriageIdentityLow: "一致度が低い",
+    reviewDisputeTriageIdentityUnknown: "まだ特定しにくい",
     reviewDisputeHelpTitle: "欲しいサポート",
     reviewDisputeHelpLabel: "どんな整理や文面の助けが欲しいですか？",
     reviewDisputeHelpPlaceholder: "任意",
     reviewDisputeGenerate: "下書きを生成",
     reviewDisputeGenerateNote:
       "不必要な断定や非難は避け、直接確認できる事実だけを書きましょう。",
+    reviewDisputeTriageResultTitle: "切り分け結果",
+    reviewDisputeTriageEmpty: "下書きを生成すると、このケースにどこまで時間を使う価値があるかを整理できます。",
+    reviewDisputeTriageReasonsLabel: "この判断の理由",
+    reviewDisputeTriageActionsLabel: "おすすめの進め方",
+    reviewDisputeActionPathTitle: "おすすめの進め順",
+    reviewDisputeActionPathEmpty: "下書きを生成すると、どの文案から使い始めるのがよいかを案内します。",
+    reviewDisputeActionPathWorth:
+      "まずは削除申請用サマリーから着手し、必要に応じてヘルプコミュニティ投稿案へ進むのが自然です。公開返信案は、レビューが残った場合に備えて持っておきましょう。",
+    reviewDisputeActionPathUnclear:
+      "まずは公開返信案から整えつつ、削除申請用サマリーも並行して準備するのが安全です。ヘルプコミュニティ投稿案は、まだ申請する価値がありそうな場合だけ使いましょう。",
+    reviewDisputeActionPathRecovery:
+      "まずは公開返信案とレビュー回復の動きを優先し、削除申請用サマリーは後から強い証拠が出た時だけ使う想定がよさそうです。",
+    reviewDisputeTriageCategoryWorth: "削除申請を進める価値がありそうです",
+    reviewDisputeTriageCategoryUnclear: "まだ判断が割れるケースです",
+    reviewDisputeTriageCategoryRecovery: "公開返信と回復策を軸にした方がよさそうです",
+    reviewDisputeTriageConfidenceHigh: "確度: 高め",
+    reviewDisputeTriageConfidenceMedium: "確度: 中程度",
+    reviewDisputeTriageConfidenceLow: "確度: 低め",
+    reviewDisputePriorityStartHere: "ここから着手",
+    reviewDisputePriorityParallel: "並行して準備",
+    reviewDisputePriorityOptional: "必要な時だけ",
+    reviewDisputeSummaryNoteWorth: "今すぐ報告するなら、まずここから始めます。",
+    reviewDisputeSummaryNoteUnclear: "申請するか迷う間も、並行して下書きだけ作っておくと安心です。",
+    reviewDisputeSummaryNoteRecovery: "あとから強い直接証拠が出た時だけ使う前提で十分です。",
+    reviewDisputeCommunityNoteWorth: "申請だけでは足りない時の次の一手として使います。",
+    reviewDisputeCommunityNoteUnclear: "最初の申請後も進める価値がありそうな時だけ使います。",
+    reviewDisputeCommunityNoteRecovery: "状況が大きく変わった時だけの控えとして十分です。",
+    reviewDisputePublicResponseNoteWorth: "レビューが残る場合に備えて、公開返信案も用意しておきましょう。",
+    reviewDisputePublicResponseNoteUnclear: "削除が不確実な間は、まずここから整えるのが自然です。",
+    reviewDisputePublicResponseNoteRecovery: "まずここから着手し、回復施策と一緒に進めます。",
+    reviewDisputeTriageActionCollectEvidence: "直接確認できる証拠を集める",
+    reviewDisputeTriageActionSubmitRemoval: "削除申請を出す",
+    reviewDisputeTriageActionPrepareAppeal: "再申請の整理を準備する",
+    reviewDisputeTriageActionPrepareCommunity: "ヘルプコミュニティ投稿案を準備する",
+    reviewDisputeTriageActionDraftResponse: "落ち着いた公開返信案を作る",
+    reviewDisputeTriageActionMonitorImpact: "評価への影響を監視する",
+    reviewDisputeTriageActionRecoveryPlan: "レビュー回復プランを始める",
+    reviewDisputeTriageActionAvoidOverInvesting: "削除申請に時間を使いすぎない",
     reviewDisputeGuidanceTitle: "ガイダンス",
     reviewDisputeSummaryTitle: "削除申請用サマリー",
     reviewDisputeCommunityTitle: "コミュニティ投稿案",
@@ -1069,6 +1323,51 @@ function t(key) {
   return dict[key] ?? COPY.en[key] ?? key;
 }
 
+const REVIEW_DISPUTE_TRIAGE_BOOLEAN_FIELDS = [
+  reviewDisputeTriageCustomerRecordEl,
+  reviewDisputeTriagePaymentRecordEl,
+  reviewDisputeTriageBookingRecordEl,
+  reviewDisputeTriagePredatesBusinessEl,
+  reviewDisputeTriagePredatesServiceEl,
+  reviewDisputeTriagePersonalInfoEl,
+  reviewDisputeTriageThreatEl,
+  reviewDisputeTriageConflictEl,
+  reviewDisputeTriageImpossibleEl,
+  reviewDisputeTriageAppointmentOnlyEl,
+  reviewDisputeTriageClusterEl,
+].filter(Boolean);
+
+function renderSelectOptions(selectEl, options, fallback = "") {
+  if (!selectEl) return;
+  const selected = selectEl.value || fallback;
+  selectEl.innerHTML = options
+    .map((option) => `<option value="${escapeAttr(option.value)}">${escapeHtml(option.label)}</option>`)
+    .join("");
+  selectEl.value = options.some((option) => option.value === selected) ? selected : fallback;
+}
+
+function renderReviewDisputeTriageControls() {
+  const yesNoUnknownOptions = [
+    { value: "", label: t("reviewDisputeTriageUnknown") },
+    { value: "yes", label: t("reviewDisputeTriageYes") },
+    { value: "no", label: t("reviewDisputeTriageNo") },
+  ];
+  REVIEW_DISPUTE_TRIAGE_BOOLEAN_FIELDS.forEach((selectEl) => {
+    renderSelectOptions(selectEl, yesNoUnknownOptions, "");
+  });
+
+  renderSelectOptions(
+    reviewDisputeTriageIdentityEl,
+    [
+      { value: "unknown", label: t("reviewDisputeTriageIdentityUnknown") },
+      { value: "high", label: t("reviewDisputeTriageIdentityHigh") },
+      { value: "medium", label: t("reviewDisputeTriageIdentityMedium") },
+      { value: "low", label: t("reviewDisputeTriageIdentityLow") },
+    ],
+    "unknown"
+  );
+}
+
 function loadStoredLanguage() {
   try {
     return normalizeLanguage(localStorage.getItem(APP_LANGUAGE_KEY), "");
@@ -1242,15 +1541,47 @@ function renderStaticCopy() {
   if (reviewDisputeActionAppealLabelEl) reviewDisputeActionAppealLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionAppeal")}`;
   if (reviewDisputeActionCommunityLabelEl) reviewDisputeActionCommunityLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionCommunity")}`;
   if (reviewDisputeActionReplyLabelEl) reviewDisputeActionReplyLabelEl.lastChild.textContent = ` ${t("reviewDisputeActionReply")}`;
+  if (reviewDisputeTriageTitleEl) reviewDisputeTriageTitleEl.textContent = t("reviewDisputeTriageTitle");
+  if (reviewDisputeTriageIntroEl) reviewDisputeTriageIntroEl.textContent = t("reviewDisputeTriageIntro");
+  if (reviewDisputeTriageCustomerRecordLabelEl) reviewDisputeTriageCustomerRecordLabelEl.textContent = t("reviewDisputeTriageCustomerRecordLabel");
+  if (reviewDisputeTriagePaymentRecordLabelEl) reviewDisputeTriagePaymentRecordLabelEl.textContent = t("reviewDisputeTriagePaymentRecordLabel");
+  if (reviewDisputeTriageBookingRecordLabelEl) reviewDisputeTriageBookingRecordLabelEl.textContent = t("reviewDisputeTriageBookingRecordLabel");
+  if (reviewDisputeTriagePredatesBusinessLabelEl) reviewDisputeTriagePredatesBusinessLabelEl.textContent = t("reviewDisputeTriagePredatesBusinessLabel");
+  if (reviewDisputeTriagePredatesServiceLabelEl) reviewDisputeTriagePredatesServiceLabelEl.textContent = t("reviewDisputeTriagePredatesServiceLabel");
+  if (reviewDisputeTriagePersonalInfoLabelEl) reviewDisputeTriagePersonalInfoLabelEl.textContent = t("reviewDisputeTriagePersonalInfoLabel");
+  if (reviewDisputeTriageThreatLabelEl) reviewDisputeTriageThreatLabelEl.textContent = t("reviewDisputeTriageThreatLabel");
+  if (reviewDisputeTriageConflictLabelEl) reviewDisputeTriageConflictLabelEl.textContent = t("reviewDisputeTriageConflictLabel");
+  if (reviewDisputeTriageImpossibleLabelEl) reviewDisputeTriageImpossibleLabelEl.textContent = t("reviewDisputeTriageImpossibleLabel");
+  if (reviewDisputeTriageAppointmentOnlyLabelEl) reviewDisputeTriageAppointmentOnlyLabelEl.textContent = t("reviewDisputeTriageAppointmentOnlyLabel");
+  if (reviewDisputeTriageClusterLabelEl) reviewDisputeTriageClusterLabelEl.textContent = t("reviewDisputeTriageClusterLabel");
+  if (reviewDisputeTriageIdentityLabelEl) reviewDisputeTriageIdentityLabelEl.textContent = t("reviewDisputeTriageIdentityLabel");
+  renderReviewDisputeTriageControls();
   if (reviewDisputeHelpTitleEl) reviewDisputeHelpTitleEl.textContent = t("reviewDisputeHelpTitle");
   if (reviewDisputeHelpLabelEl) reviewDisputeHelpLabelEl.textContent = t("reviewDisputeHelpLabel");
   if (reviewDisputeDesiredHelpEl) reviewDisputeDesiredHelpEl.placeholder = t("reviewDisputeHelpPlaceholder");
   if (reviewDisputeGenerateBtn) reviewDisputeGenerateBtn.textContent = t("reviewDisputeGenerate");
   if (reviewDisputeGenerateNoteEl) reviewDisputeGenerateNoteEl.textContent = t("reviewDisputeGenerateNote");
+  if (reviewDisputeTriageResultTitleEl) reviewDisputeTriageResultTitleEl.textContent = t("reviewDisputeTriageResultTitle");
+  if (reviewDisputeTriageEmptyEl) reviewDisputeTriageEmptyEl.textContent = t("reviewDisputeTriageEmpty");
+  if (reviewDisputeTriageReasonsLabelEl) reviewDisputeTriageReasonsLabelEl.textContent = t("reviewDisputeTriageReasonsLabel");
+  if (reviewDisputeTriageActionsLabelEl) reviewDisputeTriageActionsLabelEl.textContent = t("reviewDisputeTriageActionsLabel");
+  if (reviewDisputeActionPathTitleEl) reviewDisputeActionPathTitleEl.textContent = t("reviewDisputeActionPathTitle");
+  if (reviewDisputeActionPathBodyEl && reviewDisputeActionPathPanelEl?.classList.contains("hidden")) {
+    reviewDisputeActionPathBodyEl.textContent = t("reviewDisputeActionPathEmpty");
+  }
   if (reviewDisputeGuidanceTitleEl) reviewDisputeGuidanceTitleEl.textContent = t("reviewDisputeGuidanceTitle");
   if (reviewDisputeSummaryTitleEl) reviewDisputeSummaryTitleEl.textContent = t("reviewDisputeSummaryTitle");
   if (reviewDisputeCommunityTitleEl) reviewDisputeCommunityTitleEl.textContent = t("reviewDisputeCommunityTitle");
   if (reviewDisputePublicResponseTitleEl) reviewDisputePublicResponseTitleEl.textContent = t("reviewDisputePublicResponseTitle");
+  const activeTriageCategory = reviewDisputeTriageCategoryEl?.dataset.category || "";
+  const activeTriageConfidence = reviewDisputeTriageConfidenceEl?.dataset.confidence || "";
+  if (activeTriageCategory) {
+    reviewDisputeTriageCategoryEl.textContent = reviewDisputeTriageCategoryLabel(activeTriageCategory);
+    renderReviewDisputeActionPath(activeTriageCategory);
+  }
+  if (activeTriageConfidence && reviewDisputeTriageConfidenceEl) {
+    reviewDisputeTriageConfidenceEl.textContent = reviewDisputeTriageConfidenceLabel(activeTriageConfidence);
+  }
   if (changeCompetitorBtn) changeCompetitorBtn.textContent = t("changeCompetitor");
   if (resetCompetitorBtn && !resetCompetitorBtn.classList.contains("hidden")) {
     resetCompetitorBtn.textContent = t("resetCompetitor");
@@ -1582,7 +1913,195 @@ function setReviewDisputeMessage(text = "", isError = false) {
   reviewDisputeMsgEl.classList.toggle("error", Boolean(isError));
 }
 
+function reviewDisputeTriageCategoryLabel(category) {
+  switch (category) {
+    case "worth_pursuing_for_removal":
+      return t("reviewDisputeTriageCategoryWorth");
+    case "unclear_case":
+      return t("reviewDisputeTriageCategoryUnclear");
+    default:
+      return t("reviewDisputeTriageCategoryRecovery");
+  }
+}
+
+function reviewDisputeTriageConfidenceLabel(confidence) {
+  switch (confidence) {
+    case "high":
+      return t("reviewDisputeTriageConfidenceHigh");
+    case "medium":
+      return t("reviewDisputeTriageConfidenceMedium");
+    default:
+      return t("reviewDisputeTriageConfidenceLow");
+  }
+}
+
+function reviewDisputeTriageActionLabel(action) {
+  switch (action) {
+    case "collect_evidence":
+      return t("reviewDisputeTriageActionCollectEvidence");
+    case "submit_removal_request":
+      return t("reviewDisputeTriageActionSubmitRemoval");
+    case "prepare_one_time_appeal":
+      return t("reviewDisputeTriageActionPrepareAppeal");
+    case "prepare_help_community_post":
+      return t("reviewDisputeTriageActionPrepareCommunity");
+    case "draft_public_response":
+      return t("reviewDisputeTriageActionDraftResponse");
+    case "monitor_review_impact":
+      return t("reviewDisputeTriageActionMonitorImpact");
+    case "start_review_recovery_plan":
+      return t("reviewDisputeTriageActionRecoveryPlan");
+    case "avoid_over_investing_in_removal":
+      return t("reviewDisputeTriageActionAvoidOverInvesting");
+    default:
+      return action;
+  }
+}
+
+function reviewDisputePathConfig(category) {
+  switch (category) {
+    case "worth_pursuing_for_removal":
+      return {
+        body: t("reviewDisputeActionPathWorth"),
+        order: [
+          reviewDisputeGuidanceSectionEl,
+          reviewDisputeSummarySectionEl,
+          reviewDisputeCommunitySectionEl,
+          reviewDisputePublicResponseSectionEl,
+        ],
+        priorities: {
+          summary: "start",
+          community: "parallel",
+          publicResponse: "optional",
+        },
+        notes: {
+          summary: t("reviewDisputeSummaryNoteWorth"),
+          community: t("reviewDisputeCommunityNoteWorth"),
+          publicResponse: t("reviewDisputePublicResponseNoteWorth"),
+        },
+      };
+    case "unclear_case":
+      return {
+        body: t("reviewDisputeActionPathUnclear"),
+        order: [
+          reviewDisputeGuidanceSectionEl,
+          reviewDisputePublicResponseSectionEl,
+          reviewDisputeSummarySectionEl,
+          reviewDisputeCommunitySectionEl,
+        ],
+        priorities: {
+          publicResponse: "start",
+          summary: "parallel",
+          community: "optional",
+        },
+        notes: {
+          summary: t("reviewDisputeSummaryNoteUnclear"),
+          community: t("reviewDisputeCommunityNoteUnclear"),
+          publicResponse: t("reviewDisputePublicResponseNoteUnclear"),
+        },
+      };
+    default:
+      return {
+        body: t("reviewDisputeActionPathRecovery"),
+        order: [
+          reviewDisputeGuidanceSectionEl,
+          reviewDisputePublicResponseSectionEl,
+          reviewDisputeSummarySectionEl,
+          reviewDisputeCommunitySectionEl,
+        ],
+        priorities: {
+          publicResponse: "start",
+          summary: "optional",
+          community: "optional",
+        },
+        notes: {
+          summary: t("reviewDisputeSummaryNoteRecovery"),
+          community: t("reviewDisputeCommunityNoteRecovery"),
+          publicResponse: t("reviewDisputePublicResponseNoteRecovery"),
+        },
+      };
+  }
+}
+
+function reviewDisputePriorityLabel(priority) {
+  switch (priority) {
+    case "start":
+      return t("reviewDisputePriorityStartHere");
+    case "parallel":
+      return t("reviewDisputePriorityParallel");
+    default:
+      return t("reviewDisputePriorityOptional");
+  }
+}
+
+function setReviewDisputeOutputSectionState(sectionEl, noteEl, priority, noteText) {
+  if (!sectionEl) return;
+  sectionEl.dataset.priority = priority || "";
+  if (noteEl) {
+    noteEl.textContent = priority ? `${reviewDisputePriorityLabel(priority)}: ${noteText}` : noteText || "";
+  }
+}
+
+function renderReviewDisputeActionPath(category) {
+  if (!reviewDisputeActionPathPanelEl || !reviewDisputeOutputEl) return;
+  const config = reviewDisputePathConfig(category);
+  reviewDisputeActionPathPanelEl.classList.remove("hidden");
+  if (reviewDisputeActionPathBodyEl) reviewDisputeActionPathBodyEl.textContent = config.body;
+
+  config.order.filter(Boolean).forEach((sectionEl) => {
+    reviewDisputeOutputEl.appendChild(sectionEl);
+  });
+
+  setReviewDisputeOutputSectionState(
+    reviewDisputeSummarySectionEl,
+    reviewDisputeSummaryNoteEl,
+    config.priorities.summary,
+    config.notes.summary
+  );
+  setReviewDisputeOutputSectionState(
+    reviewDisputeCommunitySectionEl,
+    reviewDisputeCommunityNoteEl,
+    config.priorities.community,
+    config.notes.community
+  );
+  setReviewDisputeOutputSectionState(
+    reviewDisputePublicResponseSectionEl,
+    reviewDisputePublicResponseNoteEl,
+    config.priorities.publicResponse,
+    config.notes.publicResponse
+  );
+}
+
+function clearReviewDisputeTriage() {
+  if (reviewDisputeTriageEmptyEl) reviewDisputeTriageEmptyEl.classList.remove("hidden");
+  if (reviewDisputeTriageCardEl) reviewDisputeTriageCardEl.classList.add("hidden");
+  if (reviewDisputeTriageCategoryEl) reviewDisputeTriageCategoryEl.textContent = "";
+  if (reviewDisputeTriageConfidenceEl) reviewDisputeTriageConfidenceEl.textContent = "";
+  if (reviewDisputeTriageWarningEl) {
+    reviewDisputeTriageWarningEl.textContent = "";
+    reviewDisputeTriageWarningEl.classList.add("hidden");
+  }
+  if (reviewDisputeTriageReasonsEl) reviewDisputeTriageReasonsEl.innerHTML = "";
+  if (reviewDisputeTriageActionsEl) reviewDisputeTriageActionsEl.innerHTML = "";
+  if (reviewDisputeActionPathPanelEl) reviewDisputeActionPathPanelEl.classList.add("hidden");
+  if (reviewDisputeActionPathBodyEl) reviewDisputeActionPathBodyEl.textContent = t("reviewDisputeActionPathEmpty");
+  if (reviewDisputeOutputEl) {
+    [
+      reviewDisputeGuidanceSectionEl,
+      reviewDisputeSummarySectionEl,
+      reviewDisputeCommunitySectionEl,
+      reviewDisputePublicResponseSectionEl,
+    ]
+      .filter(Boolean)
+      .forEach((sectionEl) => reviewDisputeOutputEl.appendChild(sectionEl));
+  }
+  setReviewDisputeOutputSectionState(reviewDisputeSummarySectionEl, reviewDisputeSummaryNoteEl, "", "");
+  setReviewDisputeOutputSectionState(reviewDisputeCommunitySectionEl, reviewDisputeCommunityNoteEl, "", "");
+  setReviewDisputeOutputSectionState(reviewDisputePublicResponseSectionEl, reviewDisputePublicResponseNoteEl, "", "");
+}
+
 function clearReviewDisputeOutputs() {
+  clearReviewDisputeTriage();
   if (reviewDisputeGuidanceEl) {
     reviewDisputeGuidanceEl.innerHTML = `<li>${escapeHtml(t("reviewDisputeNoDraft"))}</li>`;
   }
@@ -1597,6 +2116,7 @@ function resetReviewDisputeForm() {
   if (reviewDisputeDesiredHelpEl) {
     reviewDisputeDesiredHelpEl.value = t("reviewDisputeDefaultHelp");
   }
+  renderReviewDisputeTriageControls();
 }
 
 function setFeedbackMessage(text = "", isError = false) {
@@ -1711,6 +2231,11 @@ function collectReviewDisputeInput() {
     const n = Number(value);
     return Number.isInteger(n) ? n : null;
   };
+  const parseTriageBoolean = (value) => {
+    if (value === "yes") return true;
+    if (value === "no") return false;
+    return null;
+  };
 
   const evidenceKeys = Array.from(
     document.querySelectorAll('input[name="reviewDisputeEvidence"]')
@@ -1720,7 +2245,7 @@ function collectReviewDisputeInput() {
   }));
 
   return {
-    lang: currentLanguage(),
+    lang: currentLanguage,
     businessName: reviewDisputeBusinessNameEl?.value?.trim() || "",
     reviewerName: reviewDisputeReviewerNameEl?.value?.trim() || "",
     reviewDate: reviewDisputeReviewDateEl?.value || "",
@@ -1731,6 +2256,18 @@ function collectReviewDisputeInput() {
     suspectedCategories: checkedValues("reviewDisputeCategory"),
     evidenceItems: evidenceKeys,
     actionsTaken: checkedValues("reviewDisputeAction"),
+    hasCustomerRecord: parseTriageBoolean(reviewDisputeTriageCustomerRecordEl?.value),
+    hasPaymentRecord: parseTriageBoolean(reviewDisputeTriagePaymentRecordEl?.value),
+    hasBookingRecord: parseTriageBoolean(reviewDisputeTriageBookingRecordEl?.value),
+    reviewPredatesBusinessLaunch: parseTriageBoolean(reviewDisputeTriagePredatesBusinessEl?.value),
+    reviewPredatesServiceLaunch: parseTriageBoolean(reviewDisputeTriagePredatesServiceEl?.value),
+    containsPersonalInfo: parseTriageBoolean(reviewDisputeTriagePersonalInfoEl?.value),
+    containsThreatOrHarassment: parseTriageBoolean(reviewDisputeTriageThreatEl?.value),
+    appearsConflictOfInterest: parseTriageBoolean(reviewDisputeTriageConflictEl?.value),
+    appearsFactuallyImpossible: parseTriageBoolean(reviewDisputeTriageImpossibleEl?.value),
+    isAppointmentOnlyBusiness: parseTriageBoolean(reviewDisputeTriageAppointmentOnlyEl?.value),
+    contentlessLowRatingClusterDetected: parseTriageBoolean(reviewDisputeTriageClusterEl?.value),
+    reviewerIdentityMatchConfidence: reviewDisputeTriageIdentityEl?.value || "unknown",
     desiredHelp: reviewDisputeDesiredHelpEl?.value?.trim() || "",
   };
 }
@@ -1745,6 +2282,42 @@ function collectFeedbackInput() {
 }
 
 function renderReviewDisputeDrafts(payload) {
+  const triage = payload?.triage;
+  if (triage && reviewDisputeTriageCardEl) {
+    if (reviewDisputeTriageEmptyEl) reviewDisputeTriageEmptyEl.classList.add("hidden");
+    reviewDisputeTriageCardEl.classList.remove("hidden");
+    renderReviewDisputeActionPath(triage.category);
+    if (reviewDisputeTriageCategoryEl) {
+      reviewDisputeTriageCategoryEl.textContent = reviewDisputeTriageCategoryLabel(triage.category);
+      reviewDisputeTriageCategoryEl.dataset.category = triage.category || "";
+    }
+    if (reviewDisputeTriageConfidenceEl) {
+      reviewDisputeTriageConfidenceEl.textContent = reviewDisputeTriageConfidenceLabel(triage.confidence);
+      reviewDisputeTriageConfidenceEl.dataset.confidence = triage.confidence || "";
+    }
+    if (reviewDisputeTriageWarningEl) {
+      if (triage.warningMessage) {
+        reviewDisputeTriageWarningEl.textContent = triage.warningMessage;
+        reviewDisputeTriageWarningEl.classList.remove("hidden");
+      } else {
+        reviewDisputeTriageWarningEl.textContent = "";
+        reviewDisputeTriageWarningEl.classList.add("hidden");
+      }
+    }
+    if (reviewDisputeTriageReasonsEl) {
+      reviewDisputeTriageReasonsEl.innerHTML = "";
+      (Array.isArray(triage.reasons) ? triage.reasons : []).forEach((line) => appendListRow(reviewDisputeTriageReasonsEl, "", line));
+    }
+    if (reviewDisputeTriageActionsEl) {
+      reviewDisputeTriageActionsEl.innerHTML = "";
+      (Array.isArray(triage.recommendedActions) ? triage.recommendedActions : []).forEach((action) =>
+        appendListRow(reviewDisputeTriageActionsEl, "", reviewDisputeTriageActionLabel(action))
+      );
+    }
+  } else {
+    clearReviewDisputeTriage();
+  }
+
   if (reviewDisputeSummaryEl) reviewDisputeSummaryEl.value = payload?.summary || "";
   if (reviewDisputeCommunityEl) reviewDisputeCommunityEl.value = payload?.communityPost || "";
   if (reviewDisputePublicResponseEl) {

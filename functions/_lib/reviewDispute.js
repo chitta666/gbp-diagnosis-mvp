@@ -81,6 +81,21 @@ function safeInt(value) {
   return Number.isInteger(num) ? num : null;
 }
 
+function nullableBoolean(value, fallback = null) {
+  if (value === true || value === false) return value;
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return fallback;
+  if (["true", "1", "yes", "y"].includes(raw)) return true;
+  if (["false", "0", "no", "n"].includes(raw)) return false;
+  return fallback;
+}
+
+function normalizeConfidence(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (["high", "medium", "low", "unknown"].includes(raw)) return raw;
+  return "unknown";
+}
+
 function excerpt(text, max = 180) {
   const cleaned = cleanText(text);
   if (!cleaned) return "";
@@ -115,6 +130,14 @@ function normalizeInput(input) {
   const evidenceItems = Array.isArray(input?.evidenceItems) ? input.evidenceItems : [];
   const categories = CATEGORY_LABELS.en;
   const actions = ACTION_LABELS.en;
+  const suspectedCategories = uniqueList(input?.suspectedCategories).filter((item) => categories[item]);
+  const actionsTaken = uniqueList(input?.actionsTaken).filter((item) => actions[item]);
+  const checkedEvidence = new Set(
+    evidenceItems
+      .filter((item) => item?.checked === true)
+      .map((item) => cleanText(item?.key))
+      .filter(Boolean)
+  );
 
   return {
     lang,
@@ -126,12 +149,36 @@ function normalizeInput(input) {
     businessLaunchDate: optionalText(input?.businessLaunchDate),
     serviceLaunchDate: optionalText(input?.serviceLaunchDate),
     desiredHelp: optionalText(input?.desiredHelp),
-    suspectedCategories: uniqueList(input?.suspectedCategories).filter((item) => categories[item]),
+    suspectedCategories,
     evidenceItems: evidenceItems.map((item) => ({
       key: cleanText(item?.key),
       checked: item?.checked === true,
     })),
-    actionsTaken: uniqueList(input?.actionsTaken).filter((item) => actions[item]),
+    actionsTaken,
+    hasCustomerRecord: nullableBoolean(input?.hasCustomerRecord, checkedEvidence.has("crm_no_customer_record") ? false : null),
+    hasPaymentRecord: nullableBoolean(input?.hasPaymentRecord, checkedEvidence.has("no_transaction_record") ? false : null),
+    hasBookingRecord: nullableBoolean(input?.hasBookingRecord),
+    reviewPredatesBusinessLaunch: nullableBoolean(input?.reviewPredatesBusinessLaunch),
+    reviewPredatesServiceLaunch: nullableBoolean(
+      input?.reviewPredatesServiceLaunch,
+      checkedEvidence.has("service_not_launched_yet") ? true : null
+    ),
+    containsPersonalInfo: nullableBoolean(input?.containsPersonalInfo),
+    containsThreatOrHarassment: nullableBoolean(
+      input?.containsThreatOrHarassment,
+      suspectedCategories.includes("harassment_or_abuse") ? true : null
+    ),
+    appearsConflictOfInterest: nullableBoolean(
+      input?.appearsConflictOfInterest,
+      suspectedCategories.includes("conflict_of_interest") ? true : null
+    ),
+    appearsFactuallyImpossible: nullableBoolean(
+      input?.appearsFactuallyImpossible,
+      suspectedCategories.includes("factually_impossible_claim") ? true : null
+    ),
+    isAppointmentOnlyBusiness: nullableBoolean(input?.isAppointmentOnlyBusiness),
+    contentlessLowRatingClusterDetected: nullableBoolean(input?.contentlessLowRatingClusterDetected),
+    reviewerIdentityMatchConfidence: normalizeConfidence(input?.reviewerIdentityMatchConfidence),
   };
 }
 
@@ -535,6 +582,246 @@ function buildGuidance(input) {
     )
   );
   return uniqueList(guidance).slice(0, 4);
+}
+
+function triageActions(category) {
+  if (category === "worth_pursuing_for_removal") {
+    return [
+      "collect_evidence",
+      "submit_removal_request",
+      "prepare_one_time_appeal",
+      "prepare_help_community_post",
+    ];
+  }
+
+  if (category === "unclear_case") {
+    return [
+      "collect_evidence",
+      "submit_removal_request",
+      "draft_public_response",
+      "monitor_review_impact",
+      "start_review_recovery_plan",
+    ];
+  }
+
+  return [
+    "draft_public_response",
+    "monitor_review_impact",
+    "start_review_recovery_plan",
+    "avoid_over_investing_in_removal",
+  ];
+}
+
+function buildTriageWarning(category, lang) {
+  if (category === "worth_pursuing_for_removal") return null;
+  if (category === "unclear_case") {
+    return t(
+      lang,
+      "Removal may still be worth attempting, but prepare a public response and recovery plan in parallel.",
+      "削除申請を試す価値はありますが、公開返信とレビュー回復策も並行して準備するのが安全です。"
+    );
+  }
+
+  return t(
+    lang,
+    "This case may be difficult to remove even if it feels unfair. Repeated removal attempts may not be the best use of time.",
+    "不当だと感じても、このケースは削除が難しい可能性があります。削除申請の繰り返しに時間を使いすぎないよう注意しましょう。"
+  );
+}
+
+export function buildReviewDisputeTriage(rawInput) {
+  const input = normalizeInput(rawInput);
+  const strongReasons = [];
+  const mixedReasons = [];
+
+  if (input.containsPersonalInfo) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "The review may expose personal or sensitive information.",
+        "レビューに個人情報または機微情報が含まれている可能性があります。"
+      )
+    );
+  }
+
+  if (input.containsThreatOrHarassment) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "The review may contain threats, harassment, or abusive language.",
+        "レビューに脅迫・嫌がらせ・攻撃的表現が含まれている可能性があります。"
+      )
+    );
+  }
+
+  if (input.reviewPredatesBusinessLaunch) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "The review appears inconsistent with the business launch timeline.",
+        "レビュー時期が事業開始時期と整合していない可能性があります。"
+      )
+    );
+  }
+
+  if (input.reviewPredatesServiceLaunch) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "The review appears inconsistent with the service launch timeline.",
+        "レビュー時期がサービス開始時期と整合していない可能性があります。"
+      )
+    );
+  }
+
+  if (input.appearsFactuallyImpossible) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "The review may describe something that appears factually impossible.",
+        "レビュー内容に事実上ありえない可能性のある記述が含まれています。"
+      )
+    );
+  }
+
+  if (input.contentlessLowRatingClusterDetected) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "A cluster of low-rating reviews without clear service detail may be present.",
+        "サービス内容の具体性が乏しい低評価レビューが集中している可能性があります。"
+      )
+    );
+  }
+
+  if (input.hasCustomerRecord === false && input.hasPaymentRecord === false && input.hasBookingRecord === false) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "No matching customer, payment, or booking record has been documented.",
+        "一致する顧客・支払い・予約記録が確認できていません。"
+      )
+    );
+  } else {
+    if (input.hasCustomerRecord === false) {
+      mixedReasons.push(
+        t(
+          input.lang,
+          "A matching customer record has not been documented.",
+          "一致する顧客記録が確認できていません。"
+        )
+      );
+    }
+    if (input.hasPaymentRecord === false) {
+      mixedReasons.push(
+        t(
+          input.lang,
+          "A matching payment or transaction record has not been documented.",
+          "一致する支払い・取引記録が確認できていません。"
+        )
+      );
+    }
+    if (input.hasBookingRecord === false) {
+      mixedReasons.push(
+        t(
+          input.lang,
+          "A matching booking record has not been documented.",
+          "一致する予約記録が確認できていません。"
+        )
+      );
+    }
+  }
+
+  if (input.isAppointmentOnlyBusiness && input.hasBookingRecord === false) {
+    strongReasons.push(
+      t(
+        input.lang,
+        "The business appears appointment-only, but no matching booking record has been documented.",
+        "予約制の事業のように見えますが、一致する予約記録が確認できていません。"
+      )
+    );
+  }
+
+  if (input.appearsConflictOfInterest) {
+    mixedReasons.push(
+      t(
+        input.lang,
+        "There may be a conflict-of-interest context, but direct proof is still limited.",
+        "利害関係の可能性はありますが、直接的な証拠はまだ限定的です。"
+      )
+    );
+  }
+
+  if (input.reviewerIdentityMatchConfidence === "low") {
+    mixedReasons.push(
+      t(
+        input.lang,
+        "The reviewer identity does not match your records with high confidence.",
+        "レビュアー情報が記録と一致する確度は低いようです。"
+      )
+    );
+  }
+
+  if (input.reviewerIdentityMatchConfidence === "unknown") {
+    mixedReasons.push(
+      t(
+        input.lang,
+        "The reviewer identity is still unclear from the available records.",
+        "利用可能な記録だけではレビュアーの特定がまだ難しい状況です。"
+      )
+    );
+  }
+
+  const answeredCount = [
+    input.hasCustomerRecord,
+    input.hasPaymentRecord,
+    input.hasBookingRecord,
+    input.reviewPredatesBusinessLaunch,
+    input.reviewPredatesServiceLaunch,
+    input.containsPersonalInfo,
+    input.containsThreatOrHarassment,
+    input.appearsConflictOfInterest,
+    input.appearsFactuallyImpossible,
+    input.isAppointmentOnlyBusiness,
+    input.contentlessLowRatingClusterDetected,
+  ].filter((value) => value !== null).length;
+
+  let category = "better_handled_with_response_and_recovery";
+  let confidence = answeredCount >= 4 ? "medium" : "low";
+  let reasons = [];
+
+  if (strongReasons.length) {
+    category = "worth_pursuing_for_removal";
+    confidence =
+      input.containsPersonalInfo ||
+      input.containsThreatOrHarassment ||
+      input.reviewPredatesBusinessLaunch ||
+      input.reviewPredatesServiceLaunch ||
+      strongReasons.length >= 2
+        ? "high"
+        : "medium";
+    reasons = strongReasons;
+  } else if (mixedReasons.length) {
+    category = "unclear_case";
+    confidence = mixedReasons.length >= 2 || answeredCount >= 4 ? "medium" : "low";
+    reasons = mixedReasons;
+  } else {
+    reasons = [
+      t(
+        input.lang,
+        "The review may feel unfair, but the current record does not show a strong removal signal.",
+        "不当だと感じても、現在確認できている情報だけでは強い削除根拠は見えていません。"
+      ),
+    ];
+  }
+
+  return {
+    category,
+    confidence,
+    reasons: uniqueList(reasons).slice(0, 4),
+    recommendedActions: triageActions(category),
+    warningMessage: buildTriageWarning(category, input.lang),
+  };
 }
 
 export function buildReviewDisputeDrafts(rawInput) {

@@ -1,4 +1,4 @@
-import { buildReviewDisputeDrafts } from "../_lib/reviewDispute.js";
+import { buildReviewDisputeDrafts, buildReviewDisputeTriage } from "../_lib/reviewDispute.js";
 
 function resolveLang(request, body = null) {
   const explicit = String(body?.lang || "").trim().toLowerCase();
@@ -49,6 +49,10 @@ export async function onRequest({ request }) {
   }
 
   try {
+    const triage = buildReviewDisputeTriage({
+      ...body,
+      lang,
+    });
     const drafted = buildReviewDisputeDrafts({
       ...body,
       lang,
@@ -57,7 +61,10 @@ export async function onRequest({ request }) {
       return json(drafted, 400);
     }
 
-    return json(drafted);
+    return json({
+      ...drafted,
+      triage,
+    });
   } catch (error) {
     console.error("review dispute draft failed", error);
     return json(

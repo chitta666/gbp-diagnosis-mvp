@@ -105,6 +105,29 @@ const THEME_GROUPS = [
     ],
   },
   {
+    key: "value",
+    label: {
+      en: "good value",
+      ja: "価格納得感",
+    },
+    kind: "strength",
+    keywords: [
+      "good value",
+      "worth it",
+      "worth every penny",
+      "reasonable price",
+      "affordable",
+      "great price",
+      "リーズナブル",
+      "良心的",
+      "お得",
+      "価格以上",
+      "値段以上",
+      "コスパが良い",
+      "コスパいい",
+    ],
+  },
+  {
     key: "slow_service",
     label: {
       en: "slow service",
@@ -207,6 +230,53 @@ const THEME_GROUPS = [
       "値段",
     ],
   },
+  {
+    key: "poor_quality",
+    label: {
+      en: "quality issues",
+      ja: "商品・サービスへの不満",
+    },
+    kind: "friction",
+    keywords: [
+      "bad food",
+      "bland",
+      "cold food",
+      "poor quality",
+      "sloppy",
+      "botched",
+      "terrible cut",
+      "first time and last time",
+      "まずい",
+      "微妙",
+      "雑",
+      "失敗",
+      "下手",
+      "期待外れ",
+      "仕上がりが悪い",
+      "味が薄い",
+    ],
+  },
+  {
+    key: "dirty",
+    label: {
+      en: "cleanliness concerns",
+      ja: "清潔感への不満",
+    },
+    kind: "friction",
+    keywords: [
+      "dirty",
+      "unclean",
+      "messy",
+      "smelly",
+      "gross",
+      "汚い",
+      "不衛生",
+      "臭い",
+      "におい",
+      "散らか",
+      "ベタベタ",
+    ],
+  },
 ];
 
 function isJapanese(lang = "en") {
@@ -281,6 +351,328 @@ function rankedThemes(kind, counts, lang = "en") {
 
 function hasTheme(groups, keys) {
   return groups.some((item) => keys.includes(item.key));
+}
+
+function countThemes(counts, keys) {
+  return (Array.isArray(keys) ? keys : []).reduce(
+    (sum, key) => sum + (Number(counts?.get(key)) || 0),
+    0
+  );
+}
+
+function inferListingCategory(types) {
+  const normalized = (Array.isArray(types) ? types : []).map((type) =>
+    String(type || "").toLowerCase()
+  );
+
+  if (
+    normalized.some((type) =>
+      [
+        "restaurant",
+        "cafe",
+        "bar",
+        "meal_takeaway",
+        "meal_delivery",
+        "bakery",
+        "food",
+      ].includes(type)
+    )
+  ) {
+    return "food";
+  }
+
+  if (
+    normalized.some((type) =>
+      [
+        "hair_care",
+        "beauty_salon",
+        "spa",
+        "nail_salon",
+      ].includes(type)
+    )
+  ) {
+    return "beauty";
+  }
+
+  if (
+    normalized.some((type) =>
+      [
+        "dentist",
+        "doctor",
+        "hospital",
+        "physiotherapist",
+        "health",
+      ].includes(type)
+    )
+  ) {
+    return "medical";
+  }
+
+  return "general";
+}
+
+function productServiceAxisLabel(types, lang = "en") {
+  const category = inferListingCategory(types);
+
+  if (category === "food") {
+    return isJapanese(lang) ? "味・商品力" : "Taste / Product";
+  }
+
+  if (category === "beauty") {
+    return isJapanese(lang) ? "技術・仕上がり" : "Technique / Finish";
+  }
+
+  if (category === "medical") {
+    return isJapanese(lang) ? "施術・診療の質" : "Treatment Quality";
+  }
+
+  return isJapanese(lang) ? "商品・サービス" : "Product / Service";
+}
+
+function buildReviewAxisDefinitions(details, lang = "en") {
+  const category = inferListingCategory(details?.types);
+  const productPositiveKeys =
+    category === "beauty" || category === "medical"
+      ? ["quality", "professionalism"]
+      : ["quality"];
+
+  return [
+    {
+      key: "service",
+      label: isJapanese(lang) ? "接客" : "Service",
+      positiveKeys: ["friendly_staff"],
+      negativeKeys: ["slow_service", "rude_service", "confusing_process"],
+    },
+    {
+      key: "atmosphere",
+      label: isJapanese(lang) ? "雰囲気" : "Atmosphere",
+      positiveKeys: ["atmosphere"],
+      negativeKeys: ["noise_crowding"],
+    },
+    {
+      key: "product_service",
+      label: productServiceAxisLabel(details?.types, lang),
+      positiveKeys: productPositiveKeys,
+      negativeKeys: ["poor_quality"],
+    },
+    {
+      key: "price",
+      label: isJapanese(lang) ? "価格" : "Price",
+      positiveKeys: ["value"],
+      negativeKeys: ["overpriced"],
+    },
+    {
+      key: "cleanliness",
+      label: isJapanese(lang) ? "清潔感" : "Cleanliness",
+      positiveKeys: ["cleanliness"],
+      negativeKeys: ["dirty"],
+    },
+  ];
+}
+
+function axisSignalScore({ positiveCounts, lowerCounts }, axis) {
+  const positive = countThemes(positiveCounts, axis?.positiveKeys);
+  const negative = countThemes(lowerCounts, axis?.negativeKeys);
+
+  return {
+    positive,
+    negative,
+    total: positive + negative,
+    score: positive - negative * 1.25,
+  };
+}
+
+function axisStatus({ mine, competitor }) {
+  if (!mine.total && !competitor.total) return "no_signal";
+
+  const diff = mine.score - competitor.score;
+  if (diff >= 1.25) return "ahead";
+  if (diff <= -1.25) return "behind";
+  if (mine.negative > 0 || competitor.negative > 0) return "mixed";
+  return "close";
+}
+
+function axisSummary({ axis, status, competitorName }, lang = "en") {
+  if (status === "ahead") {
+    return isJapanese(lang)
+      ? `直近レビューでは${axis.label}の前向きシグナルは自店舗のほうが強めです。`
+      : `Recent visible reviews suggest your ${axis.label.toLowerCase()} signal is stronger than ${competitorName}.`;
+  }
+
+  if (status === "behind") {
+    return isJapanese(lang)
+      ? `直近レビューでは${competitorName}のほうが${axis.label}で強く見えます。`
+      : `Recent visible reviews suggest ${competitorName} looks stronger on ${axis.label.toLowerCase()}.`;
+  }
+
+  if (status === "mixed") {
+    return isJapanese(lang)
+      ? `直近レビューでは${axis.label}は割れていて、優劣を断言しにくい状態です。`
+      : `Recent visible reviews on ${axis.label.toLowerCase()} are mixed, so the gap is not cleanly one-sided.`;
+  }
+
+  if (status === "close") {
+    return isJapanese(lang)
+      ? `直近レビューでは${axis.label}に大きな差はまだ見えていません。`
+      : `Recent visible reviews do not yet show a clear gap on ${axis.label.toLowerCase()}.`;
+  }
+
+  return isJapanese(lang)
+    ? `直近レビューだけでは${axis.label}は主要な比較軸としてまだ十分見えていません。`
+    : `${axis.label} is not yet a strong comparison axis in the recent visible review sample.`;
+}
+
+function buildReviewComparisonSummary({ axes, competitorName }, lang = "en") {
+  const wins = axes.filter((axis) => axis.status === "ahead").map((axis) => axis.label);
+  const losses = axes.filter((axis) => axis.status === "behind").map((axis) => axis.label);
+
+  if (wins.length && losses.length) {
+    return isJapanese(lang)
+      ? `${competitorName}と比べると、${humanJoin(wins, lang)}は勝ち筋ですが、${humanJoin(
+          losses,
+          lang
+        )}は負け筋です。`
+      : `Against ${competitorName}, ${humanJoin(wins, lang)} look like current strengths, while ${humanJoin(
+          losses,
+          lang
+        )} look weaker.`;
+  }
+
+  if (losses.length) {
+    return isJapanese(lang)
+      ? `${competitorName}と比べると、${humanJoin(losses, lang)}がいまの負け筋です。`
+      : `Against ${competitorName}, ${humanJoin(losses, lang)} look like the main weaker spots right now.`;
+  }
+
+  if (wins.length) {
+    return isJapanese(lang)
+      ? `${competitorName}と比べても、${humanJoin(wins, lang)}はすでに勝ち筋として見えています。`
+      : `Even against ${competitorName}, ${humanJoin(wins, lang)} already look like strengths.`;
+  }
+
+  return isJapanese(lang)
+    ? `${competitorName}と比べても、直近レビューだけでは優劣を強く断言できる軸はまだ多くありません。`
+    : `Even against ${competitorName}, the recent visible reviews do not yet show many clear win-or-lose axes.`;
+}
+
+function buildReviewComparisonAxes({
+  details,
+  competitor,
+  sample,
+  positiveCounts,
+  lowerCounts,
+  competitorSample,
+  competitorPositiveCounts,
+  competitorLowerCounts,
+  lang = "en",
+} = {}) {
+  if (!competitor || !competitorSample.length) return null;
+
+  const axes = buildReviewAxisDefinitions(details, lang).map((axis) => {
+    const mine = axisSignalScore({ positiveCounts, lowerCounts }, axis);
+    const theirs = axisSignalScore(
+      {
+        positiveCounts: competitorPositiveCounts,
+        lowerCounts: competitorLowerCounts,
+      },
+      axis
+    );
+    const status = axisStatus({ mine, competitor: theirs });
+
+    return {
+      key: axis.key,
+      label: axis.label,
+      status,
+      summary: axisSummary({
+        axis,
+        status,
+        competitorName: competitor?.name || (isJapanese(lang) ? "競合" : "the competitor"),
+      }, lang),
+      mySignalCount: mine.total,
+      competitorSignalCount: theirs.total,
+    };
+  });
+
+  return {
+    summary: buildReviewComparisonSummary({
+      axes,
+      competitorName: competitor?.name || (isJapanese(lang) ? "競合" : "the competitor"),
+    }, lang),
+    axes,
+    note: isJapanese(lang)
+      ? `自店舗の直近表示レビュー ${sample.length} 件と、競合の直近表示レビュー ${competitorSample.length} 件をもとにしています。`
+      : `Based on ${sample.length} recent visible reviews for this listing and ${competitorSample.length} for the competitor.`,
+  };
+}
+
+function buildGoogleComparisonSignals({ details, competitor, photoAnalysis }, lang = "en") {
+  const signals = [];
+  const myPhotos = Number.isFinite(photoAnalysis?.myPhotos) ? Number(photoAnalysis.myPhotos) : 0;
+  const competitorPhotos = Number.isFinite(competitor?.photoCount)
+    ? Number(competitor.photoCount)
+    : Array.isArray(competitor?.photos)
+      ? competitor.photos.length
+      : 0;
+  const myReviewCount = Number.isFinite(details?.user_ratings_total)
+    ? Number(details.user_ratings_total)
+    : null;
+  const competitorReviewCount = Number.isFinite(competitor?.user_ratings_total)
+    ? Number(competitor.user_ratings_total)
+    : Number.isFinite(competitor?.reviewCount)
+      ? Number(competitor.reviewCount)
+      : null;
+
+  if (!details?.website && competitor?.website) {
+    signals.push(
+      isJapanese(lang)
+        ? "競合は Web サイト導線があり、来店前の確認がしやすく見えます。"
+        : "The competitor has a website link, so it is easier to verify key details before a visit."
+    );
+  } else if (details?.website && !competitor?.website) {
+    signals.push(
+      isJapanese(lang)
+        ? "こちらは Web サイト導線があるぶん、来店前の確認では先に立てています。"
+        : "This listing has a website link, which is a visible proof advantage before the visit."
+    );
+  }
+
+  if (competitorPhotos > myPhotos + 3) {
+    signals.push(
+      isJapanese(lang)
+        ? `競合は写真が ${competitorPhotos - myPhotos} 枚以上多く、一覧で判断しやすく見えます。`
+        : `The competitor shows at least ${competitorPhotos - myPhotos} more photos, which strengthens first-view proof.`
+    );
+  } else if (myPhotos > competitorPhotos + 3) {
+    signals.push(
+      isJapanese(lang)
+        ? `こちらは写真が ${myPhotos - competitorPhotos} 枚以上多く、一覧での見える根拠は優位です。`
+        : `This listing shows at least ${myPhotos - competitorPhotos} more photos, which helps first-view proof.`
+    );
+  }
+
+  if (
+    Number.isFinite(myReviewCount) &&
+    Number.isFinite(competitorReviewCount) &&
+    competitorReviewCount > myReviewCount + Math.max(20, Math.round(myReviewCount * 0.35))
+  ) {
+    signals.push(
+      isJapanese(lang)
+        ? "競合は総レビュー規模でも先行していて、ひと目の信頼感で有利です。"
+        : "The competitor also has a larger visible review base, which helps trust at a glance."
+    );
+  } else if (
+    Number.isFinite(myReviewCount) &&
+    Number.isFinite(competitorReviewCount) &&
+    myReviewCount > competitorReviewCount + Math.max(20, Math.round(competitorReviewCount * 0.35))
+  ) {
+    signals.push(
+      isJapanese(lang)
+        ? "こちらは総レビュー規模で先行していて、見える信頼感は維持できています。"
+        : "This listing has the larger visible review base, so the trust signal is still solid at a glance."
+    );
+  }
+
+  return uniqueStrings(signals).slice(0, 3);
 }
 
 function buildUnderSignaledStrengths({ topStrengths, websiteMissing, missingPhotos }, lang = "en") {
@@ -611,6 +1003,13 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
   const allCounts = collectThemeCounts(sample);
   const positiveCounts = collectThemeCounts(positiveReviews);
   const lowerCounts = collectThemeCounts(lowerReviews);
+  const competitorSample = normalizeReviews(competitor?.reviews);
+  const competitorPositiveReviews = competitorSample.filter((review) => Number(review.rating) >= 4);
+  const competitorLowerReviews = competitorSample.filter(
+    (review) => Number.isFinite(review.rating) && Number(review.rating) <= 3
+  );
+  const competitorPositiveCounts = collectThemeCounts(competitorPositiveReviews);
+  const competitorLowerCounts = collectThemeCounts(competitorLowerReviews);
   const topStrengths = rankedThemes(
     "strength",
     positiveReviews.length ? positiveCounts : allCounts,
@@ -656,6 +1055,22 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
     verificationGaps,
     competitorChoiceEdges,
   }, lang);
+  const comparison = buildReviewComparisonAxes({
+    details,
+    competitor,
+    sample,
+    positiveCounts,
+    lowerCounts,
+    competitorSample,
+    competitorPositiveCounts,
+    competitorLowerCounts,
+    lang,
+  });
+  const googleSignals = buildGoogleComparisonSignals({
+    details,
+    competitor,
+    photoAnalysis,
+  }, lang);
 
   return {
     sampleBasis: "recent_visible_reviews",
@@ -686,6 +1101,10 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
       missingPhotos,
     }, lang),
     choicePriorityReason,
+    comparisonSummary: comparison?.summary ?? null,
+    comparisonAxes: Array.isArray(comparison?.axes) ? comparison.axes : [],
+    comparisonNote: comparison?.note ?? null,
+    googleSignals,
     confidence: sample.length >= 4 ? "medium" : "low",
   };
 }

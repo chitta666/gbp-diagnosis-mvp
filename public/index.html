@@ -77,6 +77,11 @@ Analyze your Google Maps listing, compare competitors, and discover how to impro
     </div>
 
     <div class="section">
+      <h2 id="comparisonFocusTitle" class="section__title">Comparison Focus</h2>
+      <div id="comparisonFocus" class="muted"></div>
+    </div>
+
+    <div class="section">
       <h2 id="customerChoiceTitle" class="section__title">Customer Choice</h2>
       <div id="customerChoice" class="muted"></div>
     </div>
@@ -448,6 +453,7 @@ const savedListingsTitleEl = document.getElementById("savedListingsTitle");
 const reportTitleEl = document.getElementById("reportTitle");
 const nextActionsTitleEl = document.getElementById("nextActionsTitle");
 const competitiveGapTitleEl = document.getElementById("competitiveGapTitle");
+const comparisonFocusTitleEl = document.getElementById("comparisonFocusTitle");
 const customerChoiceTitleEl = document.getElementById("customerChoiceTitle");
 const googleBasicsTitleEl = document.getElementById("googleBasicsTitle");
 const weeklyReportTitleEl = document.getElementById("weeklyReportTitle");
@@ -472,6 +478,7 @@ const diagnosisSummaryEl = document.getElementById("diagnosisSummary");
 const diagnosisMetaEl = document.getElementById("diagnosisMeta");
 const priorityRowEl = document.getElementById("priorityRow");
 const primaryActionsListEl = document.getElementById("primaryActionsList");
+const comparisonFocusEl = document.getElementById("comparisonFocus");
 const customerChoiceEl = document.getElementById("customerChoice");
 const foundationSummaryEl = document.getElementById("foundationSummary");
 const foundationStatusCopyEl = document.getElementById("foundationStatusCopy");
@@ -647,6 +654,18 @@ const COPY = {
     reportTitle: "Google Maps Analysis Report",
     nextActionsTitle: "Next Actions",
     competitiveGapTitle: "Competitive Gap",
+    comparisonFocusTitle: "Comparison Focus",
+    comparisonFocusReviewTitle: "Review-Based Win / Lose",
+    comparisonFocusGoogleTitle: "Google Visible Proof",
+    comparisonFocusReviewUnavailable:
+      "A review-based win / lose view will appear here once both this listing and the comparison competitor have visible review text.",
+    comparisonFocusContextMismatch:
+      "This review-based comparison is still tied to the recommended competitor. Switch back to that competitor to use this lens again.",
+    comparisonFocusStatusAhead: "Winning",
+    comparisonFocusStatusBehind: "Losing",
+    comparisonFocusStatusMixed: "Mixed",
+    comparisonFocusStatusClose: "Close",
+    comparisonFocusStatusNoSignal: "No clear signal",
     customerChoiceTitle: "Customer Choice",
     googleBasicsTitle: "Google Basics Check",
     foundationEyebrow: "Google basics",
@@ -968,6 +987,18 @@ const COPY = {
     reportTitle: "Googleマップ分析レポート",
     nextActionsTitle: "次のアクション",
     competitiveGapTitle: "競合差分",
+    comparisonFocusTitle: "比較の読みどころ",
+    comparisonFocusReviewTitle: "レビュー起点の勝ち負け",
+    comparisonFocusGoogleTitle: "Google 上の見える根拠",
+    comparisonFocusReviewUnavailable:
+      "自店舗と比較競合の両方でレビュー本文が見えてくると、ここにレビュー起点の勝ち負けが表示されます。",
+    comparisonFocusContextMismatch:
+      "このレビュー比較は、まだ推奨競合を基準にしています。この見方を使うときは、その競合に戻してください。",
+    comparisonFocusStatusAhead: "勝ち筋",
+    comparisonFocusStatusBehind: "負け筋",
+    comparisonFocusStatusMixed: "割れている",
+    comparisonFocusStatusClose: "接近",
+    comparisonFocusStatusNoSignal: "シグナル不足",
     customerChoiceTitle: "顧客視点",
     googleBasicsTitle: "Google基本情報チェック",
     foundationEyebrow: "Google基本情報",
@@ -1465,6 +1496,7 @@ function renderStaticCopy() {
   if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
   if (nextActionsTitleEl) nextActionsTitleEl.textContent = t("nextActionsTitle");
   if (competitiveGapTitleEl) competitiveGapTitleEl.textContent = t("competitiveGapTitle");
+  if (comparisonFocusTitleEl) comparisonFocusTitleEl.textContent = t("comparisonFocusTitle");
   if (customerChoiceTitleEl) customerChoiceTitleEl.textContent = t("customerChoiceTitle");
   if (googleBasicsTitleEl) googleBasicsTitleEl.textContent = t("googleBasicsTitle");
   if (foundationEyebrowEl) foundationEyebrowEl.textContent = t("foundationEyebrow");
@@ -2349,6 +2381,7 @@ function resetUI() {
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
+  if (comparisonFocusEl) comparisonFocusEl.textContent = "";
   if (customerChoiceEl) customerChoiceEl.textContent = "";
   if (foundationSummaryEl) foundationSummaryEl.textContent = "";
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
@@ -2412,6 +2445,7 @@ function setLoading(isLoading) {
     if (primaryActionsListEl) {
       primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("loadingPriority"))}</li>`;
     }
+    if (comparisonFocusEl) comparisonFocusEl.textContent = t("loadingGeneric");
     if (customerChoiceEl) customerChoiceEl.textContent = t("loadingCustomerChoice");
     if (foundationSummaryEl) foundationSummaryEl.textContent = t("loadingFoundation");
     if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
@@ -2444,6 +2478,7 @@ function showError(message) {
   if (primaryActionsListEl) {
     primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("retryMoreSpecific"))}</li>`;
   }
+  if (comparisonFocusEl) comparisonFocusEl.textContent = "";
   if (customerChoiceEl) customerChoiceEl.textContent = "";
   if (foundationSummaryEl) foundationSummaryEl.textContent = t("unavailableFoundation");
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = "";
@@ -2662,6 +2697,33 @@ function getCompetitorCandidates(data, limit = 5) {
   }
 
   return candidates;
+}
+
+function getSelectedCompetitorSnapshot(data) {
+  const selectedPlaceId =
+    data?.selectedCompetitor?.placeId ??
+    data?.savedListing?.competitorPlaceId ??
+    data?.recommendedCompetitorPlaceId ??
+    data?.defaultCompetitorPlaceId ??
+    null;
+  const competitors = Array.isArray(data?.competitors?.results) ? data.competitors.results : [];
+  const raw = competitors.find((item) => item?.place_id === selectedPlaceId) || null;
+
+  return {
+    placeId: selectedPlaceId,
+    name:
+      data?.selectedCompetitor?.name ??
+      data?.savedListing?.competitorName ??
+      raw?.name ??
+      t("selectedCompetitorFallback"),
+    distanceMeters: Number.isFinite(raw?.distance_meters) ? Number(raw.distance_meters) : null,
+    reviewCount: Number.isFinite(raw?.user_ratings_total) ? Number(raw.user_ratings_total) : null,
+    photoCount: Number.isFinite(raw?.photoCount)
+      ? Number(raw.photoCount)
+      : Array.isArray(raw?.photos)
+        ? raw.photos.length
+        : null,
+  };
 }
 
 function renderCompareMeta(competitor) {
@@ -3127,6 +3189,69 @@ function buildCustomerChoiceView(data) {
   };
 }
 
+function buildComparisonFocusView(data) {
+  const reviewClues = data?.reviewClues ?? null;
+  const competitor = getSelectedCompetitorSnapshot(data);
+  const selectedCompetitorPlaceId = data?.selectedCompetitor?.placeId ?? null;
+  const comparisonContextPlaceId = reviewClues?.competitorContextPlaceId ?? null;
+  const canUseComparison =
+    Boolean(reviewClues?.comparisonAxes?.length) &&
+    (!selectedCompetitorPlaceId ||
+      !comparisonContextPlaceId ||
+      selectedCompetitorPlaceId === comparisonContextPlaceId);
+
+  if (!reviewClues?.comparisonAxes?.length) {
+    return {
+      summary:
+        sentence(reviewClues?.summary) || t("comparisonFocusReviewUnavailable"),
+      reviewUnavailable: t("comparisonFocusReviewUnavailable"),
+      comparisonAxes: [],
+      googleSignals: Array.isArray(reviewClues?.googleSignals) ? reviewClues.googleSignals : [],
+      note: sentence(reviewClues?.comparisonNote),
+      metaItems: [],
+    };
+  }
+
+  if (!canUseComparison) {
+    return {
+      summary: t("comparisonFocusContextMismatch"),
+      contextMismatch: true,
+      reviewUnavailable: "",
+      comparisonAxes: [],
+      googleSignals: [],
+      note: "",
+      metaItems: [],
+    };
+  }
+
+  const myReviewCount = Number.isFinite(data?.details?.user_ratings_total)
+    ? Number(data.details.user_ratings_total)
+    : null;
+
+  return {
+    summary: sentence(reviewClues?.comparisonSummary || reviewClues?.summary || ""),
+    reviewUnavailable: "",
+    comparisonAxes: Array.isArray(reviewClues?.comparisonAxes)
+      ? reviewClues.comparisonAxes
+      : [],
+    googleSignals: Array.isArray(reviewClues?.googleSignals) ? reviewClues.googleSignals : [],
+    note: sentence(reviewClues?.comparisonNote || ""),
+    metaItems: uniqueStrings([
+      formatDistanceLabel(competitor?.distanceMeters),
+      formatReviewCountLabel(competitor?.reviewCount),
+      competitorScaleLabel(competitor?.reviewCount, myReviewCount),
+    ]).filter(Boolean),
+  };
+}
+
+function comparisonFocusStatusLabel(status) {
+  if (status === "ahead") return t("comparisonFocusStatusAhead");
+  if (status === "behind") return t("comparisonFocusStatusBehind");
+  if (status === "mixed") return t("comparisonFocusStatusMixed");
+  if (status === "close") return t("comparisonFocusStatusClose");
+  return t("comparisonFocusStatusNoSignal");
+}
+
 function buildPrimaryActions(context) {
   const actions = [];
 
@@ -3521,8 +3646,103 @@ function renderCustomerChoiceView(view) {
   `;
 }
 
+function renderComparisonFocusView(view) {
+  if (!comparisonFocusEl) return;
+
+  const metaItems = Array.isArray(view?.metaItems) ? view.metaItems : [];
+  const comparisonAxes = Array.isArray(view?.comparisonAxes) ? view.comparisonAxes : [];
+  const googleSignals = Array.isArray(view?.googleSignals) ? view.googleSignals : [];
+  const note = sentence(view?.note);
+
+  if (view?.contextMismatch) {
+    comparisonFocusEl.innerHTML = `
+      <div class="comparison-focus-card">
+        <div class="comparison-focus-card__summary">${escapeHtml(view?.summary || "")}</div>
+      </div>
+    `;
+    return;
+  }
+
+  comparisonFocusEl.innerHTML = `
+    <div class="comparison-focus-card">
+      <div class="comparison-focus-card__summary">${escapeHtml(view?.summary || "")}</div>
+      ${
+        metaItems.length
+          ? `<div class="comparison-focus-card__meta">
+              ${metaItems
+                .map(
+                  (item) =>
+                    `<span class="comparison-focus-card__chip">${escapeHtml(item)}</span>`
+                )
+                .join("")}
+            </div>`
+          : ""
+      }
+      <div class="comparison-focus-grid comparison-focus-grid--split">
+        <div class="comparison-focus-block comparison-focus-block--wide">
+          <div class="comparison-focus-block__label">${escapeHtml(
+            t("comparisonFocusReviewTitle")
+          )}</div>
+          ${
+            comparisonAxes.length
+              ? `<div class="comparison-focus-axis-list">
+                  ${comparisonAxes
+                    .map(
+                      (axis) => `
+                        <div class="comparison-focus-axis">
+                          <div class="comparison-focus-axis__topline">
+                            <div class="comparison-focus-axis__label">${escapeHtml(
+                              axis?.label || ""
+                            )}</div>
+                            <div class="comparison-focus-axis__status comparison-focus-axis__status--${escapeAttr(
+                              axis?.status || "no_signal"
+                            )}">${escapeHtml(comparisonFocusStatusLabel(axis?.status))}</div>
+                          </div>
+                          <div class="comparison-focus-axis__body">${escapeHtml(
+                            axis?.summary || ""
+                          )}</div>
+                        </div>
+                      `
+                    )
+                    .join("")}
+                </div>`
+              : `<div class="comparison-focus-block__body">${escapeHtml(
+                  view?.reviewUnavailable || t("comparisonFocusReviewUnavailable")
+                )}</div>`
+          }
+        </div>
+        <div class="comparison-focus-block">
+          <div class="comparison-focus-block__label">${escapeHtml(
+            t("comparisonFocusGoogleTitle")
+          )}</div>
+          ${
+            googleSignals.length
+              ? `<ul class="comparison-focus-block__list">
+                  ${googleSignals
+                    .map((item) => `<li>${escapeHtml(item)}</li>`)
+                    .join("")}
+                </ul>`
+              : `<div class="comparison-focus-block__body">${escapeHtml(
+                  langText(
+                    "No strong Google-side proof gap stands out yet.",
+                    "現時点では、Google 上の見える根拠で大きな差はまだ目立っていません。"
+                  )
+                )}</div>`
+          }
+        </div>
+      </div>
+      ${
+        note
+          ? `<div class="comparison-focus-card__note muted">${escapeHtml(note)}</div>`
+          : ""
+      }
+    </div>
+  `;
+}
+
 function renderInsight(data) {
   const firstView = buildDiagnosisFirstView(data);
+  const comparisonFocus = buildComparisonFocusView(data);
 
   if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = firstView.headline;
   if (diagnosisSummaryEl) {
@@ -3533,6 +3753,7 @@ function renderInsight(data) {
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
   renderPriorityRow(firstView.priorityItems);
   renderSimpleList(primaryActionsListEl, firstView.actions);
+  renderComparisonFocusView(comparisonFocus);
   renderCustomerChoiceView(firstView.customerChoice);
   if (foundationSummaryEl) foundationSummaryEl.textContent = firstView.foundation.summary;
   if (foundationStatusCopyEl) foundationStatusCopyEl.textContent = firstView.foundation.copy;

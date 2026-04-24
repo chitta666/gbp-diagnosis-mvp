@@ -3094,7 +3094,7 @@ function buildCustomerChoiceCopy(context) {
 function buildCustomerChoiceView(data) {
   const context = getDiagnosisContext(data);
   const reviewClues = data?.reviewClues ?? null;
-  const actions = buildPrimaryActions(context);
+  const actions = buildPrimaryActions(context, data);
 
   if (reviewClues?.summary && Number.isFinite(reviewClues?.reviewCountInSample)) {
     const bullets = [];
@@ -3252,8 +3252,214 @@ function comparisonFocusStatusLabel(status) {
   return t("comparisonFocusStatusNoSignal");
 }
 
-function buildPrimaryActions(context) {
+function actionSlot(labelEn, labelJa, body) {
+  const text = sentence(body);
+  if (!text) return "";
+  return `${langText(labelEn, labelJa)}: ${text}`;
+}
+
+function canUseReviewComparison(data) {
+  const reviewClues = data?.reviewClues ?? null;
+  const selectedCompetitorPlaceId = data?.selectedCompetitor?.placeId ?? null;
+  const comparisonContextPlaceId = reviewClues?.competitorContextPlaceId ?? null;
+
+  return (
+    Boolean(reviewClues?.comparisonAxes?.length) &&
+    (!selectedCompetitorPlaceId ||
+      !comparisonContextPlaceId ||
+      selectedCompetitorPlaceId === comparisonContextPlaceId)
+  );
+}
+
+function comparisonAxisSignalCount(axis) {
+  const mySignalCount = Number.isFinite(axis?.mySignalCount) ? Number(axis.mySignalCount) : 0;
+  const competitorSignalCount = Number.isFinite(axis?.competitorSignalCount)
+    ? Number(axis.competitorSignalCount)
+    : 0;
+  return mySignalCount + competitorSignalCount;
+}
+
+function strongestComparisonAxis(axes, statuses) {
+  const allowedStatuses = Array.isArray(statuses) ? statuses : [];
+  return [...(Array.isArray(axes) ? axes : [])]
+    .filter((axis) => allowedStatuses.includes(axis?.status))
+    .sort((a, b) => comparisonAxisSignalCount(b) - comparisonAxisSignalCount(a))[0];
+}
+
+function comparisonAxisBehindAction(axis) {
+  const label = axis?.label || langText("this area", "この軸");
+  if (axis?.key === "service") {
+    return langText(
+      `Recent visible reviews suggest ${label} is weaker than the competitor. Review service friction, then clarify wait time, booking, or process expectations before the visit.`,
+      `直近の見えているレビューでは、${label}が競合より弱く見えます。接客まわりの不満を確認し、待ち時間・予約・案内の期待値を来店前に分かりやすくしてください。`
+    );
+  }
+  if (axis?.key === "atmosphere") {
+    return langText(
+      `Recent visible reviews suggest ${label} is weaker than the competitor. Add first-view photos that make the expected atmosphere clear before a visit.`,
+      `直近の見えているレビューでは、${label}が競合より弱く見えます。来店前に雰囲気が伝わる写真を、最初に見える位置で増やしてください。`
+    );
+  }
+  if (axis?.key === "product_service") {
+    return langText(
+      `Recent visible reviews suggest ${label} is weaker than the competitor. Make the strongest menu, service, or finish result easier to see before a visit.`,
+      `直近の見えているレビューでは、${label}が競合より弱く見えます。強い商品・サービス・仕上がりが来店前に伝わる根拠を前面に出してください。`
+    );
+  }
+  if (axis?.key === "price") {
+    return langText(
+      `Recent visible reviews suggest ${label} is weaker or less clear than the competitor. Improve value framing before considering a price change.`,
+      `直近の見えているレビューでは、${label}の納得感が競合より弱い可能性があります。値下げより先に、何が含まれ、なぜその価格なのかを分かりやすくしてください。`
+    );
+  }
+  if (axis?.key === "cleanliness") {
+    return langText(
+      `Recent visible reviews suggest ${label} is weaker than the competitor. Treat this as a trust issue and reinforce cleanliness with recent photos and calm owner replies.`,
+      `直近の見えているレビューでは、${label}が競合より弱く見えます。信頼に直結する論点として、最近の写真と落ち着いたオーナー返信で清潔感を補強してください。`
+    );
+  }
+  return langText(
+    `Recent visible reviews suggest ${label} is weaker than the competitor. Pick one visible proof point that narrows this gap before the next check.`,
+    `直近の見えているレビューでは、${label}が競合より弱く見えます。次回確認までに、この差を縮める見える根拠を1つ増やしてください。`
+  );
+}
+
+function comparisonAxisMixedAction(axis) {
+  const label = axis?.label || langText("this area", "この軸");
+  if (axis?.key === "price") {
+    return langText(
+      `Reviews are split on ${label}. Clarify what is included, what outcome customers get, and why the price is justified.`,
+      `${label}の受け止め方が割れています。何が含まれ、どんな結果が得られ、なぜその価格なのかを分かりやすくしてください。`
+    );
+  }
+  if (axis?.key === "service") {
+    return langText(
+      `Reviews are split on ${label}. Tighten expectation-setting around wait time, booking, and the first service steps.`,
+      `${label}の受け止め方が割れています。待ち時間・予約・最初の案内など、期待値がずれやすい部分を整えてください。`
+    );
+  }
+  return langText(
+    `Reviews are split on ${label}. Make the expected experience clearer before a visit so customers do not have to guess.`,
+    `${label}の受け止め方が割れています。来店前に期待する体験が分かるようにし、顧客が推測しなくてよい状態にしてください。`
+  );
+}
+
+function comparisonAxisAheadAction(axis) {
+  const label = axis?.label || langText("this area", "この軸");
+  return langText(
+    `Recent visible reviews already show ${label} as a strength. Keep that proof easy to notice in photos, copy, and review responses.`,
+    `直近の見えているレビューでは、${label}はすでに勝ち筋です。写真・説明文・返信で、その根拠が見え続けるようにしてください。`
+  );
+}
+
+function googleProofGapAction(reviewClues, context) {
+  const signals = Array.isArray(reviewClues?.googleSignals) ? reviewClues.googleSignals : [];
+  const joined = signals.join(" ").toLowerCase();
+
+  if (
+    joined.includes("competitor has a website") ||
+    joined.includes("競合は web サイト") ||
+    joined.includes("競合はwebサイト")
+  ) {
+    return langText(
+      "Add or improve the website, reservation, or service-detail link so key details are easier to verify before a visit.",
+      "来店前に確認しやすいように、Web サイト・予約・サービス詳細への導線を追加または改善してください。"
+    );
+  }
+
+  if (
+    joined.includes("competitor shows") ||
+    joined.includes("競合は写真") ||
+    (Number.isFinite(context?.missingPhotos) && context.missingPhotos > 0)
+  ) {
+    return langText(
+      "Add targeted first-view photos before deeper copy work, especially shots that prove the experience customers compare on.",
+      "深い説明文より先に、比較される体験が伝わる初見向け写真を追加してください。"
+    );
+  }
+
+  if (
+    joined.includes("larger visible review base") ||
+    joined.includes("競合は総レビュー規模") ||
+    (Number.isFinite(context?.totalDiff) && context.totalDiff < 0)
+  ) {
+    return langText(
+      "Strengthen the review request flow, then re-check whether visible trust narrows after the next saved check.",
+      "レビュー獲得導線を強め、次回の保存チェックで見える信頼差が縮まるか確認してください。"
+    );
+  }
+
+  return "";
+}
+
+function buildComparisonAxisActions(data, context) {
+  if (!canUseReviewComparison(data)) return [];
+
+  const reviewClues = data?.reviewClues ?? {};
+  const axes = Array.isArray(reviewClues?.comparisonAxes) ? reviewClues.comparisonAxes : [];
+  const behindAxis = strongestComparisonAxis(axes, ["behind"]);
+  const secondBehindAxis = [...axes]
+    .filter((axis) => axis?.status === "behind" && axis?.key !== behindAxis?.key)
+    .sort((a, b) => comparisonAxisSignalCount(b) - comparisonAxisSignalCount(a))[0];
+  const mixedAxis = strongestComparisonAxis(axes, ["mixed"]);
+  const aheadAxis = strongestComparisonAxis(axes, ["ahead"]);
+  const proofAction = googleProofGapAction(reviewClues, context);
   const actions = [];
+
+  if (behindAxis) {
+    actions.push(
+      actionSlot(
+        "Next competitive catch-up move",
+        "次の競合キャッチアップ",
+        comparisonAxisBehindAction(behindAxis)
+      )
+    );
+  }
+
+  if (proofAction) {
+    actions.push(actionSlot("Fastest confidence gain", "最短で信頼を上げる一手", proofAction));
+  } else if (mixedAxis) {
+    actions.push(
+      actionSlot(
+        "Fastest confidence gain",
+        "最短で信頼を上げる一手",
+        comparisonAxisMixedAction(mixedAxis)
+      )
+    );
+  }
+
+  if (secondBehindAxis) {
+    actions.push(
+      actionSlot(
+        "Main structural gap",
+        "構造上の主なギャップ",
+        comparisonAxisBehindAction(secondBehindAxis)
+      )
+    );
+  } else if (!behindAxis && mixedAxis) {
+    actions.push(
+      actionSlot(
+        "Main structural gap",
+        "構造上の主なギャップ",
+        comparisonAxisMixedAction(mixedAxis)
+      )
+    );
+  } else if (!behindAxis && !mixedAxis && aheadAxis) {
+    actions.push(
+      actionSlot(
+        "Strength to keep visible",
+        "見え続けさせる強み",
+        comparisonAxisAheadAction(aheadAxis)
+      )
+    );
+  }
+
+  return uniqueStrings(actions).slice(0, 3);
+}
+
+function buildPrimaryActions(context, data) {
+  const actions = [];
+  const comparisonActions = buildComparisonAxisActions(data, context);
 
   if (context.primaryPriority === "foundation") {
     actions.push(...(Array.isArray(context.diagnosis?.todos) ? context.diagnosis.todos : []));
@@ -3275,6 +3481,7 @@ function buildPrimaryActions(context) {
   }
 
   if (context.primaryPriority === "competitive_gap") {
+    actions.push(...comparisonActions);
     if (
       (Number.isFinite(context.totalDiff) && context.totalDiff < 0) ||
       (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0)
@@ -3304,6 +3511,7 @@ function buildPrimaryActions(context) {
 
   if (context.primaryPriority === "customer_choice") {
     if (context.materialReviewDrop) {
+      actions.push(...comparisonActions);
       actions.push(
         langText(
           "Confirm whether the lower review count persists on the next saved check.",
@@ -3324,6 +3532,7 @@ function buildPrimaryActions(context) {
       return uniqueStrings(actions).slice(0, 3);
     }
 
+    actions.push(...comparisonActions);
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
       actions.push(
         langText(
@@ -3346,6 +3555,7 @@ function buildPrimaryActions(context) {
     return uniqueStrings(actions).slice(0, 3);
   }
 
+  actions.push(...comparisonActions);
   actions.push(
     langText(
       "Keep review and photo momentum steady.",
@@ -3565,7 +3775,7 @@ function buildDiagnosisFirstView(data) {
     summaryLines: summaryLines.map((line) => sentence(line)).filter(Boolean),
     meta: competitorMeta,
     priorityItems,
-    actions: buildPrimaryActions(context),
+    actions: buildPrimaryActions(context, data),
     customerChoice: buildCustomerChoiceView(data),
     foundation: buildFoundationStatusView(context),
   };

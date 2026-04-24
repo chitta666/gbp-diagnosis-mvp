@@ -342,6 +342,156 @@ button {
   font-size: var(--fs-2);
 }
 
+.comparison-focus-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-2);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.03), rgba(15, 23, 42, 0.01));
+  color: var(--fg);
+}
+
+.comparison-focus-card__summary {
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.comparison-focus-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.comparison-focus-card__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.comparison-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.comparison-focus-grid--split {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+}
+
+.comparison-focus-block {
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.comparison-focus-block--wide {
+  min-width: 0;
+}
+
+.comparison-focus-block__label {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.comparison-focus-block__body {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg);
+}
+
+.comparison-focus-block__list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.comparison-focus-block__list li + li {
+  margin-top: 8px;
+}
+
+.comparison-focus-axis-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.comparison-focus-axis {
+  padding: 10px 12px;
+  border-radius: var(--r-1);
+  background: rgba(15, 23, 42, 0.025);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.comparison-focus-axis__topline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.comparison-focus-axis__label {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.comparison-focus-axis__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.comparison-focus-axis__status--ahead {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+.comparison-focus-axis__status--behind {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.comparison-focus-axis__status--mixed {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.comparison-focus-axis__status--close,
+.comparison-focus-axis__status--no_signal {
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--muted);
+}
+
+.comparison-focus-axis__body {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg);
+}
+
+.comparison-focus-card__note {
+  margin-top: 12px;
+  font-size: var(--fs-2);
+}
+
 .foundation-card {
   padding: 12px;
   border-radius: var(--r-1);
@@ -1198,6 +1348,19 @@ button {
 
   .priority-pill {
     width: 100%;
+  }
+
+  .comparison-focus-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-focus-grid--split {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-focus-axis__topline {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .foundation-card__header {

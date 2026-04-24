@@ -247,6 +247,23 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     (Array.isArray(enrichedCompetitors?.results)
       ? enrichedCompetitors.results.find((item) => item?.place_id === defaultCompetitorPlaceId)
       : null) ?? null;
+  const defaultCompetitorDetails =
+    defaultCompetitorPlaceId
+      ? await fetchPlaceDetails({ key, placeId: defaultCompetitorPlaceId, lang })
+      : null;
+  const reviewClueCompetitor =
+    defaultCompetitorDetails?.ok
+      ? {
+          ...defaultCompetitor,
+          ...defaultCompetitorDetails,
+          photoCount:
+            Number.isFinite(defaultCompetitor?.photoCount)
+              ? Number(defaultCompetitor.photoCount)
+              : Array.isArray(defaultCompetitorDetails?.photos)
+                ? defaultCompetitorDetails.photos.length
+                : null,
+        }
+      : defaultCompetitor;
   const reviewClues = buildReviewClues({
     reviews: details.reviews,
     details,
@@ -255,7 +272,7 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
       competitorPhotoAvg,
       missingPhotos,
     },
-    competitor: defaultCompetitor,
+    competitor: reviewClueCompetitor,
     lang,
   });
   const publicDetails = {

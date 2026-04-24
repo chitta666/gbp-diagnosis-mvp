@@ -3911,6 +3911,16 @@ function renderComparisonFocusView(view) {
                           <div class="comparison-focus-axis__body">${escapeHtml(
                             axis?.summary || ""
                           )}</div>
+                          ${
+                            axis?.evidence
+                              ? `<div class="comparison-focus-axis__evidence">
+                                  <span>${escapeHtml(
+                                    langText("Why this read", "この判定の根拠")
+                                  )}</span>
+                                  ${escapeHtml(axis.evidence)}
+                                </div>`
+                              : ""
+                          }
                         </div>
                       `
                     )

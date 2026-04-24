@@ -487,6 +487,22 @@ button {
   color: var(--fg);
 }
 
+.comparison-focus-axis__evidence {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.comparison-focus-axis__evidence span {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
 .comparison-focus-card__note {
   margin-top: 12px;
   font-size: var(--fs-2);

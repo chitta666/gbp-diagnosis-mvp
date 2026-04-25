@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Google Maps Listing Analyzer</title>
+  <title>GBP Competitor Reports for Local SEO Agencies</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="container">
   <div class="shell-header">
-    <h1 id="appTitle" class="h1">Google Maps Listing Analyzer</h1>
+    <h1 id="appTitle" class="h1">GBP Competitor Reports for Local SEO Agencies</h1>
     <div class="language-toggle" role="group" aria-label="Language">
       <button id="langToggleEn" class="language-toggle__btn" data-lang-option="en" type="button">EN</button>
       <button id="langToggleJa" class="language-toggle__btn" data-lang-option="ja" type="button">JP</button>
@@ -22,8 +22,15 @@
   </div>
 
 <div id="introText" class="muted">
-Analyze your Google Maps listing, compare competitors, and discover how to improve reviews, photos, and visibility.
+Analyze a Google Maps listing against the competitor a customer may choose instead. See review-based win / lose axes, the evidence behind each read, and practical next actions for client reporting.
 </div>
+
+  <div id="heroProofChips" class="hero-proof-chips" aria-label="Product proof points">
+    <span class="hero-proof-chip" data-proof-chip="0">Review-based win / lose</span>
+    <span class="hero-proof-chip" data-proof-chip="1">Manual competitor selection</span>
+    <span class="hero-proof-chip" data-proof-chip="2">Evidence behind each read</span>
+    <span class="hero-proof-chip" data-proof-chip="3">Saved repeat checks</span>
+  </div>
 
   <div id="msg" class="muted"></div>
 
@@ -444,6 +451,7 @@ const btn = document.getElementById("btn");
 const input = document.getElementById("urlInput");
 const appTitleEl = document.getElementById("appTitle");
 const introTextEl = document.getElementById("introText");
+const heroProofChipEls = Array.from(document.querySelectorAll("[data-proof-chip]"));
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
@@ -639,12 +647,18 @@ const DEFAULT_LANGUAGE = "en";
 
 const COPY = {
   en: {
-    documentTitle: "Google Maps Listing Analyzer",
-    appTitle: "Google Maps Listing Analyzer",
+    documentTitle: "GBP Competitor Reports for Local SEO Agencies",
+    appTitle: "GBP Competitor Reports for Local SEO Agencies",
     analyzePlaceholder: "Enter business name and address",
     analyzeButton: "Analyze Listing",
     introText:
-      "Analyze your Google Maps listing, compare competitors, and discover how to improve reviews, photos, and visibility.",
+      "Analyze a Google Maps listing against the competitor a customer may choose instead. See review-based win / lose axes, the evidence behind each read, and practical next actions for client reporting.",
+    heroProofChips: [
+      "Review-based win / lose",
+      "Manual competitor selection",
+      "Evidence behind each read",
+      "Saved repeat checks",
+    ],
     savedListingsTitle: "Saved Listings",
     savedEmailPlaceholder: "Enter email to manage saved listings",
     loadSaved: "Load Saved Listings",
@@ -972,12 +986,18 @@ const COPY = {
     analysisFailed: "Analysis failed.",
   },
   ja: {
-    documentTitle: "Googleマップ店舗分析",
-    appTitle: "Googleマップ店舗分析",
+    documentTitle: "Local SEO支援向け GBP競合レポート",
+    appTitle: "Local SEO支援向け GBP競合レポート",
     analyzePlaceholder: "店舗名と住所を入力",
     analyzeButton: "店舗を分析",
     introText:
-      "Googleマップ上の自店舗を分析し、競合比較とレビュー・写真・見つけやすさの改善点を確認できます。",
+      "顧客が比較しそうな競合と並べて、Googleマップ店舗情報を分析します。レビューにもとづく勝ち筋 / 負け筋、その根拠、次に打つべき改善アクションまで確認できます。",
+    heroProofChips: [
+      "レビューにもとづく勝ち負け",
+      "競合の手動選択",
+      "判定根拠の表示",
+      "保存して再チェック",
+    ],
     savedListingsTitle: "保存した店舗",
     savedEmailPlaceholder: "保存した店舗を管理するメールアドレス",
     loadSaved: "保存済みを読み込む",
@@ -1457,6 +1477,12 @@ function renderStaticCopy() {
   if (input) input.placeholder = t("analyzePlaceholder");
   if (btn) btn.textContent = t("analyzeButton");
   if (introTextEl) introTextEl.textContent = t("introText");
+  const proofChips = t("heroProofChips");
+  if (Array.isArray(proofChips)) {
+    heroProofChipEls.forEach((chipEl, index) => {
+      chipEl.textContent = proofChips[index] || chipEl.textContent;
+    });
+  }
   if (savedListingsTitleEl) savedListingsTitleEl.textContent = t("savedListingsTitle");
   if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");
   if (loadSavedBtn) loadSavedBtn.textContent = t("loadSaved");

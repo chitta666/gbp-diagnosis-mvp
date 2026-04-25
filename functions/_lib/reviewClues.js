@@ -12,12 +12,27 @@ const THEME_GROUPS = [
       "warm",
       "welcoming",
       "helpful",
+      "staff",
+      "service",
+      "customer service",
+      "hospitality",
+      "explained",
+      "guided",
       "親切",
       "丁寧",
       "優しい",
       "フレンドリー",
       "感じがいい",
       "対応が良い",
+      "接客",
+      "対応",
+      "店員",
+      "スタッフ",
+      "サービス",
+      "案内",
+      "説明",
+      "気遣い",
+      "笑顔",
     ],
   },
   {
@@ -34,11 +49,24 @@ const THEME_GROUPS = [
       "calm",
       "vibe",
       "beautiful interior",
+      "interior",
+      "decor",
+      "space",
+      "environment",
+      "comfortable",
       "雰囲気",
       "居心地",
       "落ち着く",
       "おしゃれ",
       "素敵",
+      "店内",
+      "空間",
+      "内装",
+      "席",
+      "静か",
+      "快適",
+      "景色",
+      "眺め",
     ],
   },
   {
@@ -55,12 +83,43 @@ const THEME_GROUPS = [
       "quality",
       "excellent",
       "amazing",
+      "food",
+      "dish",
+      "meal",
+      "menu",
+      "ramen",
+      "noodle",
+      "soup",
+      "coffee",
+      "drink",
+      "cut",
+      "haircut",
+      "finish",
+      "treatment",
       "美味しい",
       "おいしい",
       "うまい",
+      "美味",
+      "味",
+      "料理",
+      "食事",
+      "メニュー",
+      "ラーメン",
+      "麺",
+      "スープ",
+      "ご飯",
+      "肉",
+      "寿司",
+      "カレー",
+      "コーヒー",
+      "飲み物",
       "品質",
       "クオリティ",
       "素晴らしい",
+      "仕上がり",
+      "カット",
+      "カラー",
+      "施術",
     ],
   },
   {
@@ -76,12 +135,18 @@ const THEME_GROUPS = [
       "skilled",
       "expert",
       "attentive",
+      "skill",
+      "technique",
+      "experienced",
       "プロ",
       "知識",
       "技術",
       "上手",
       "的確",
       "しっかり",
+      "腕",
+      "経験",
+      "安心",
     ],
   },
   {
@@ -97,11 +162,16 @@ const THEME_GROUPS = [
       "neat",
       "organized",
       "tidy",
+      "cleanliness",
+      "sanitary",
+      "well kept",
       "清潔",
       "きれい",
       "綺麗",
       "清掃",
       "清潔感",
+      "衛生",
+      "整って",
     ],
   },
   {
@@ -118,6 +188,11 @@ const THEME_GROUPS = [
       "reasonable price",
       "affordable",
       "great price",
+      "cheap",
+      "fair price",
+      "fair pricing",
+      "inexpensive",
+      "reasonable",
       "リーズナブル",
       "良心的",
       "お得",
@@ -125,6 +200,11 @@ const THEME_GROUPS = [
       "値段以上",
       "コスパが良い",
       "コスパいい",
+      "コスパ良い",
+      "コスパいい",
+      "安い",
+      "割安",
+      "納得",
     ],
   },
   {
@@ -141,11 +221,17 @@ const THEME_GROUPS = [
       "long wait",
       "took forever",
       "late",
+      "line",
+      "queue",
+      "delay",
       "遅い",
       "待った",
       "待ち時間",
       "時間がかかる",
       "提供が遅い",
+      "行列",
+      "並ぶ",
+      "遅れ",
     ],
   },
   {
@@ -162,12 +248,19 @@ const THEME_GROUPS = [
       "hard to book",
       "hard to order",
       "complicated",
+      "unclear menu",
+      "unclear pricing",
+      "reservation",
+      "booking",
       "分かりにくい",
       "わかりにくい",
       "見つけにくい",
       "予約しづらい",
       "注文しづらい",
       "複雑",
+      "案内不足",
+      "説明不足",
+      "導線",
     ],
   },
   {
@@ -183,11 +276,21 @@ const THEME_GROUPS = [
       "dismissive",
       "bad attitude",
       "unprofessional",
+      "bad service",
+      "poor service",
+      "staff",
+      "service",
+      "customer service",
       "不親切",
       "失礼",
       "態度が悪い",
       "無愛想",
       "感じが悪い",
+      "接客",
+      "対応",
+      "店員",
+      "スタッフ",
+      "サービス",
     ],
   },
   {
@@ -203,11 +306,20 @@ const THEME_GROUPS = [
       "crowded",
       "busy",
       "packed",
+      "line",
+      "queue",
+      "cramped",
+      "small space",
       "うるさい",
       "騒がしい",
       "混んで",
       "混雑",
       "人が多い",
+      "行列",
+      "並ぶ",
+      "狭い",
+      "席",
+      "店内",
     ],
   },
   {
@@ -223,11 +335,20 @@ const THEME_GROUPS = [
       "pricey",
       "too much",
       "not worth",
+      "cost",
+      "pricing",
+      "price",
+      "expensive for",
+      "poor value",
       "高い",
       "割高",
       "高すぎる",
+      "高め",
       "コスパ",
       "値段",
+      "価格",
+      "料金",
+      "費用",
     ],
   },
   {
@@ -246,6 +367,18 @@ const THEME_GROUPS = [
       "botched",
       "terrible cut",
       "first time and last time",
+      "food",
+      "dish",
+      "meal",
+      "menu",
+      "taste",
+      "flavor",
+      "ramen",
+      "noodle",
+      "soup",
+      "cut",
+      "haircut",
+      "finish",
       "まずい",
       "微妙",
       "雑",
@@ -254,6 +387,16 @@ const THEME_GROUPS = [
       "期待外れ",
       "仕上がりが悪い",
       "味が薄い",
+      "美味しくない",
+      "味",
+      "料理",
+      "食事",
+      "メニュー",
+      "ラーメン",
+      "麺",
+      "スープ",
+      "冷め",
+      "ぬるい",
     ],
   },
   {
@@ -269,15 +412,137 @@ const THEME_GROUPS = [
       "messy",
       "smelly",
       "gross",
+      "toilet",
+      "bathroom",
+      "dusty",
+      "sticky",
       "汚い",
       "不衛生",
       "臭い",
       "におい",
       "散らか",
       "ベタベタ",
+      "汚れ",
+      "ほこり",
+      "埃",
+      "トイレ",
+      "清潔",
     ],
   },
 ];
+
+const CAVEAT_FRICTION_KEYWORDS = {
+  slow_service: [
+    "long wait",
+    "took forever",
+    "waited",
+    "waiting",
+    "delay",
+    "待ち時間",
+    "長い時間",
+    "時間がかかる",
+    "提供が遅い",
+    "行列",
+    "並ぶ",
+  ],
+  confusing_process: [
+    "confusing",
+    "unclear",
+    "hard to find",
+    "hard to book",
+    "hard to order",
+    "分かりにくい",
+    "わかりにくい",
+    "予約しづらい",
+    "注文しづらい",
+    "案内不足",
+    "説明不足",
+  ],
+  rude_service: [
+    "rude",
+    "unhelpful",
+    "dismissive",
+    "bad attitude",
+    "unprofessional",
+    "bad service",
+    "poor service",
+    "不親切",
+    "失礼",
+    "態度が悪い",
+    "無愛想",
+    "感じが悪い",
+  ],
+  noise_crowding: [
+    "noisy",
+    "loud",
+    "crowded",
+    "packed",
+    "cramped",
+    "small space",
+    "うるさい",
+    "騒がしい",
+    "混雑",
+    "人が多い",
+    "狭い",
+    "行列",
+    "並ぶ",
+  ],
+  overpriced: [
+    "expensive",
+    "overpriced",
+    "pricey",
+    "too much",
+    "not worth",
+    "poor value",
+    "高い",
+    "割高",
+    "高すぎる",
+    "高め",
+    "もう少し安",
+    "安ければ",
+    "値段はもう少し",
+    "価格はもう少し",
+    "料金はもう少し",
+  ],
+  poor_quality: [
+    "bad food",
+    "bland",
+    "cold food",
+    "poor quality",
+    "sloppy",
+    "botched",
+    "terrible cut",
+    "まずい",
+    "微妙",
+    "雑",
+    "失敗",
+    "下手",
+    "期待外れ",
+    "仕上がりが悪い",
+    "味が薄い",
+    "美味しくない",
+    "冷め",
+    "ぬるい",
+  ],
+  dirty: [
+    "dirty",
+    "unclean",
+    "messy",
+    "smelly",
+    "gross",
+    "dusty",
+    "sticky",
+    "汚い",
+    "不衛生",
+    "臭い",
+    "におい",
+    "散らか",
+    "ベタベタ",
+    "汚れ",
+    "ほこり",
+    "埃",
+  ],
+};
 
 function isJapanese(lang = "en") {
   return String(lang || "").toLowerCase().startsWith("ja");
@@ -358,6 +623,34 @@ function countThemes(counts, keys) {
     (sum, key) => sum + (Number(counts?.get(key)) || 0),
     0
   );
+}
+
+function mergeThemeCounts(...maps) {
+  const merged = new Map();
+
+  maps.forEach((map) => {
+    if (!(map instanceof Map)) return;
+    map.forEach((count, key) => {
+      merged.set(key, (merged.get(key) || 0) + (Number(count) || 0));
+    });
+  });
+
+  return merged;
+}
+
+function collectCaveatFrictionCounts(reviews) {
+  const counts = new Map();
+
+  reviews.forEach((review) => {
+    const text = review.text.toLowerCase();
+    Object.entries(CAVEAT_FRICTION_KEYWORDS).forEach(([key, keywords]) => {
+      if (keywords.some((keyword) => text.includes(String(keyword).toLowerCase()))) {
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+    });
+  });
+
+  return counts;
 }
 
 function inferListingCategory(types) {
@@ -486,8 +779,8 @@ function axisStatus({ mine, competitor }) {
   if (!mine.total && !competitor.total) return "no_signal";
 
   const diff = mine.score - competitor.score;
-  if (diff >= 1.25) return "ahead";
-  if (diff <= -1.25) return "behind";
+  if (diff >= 1) return "ahead";
+  if (diff <= -1) return "behind";
   if (mine.negative > 0 || competitor.negative > 0) return "mixed";
   return "close";
 }
@@ -1028,14 +1321,20 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
   );
   const allCounts = collectThemeCounts(sample);
   const positiveCounts = collectThemeCounts(positiveReviews);
-  const lowerCounts = collectThemeCounts(lowerReviews);
+  const lowerCounts = mergeThemeCounts(
+    collectThemeCounts(lowerReviews),
+    collectCaveatFrictionCounts(sample)
+  );
   const competitorSample = normalizeReviews(competitor?.reviews);
   const competitorPositiveReviews = competitorSample.filter((review) => Number(review.rating) >= 4);
   const competitorLowerReviews = competitorSample.filter(
     (review) => Number.isFinite(review.rating) && Number(review.rating) <= 3
   );
   const competitorPositiveCounts = collectThemeCounts(competitorPositiveReviews);
-  const competitorLowerCounts = collectThemeCounts(competitorLowerReviews);
+  const competitorLowerCounts = mergeThemeCounts(
+    collectThemeCounts(competitorLowerReviews),
+    collectCaveatFrictionCounts(competitorSample)
+  );
   const topStrengths = rankedThemes(
     "strength",
     positiveReviews.length ? positiveCounts : allCounts,
@@ -1043,7 +1342,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
   ).slice(0, 2);
   const topFrictions = rankedThemes(
     "friction",
-    lowerReviews.length ? lowerCounts : allCounts,
+    lowerCounts.size ? lowerCounts : allCounts,
     lang
   ).slice(0, 2);
   const websiteMissing = !details?.website;

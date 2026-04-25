@@ -522,6 +522,31 @@ function axisSummary({ axis, status, competitorName }, lang = "en") {
     : `${axis.label} is not yet a strong comparison axis in the recent visible review sample.`;
 }
 
+function formatAxisSignalBreakdown(signal, lang = "en") {
+  const positive = Number.isFinite(signal?.positive) ? Number(signal.positive) : 0;
+  const negative = Number.isFinite(signal?.negative) ? Number(signal.negative) : 0;
+
+  if (isJapanese(lang)) {
+    return `前向き ${positive} 件 / 不満 ${negative} 件`;
+  }
+
+  return `${positive} positive / ${negative} friction`;
+}
+
+function axisEvidence({ mine, competitor }, lang = "en") {
+  if (isJapanese(lang)) {
+    return `このサンプル内の言及量: 自店舗 ${formatAxisSignalBreakdown(
+      mine,
+      lang
+    )}、競合 ${formatAxisSignalBreakdown(competitor, lang)}。`;
+  }
+
+  return `Signals in this sample: you ${formatAxisSignalBreakdown(
+    mine,
+    lang
+  )}; competitor ${formatAxisSignalBreakdown(competitor, lang)}.`;
+}
+
 function buildReviewComparisonSummary({ axes, competitorName }, lang = "en") {
   const wins = axes.filter((axis) => axis.status === "ahead").map((axis) => axis.label);
   const losses = axes.filter((axis) => axis.status === "behind").map((axis) => axis.label);
@@ -588,6 +613,7 @@ function buildReviewComparisonAxes({
         status,
         competitorName: competitor?.name || (isJapanese(lang) ? "競合" : "the competitor"),
       }, lang),
+      evidence: axisEvidence({ mine, competitor: theirs }, lang),
       mySignalCount: mine.total,
       competitorSignalCount: theirs.total,
     };

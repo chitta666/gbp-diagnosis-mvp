@@ -46,6 +46,7 @@ Analyze a Google Maps listing against the competitor a customer may choose inste
     <div id="savedMsg" class="muted" data-i18n-key="savedMsgDefault">
       Analyze a listing, then save it so you can reopen the latest report quickly from this app.
     </div>
+    <div id="savedWeeklyRollup" class="saved-weekly-rollup hidden"></div>
     <ul id="savedListings" class="saved-list"></ul>
   </div>
 
@@ -456,6 +457,7 @@ const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
 const savedMsgEl = document.getElementById("savedMsg");
+const savedWeeklyRollupEl = document.getElementById("savedWeeklyRollup");
 const savedListingsEl = document.getElementById("savedListings");
 const savedListingsTitleEl = document.getElementById("savedListingsTitle");
 const reportTitleEl = document.getElementById("reportTitle");
@@ -865,6 +867,10 @@ const COPY = {
     savedListingComparedWith: "Compared with",
     savedListingSelectedCompetitor: "Selected competitor",
     savedListingChangeFallback: "We'll compare changes after your next check",
+    savedWeeklyRollupTitle: "Weekly change summary",
+    savedWeeklyDiffLabel: "Weekly diff",
+    savedWeeklyClientNoteLabel: "Client note",
+    savedWeeklyNextActionLabel: "This week",
     loadSavedPrompt: "Enter your email to load saved listings.",
     savedListingsLoaded: "Saved listings loaded.",
     noSavedListingsForEmail: "No saved listings were found for this email yet.",
@@ -1204,6 +1210,10 @@ const COPY = {
     savedListingComparedWith: "比較対象",
     savedListingSelectedCompetitor: "選択中の競合",
     savedListingChangeFallback: "次回の確認後に変化を比較します",
+    savedWeeklyRollupTitle: "今週の変化サマリー",
+    savedWeeklyDiffLabel: "今週の変化",
+    savedWeeklyClientNoteLabel: "定例で伝えること",
+    savedWeeklyNextActionLabel: "今週やること",
     loadSavedPrompt: "保存済みを読み込むにはメールアドレスを入力してください。",
     savedListingsLoaded: "保存済みを読み込みました。",
     noSavedListingsForEmail: "このメールアドレスに紐づく保存済み店舗はまだありません。",
@@ -5018,11 +5028,155 @@ function buildSavedListingMonitoringBlock(monitoring) {
   return block;
 }
 
+function savedWeeklyToneClass(tone) {
+  const value = String(tone || "neutral").trim();
+  return ["positive", "warning", "neutral", "collecting"].includes(value)
+    ? value
+    : "neutral";
+}
+
+function formatWeeklyDelta(value) {
+  if (!Number.isFinite(value) || value === 0) {
+    return langText("unchanged", "変化なし");
+  }
+  const abs = Math.abs(Number(value));
+  const rounded = Number.isInteger(abs) ? String(abs) : String(Math.round(abs * 10) / 10);
+  return `${value > 0 ? "+" : "-"}${rounded}`;
+}
+
+function formatWeeklySignedValue(value) {
+  if (!Number.isFinite(value) || value === 0) return "0";
+  const abs = Math.abs(Number(value));
+  const rounded = Number.isInteger(abs) ? String(abs) : String(Math.round(abs * 10) / 10);
+  return `${value > 0 ? "+" : "-"}${rounded}`;
+}
+
+function formatWeeklyMetricValue(metric) {
+  if (Number.isFinite(metric?.delta)) return formatWeeklyDelta(metric.delta);
+  if (Number.isFinite(metric?.current)) {
+    return ["competitor_review_gap", "weekly_momentum_gap"].includes(metric?.key)
+      ? formatWeeklySignedValue(metric.current)
+      : String(metric.current);
+  }
+  return t("notAvailableYet");
+}
+
+function renderSavedWeeklyRollup(listings) {
+  if (!savedWeeklyRollupEl) return;
+
+  const summaries = (Array.isArray(listings) ? listings : [])
+    .map((item) => item?.weeklyDiffSummary)
+    .filter(Boolean);
+
+  if (!summaries.length) {
+    savedWeeklyRollupEl.classList.add("hidden");
+    savedWeeklyRollupEl.innerHTML = "";
+    return;
+  }
+
+  const warningCount = summaries.filter((summary) => summary.tone === "warning").length;
+  const positiveCount = summaries.filter((summary) => summary.tone === "positive").length;
+  const collectingCount = summaries.filter(
+    (summary) => summary.tone === "collecting" || summary.status !== "ready"
+  ).length;
+  const stableCount = Math.max(0, summaries.length - warningCount - positiveCount - collectingCount);
+  const mainCopy =
+    currentLanguage === "ja"
+      ? `${warningCount}件が要確認、${positiveCount}件が改善、${stableCount}件が安定、${collectingCount}件が収集中です。`
+      : `${warningCount} need attention, ${positiveCount} improved, ${stableCount} are stable, and ${collectingCount} are collecting history.`;
+
+  savedWeeklyRollupEl.classList.remove("hidden");
+  savedWeeklyRollupEl.innerHTML = `
+    <div class="saved-weekly-rollup__label">${escapeHtml(t("savedWeeklyRollupTitle"))}</div>
+    <div class="saved-weekly-rollup__main">${escapeHtml(mainCopy)}</div>
+    <div class="saved-weekly-rollup__chips">
+      <span class="saved__badge saved__badge--warning">${escapeHtml(
+        currentLanguage === "ja" ? `要確認 ${warningCount}` : `Attention ${warningCount}`
+      )}</span>
+      <span class="saved__badge saved__badge--accent">${escapeHtml(
+        currentLanguage === "ja" ? `改善 ${positiveCount}` : `Improved ${positiveCount}`
+      )}</span>
+      <span class="saved__badge saved__badge--quiet">${escapeHtml(
+        currentLanguage === "ja" ? `収集中 ${collectingCount}` : `Collecting ${collectingCount}`
+      )}</span>
+    </div>
+  `;
+}
+
+function buildSavedListingWeeklyDiffBlock(summary) {
+  if (!summary?.headline) return null;
+
+  const tone = savedWeeklyToneClass(summary.tone);
+  const block = document.createElement("div");
+  block.className = `saved__weekly saved__weekly--${escapeAttr(tone)}`;
+
+  const label = document.createElement("div");
+  label.className = "saved__weekly-label";
+  label.textContent = t("savedWeeklyDiffLabel");
+  block.appendChild(label);
+
+  const headline = document.createElement("div");
+  headline.className = "saved__weekly-main";
+  headline.textContent = summary.headline;
+  block.appendChild(headline);
+
+  if (summary?.period?.label) {
+    const period = document.createElement("div");
+    period.className = "saved__weekly-period";
+    period.textContent = summary.period.label;
+    block.appendChild(period);
+  }
+
+  const metrics = Array.isArray(summary.metrics) ? summary.metrics.slice(0, 5) : [];
+  if (metrics.length) {
+    const grid = document.createElement("div");
+    grid.className = "saved__weekly-metrics";
+    metrics.forEach((metric) => {
+      const item = document.createElement("div");
+      item.className = `saved__weekly-metric saved__weekly-metric--${escapeAttr(
+        savedWeeklyToneClass(metric?.tone)
+      )}`;
+      item.innerHTML = `
+        <div class="saved__weekly-metric-label">${escapeHtml(metric?.label || "")}</div>
+        <div class="saved__weekly-metric-value">${escapeHtml(formatWeeklyMetricValue(metric))}</div>
+      `;
+      grid.appendChild(item);
+    });
+    block.appendChild(grid);
+  }
+
+  const clientSummary = Array.isArray(summary.clientSummary)
+    ? summary.clientSummary.filter(Boolean).slice(0, 2)
+    : [];
+  if (clientSummary.length) {
+    const note = document.createElement("div");
+    note.className = "saved__weekly-note";
+    note.innerHTML = `
+      <span>${escapeHtml(t("savedWeeklyClientNoteLabel"))}</span>
+      ${escapeHtml(clientSummary.join(" "))}
+    `;
+    block.appendChild(note);
+  }
+
+  if (summary.nextAction) {
+    const action = document.createElement("div");
+    action.className = "saved__weekly-action";
+    action.innerHTML = `
+      <span>${escapeHtml(t("savedWeeklyNextActionLabel"))}</span>
+      ${escapeHtml(summary.nextAction)}
+    `;
+    block.appendChild(action);
+  }
+
+  return block;
+}
+
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
   currentSavedListings = Array.isArray(listings) ? listings.slice() : [];
 
   savedListingsEl.innerHTML = "";
+  renderSavedWeeklyRollup(listings);
 
   if (!Array.isArray(listings) || !listings.length) {
     savedListingsEl.innerHTML = `<li class="muted">${escapeHtml(t("savedListingsEmpty"))}</li>`;
@@ -5108,10 +5262,13 @@ function renderSavedListings(listings) {
       changeSummary.appendChild(tag);
     });
 
+    const weeklyDiffBlock = buildSavedListingWeeklyDiffBlock(item?.weeklyDiffSummary);
+
     content.appendChild(title);
     content.appendChild(meta);
-    if (statusBlock) content.appendChild(statusBlock);
     if (competitorBlock) content.appendChild(competitorBlock);
+    if (weeklyDiffBlock) content.appendChild(weeklyDiffBlock);
+    if (statusBlock) content.appendChild(statusBlock);
     const revisitBlock = buildSavedListingRevisitBlock(item?.reviewDropSignal);
     if (revisitBlock) content.appendChild(revisitBlock);
     const milestoneBlock = buildSavedListingMilestoneBlock(item?.ratingMilestoneProgress);

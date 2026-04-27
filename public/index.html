@@ -1340,6 +1340,15 @@ let competitorSearchState = {
 };
 
 // ===== helpers =====
+function createEventFlowId() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  return `flow_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+const EVENT_FLOW_ID = createEventFlowId();
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
     "&": "&amp;",
@@ -1963,6 +1972,83 @@ async function fetchApiJson(url, options = {}) {
   }
 
   return data;
+}
+
+function eventPlaceId(result = currentResult) {
+  return (
+    result?.placeId ??
+    result?.details?.placeId ??
+    result?.details?.place_id ??
+    null
+  );
+}
+
+function eventSelectedCompetitorPlaceId(result = currentResult) {
+  return (
+    result?.selectedCompetitor?.placeId ??
+    result?.savedListing?.competitorPlaceId ??
+    result?.compare?.competitor?.placeId ??
+    result?.weeklyReport?.competitor?.placeId ??
+    null
+  );
+}
+
+function eventRecommendedCompetitorPlaceId(result = currentResult) {
+  const placeId = eventPlaceId(result);
+  return result?.recommendedCompetitorPlaceId ?? pickRecommendedCompetitor(result, placeId);
+}
+
+function eventPage(result = currentResult) {
+  if (result?.savedListing?.id) return "saved_report";
+  if (eventPlaceId(result)) return "report";
+  return "home";
+}
+
+function buildEventPayload(event, extra = {}) {
+  const result = extra.result ?? currentResult;
+  const selectedPlaceId = eventSelectedCompetitorPlaceId(result);
+  const recommendedPlaceId = eventRecommendedCompetitorPlaceId(result);
+  const candidateCount = Number.isFinite(Number(extra.candidateCount))
+    ? Number(extra.candidateCount)
+    : getCompetitorCandidates(result).length;
+
+  return {
+    event,
+    flowId: EVENT_FLOW_ID,
+    page: extra.page || eventPage(result),
+    lang: currentLanguage,
+    source: extra.source || "unknown",
+    path: window.location.pathname || "/",
+    candidateCount,
+    hasPlaceId: Boolean(eventPlaceId(result)),
+    hasRecommendedCompetitor: Boolean(recommendedPlaceId),
+    hasSelectedCompetitor: Boolean(selectedPlaceId),
+    sameAsRecommended:
+      selectedPlaceId && recommendedPlaceId ? selectedPlaceId === recommendedPlaceId : null,
+  };
+}
+
+function trackEvent(event, extra = {}) {
+  let payload;
+  try {
+    payload = buildEventPayload(event, extra);
+  } catch {
+    return;
+  }
+
+  try {
+    fetch(withCurrentLanguage("/api/events"), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-app-lang": currentLanguage,
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Tracking must never block the diagnosis flow.
+  }
 }
 
 function setReviewDisputeMessage(text = "", isError = false) {
@@ -4008,9 +4094,14 @@ function renderInsight(data) {
 
 async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
   if (!currentResult?.placeId || !competitorPlaceId || competitorUpdateInFlight) return;
+  const updateSource = options.source || "candidate";
   if (currentResult?.selectedCompetitor?.placeId === competitorPlaceId) {
     competitorChooserOpen = false;
     renderCompetitorControls(currentResult);
+    trackEvent("competitor_picker_closed", {
+      result: currentResult,
+      source: updateSource,
+    });
     return;
   }
 
@@ -4079,6 +4170,21 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
         ? "このレポートの競合を更新しました。"
         : "Competitor updated for this report.";
     setSavedMessageKey("competitorUpdatedSaved");
+
+    const selectionEvent =
+      updateSource === "reset"
+        ? "recommended_competitor_reset"
+        : updateSource === "search"
+          ? "searched_competitor_selected"
+          : "manual_competitor_selected";
+    trackEvent(selectionEvent, {
+      result: currentResult,
+      source: updateSource,
+    });
+    trackEvent("competitor_report_updated", {
+      result: currentResult,
+      source: updateSource,
+    });
   } catch (error) {
     renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
     renderWeeklyReport(currentResult?.weeklyReport);
@@ -4514,6 +4620,22 @@ async function showResult(data, options = {}) {
   renderFeedbackCta(hydrated);
   renderFeedbackContextPreview(hydrated);
   if (saveListingBtn) saveListingBtn.disabled = false;
+
+  const competitorCandidateCount = getCompetitorCandidates(hydrated).length;
+  if (allowNetwork) {
+    trackEvent("diagnosis_completed", {
+      result: hydrated,
+      source: "diagnose",
+      candidateCount: competitorCandidateCount,
+    });
+  }
+  if (recommendedCompetitorPlaceId) {
+    trackEvent("recommended_competitor_shown", {
+      result: hydrated,
+      source: allowNetwork ? "recommended" : "saved",
+      candidateCount: competitorCandidateCount,
+    });
+  }
 
   return hydrated;
 }
@@ -5391,6 +5513,13 @@ if (changeCompetitorBtn) {
     if (!currentResult) return;
     competitorChooserOpen = !competitorChooserOpen;
     renderCompetitorControls(currentResult);
+    trackEvent(
+      competitorChooserOpen ? "competitor_picker_opened" : "competitor_picker_closed",
+      {
+        result: currentResult,
+        source: "manual",
+      }
+    );
   });
 }
 
@@ -5399,7 +5528,9 @@ if (resetCompetitorBtn) {
     if (!currentResult) return;
     const recommendedPlaceId = pickRecommendedCompetitor(currentResult, currentResult.placeId);
     if (!recommendedPlaceId) return;
-    await updateSelectedCompetitor(recommendedPlaceId);
+    await updateSelectedCompetitor(recommendedPlaceId, {
+      source: "reset",
+    });
   });
 }
 
@@ -5423,6 +5554,7 @@ if (competitorPickerEl) {
       if (!competitorId) return;
       await updateSelectedCompetitor(competitorId, {
         competitorInfo: competitorSearchState.result,
+        source: "search",
       });
       return;
     }
@@ -5431,7 +5563,9 @@ if (competitorPickerEl) {
     if (!option) return;
     const competitorId = option.dataset.competitorId;
     if (!competitorId) return;
-    await updateSelectedCompetitor(competitorId);
+    await updateSelectedCompetitor(competitorId, {
+      source: "candidate",
+    });
   });
 
   competitorPickerEl.addEventListener("keydown", async (e) => {

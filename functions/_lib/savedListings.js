@@ -1,6 +1,7 @@
 import { ymdTokyo } from "./date.js";
 import { fetchPlaceDetails } from "./place.js";
 import { buildReviewClues } from "./reviewClues.js";
+import { buildWeeklyDiffSummary } from "./weeklyDiffSummary.js";
 
 const SAVED_INDEX_KEY = "saved:index";
 const REVIEW_THEME_HISTORY_LIMIT = 12;
@@ -208,7 +209,7 @@ export function buildDeepLink({ origin, id }) {
 
 export function publicSavedListing(
   record,
-  { origin, includeEmail = false, lang = "en" } = {}
+  { origin, includeEmail = false, lang = "en", weeklyReport = null } = {}
 ) {
   if (!record) return null;
 
@@ -222,6 +223,13 @@ export function publicSavedListing(
     { lang }
   );
   const ratingMilestoneProgress = buildRatingMilestoneProgress(record, { lang });
+  const weeklyDiffSummary = buildWeeklyDiffSummary(record, {
+    lang,
+    reviewThemeMonitoring,
+    changeSummary,
+    reviewDropSignal,
+    weeklyReport,
+  });
 
   const view = {
     id: record.id,
@@ -246,6 +254,7 @@ export function publicSavedListing(
     reviewDropSignal,
     reviewThemeMonitoring,
     ratingMilestoneProgress,
+    weeklyDiffSummary,
   };
 
   if (origin) {

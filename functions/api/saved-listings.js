@@ -1,5 +1,6 @@
 import { runDailyForPlace } from "../_lib/runDaily.js";
 import { resolveRequestLanguage } from "../_lib/i18n.js";
+import { getWeeklyReport } from "../_lib/weeklyReport.js";
 import {
   deleteSavedListing,
   ensureSavedListingMetrics,
@@ -59,9 +60,26 @@ export async function onRequest({ request, env }) {
         )
       );
     }
+    const publicListings = await Promise.all(
+      listings.map(async (item) => {
+        let weeklyReport = null;
+        if (item?.placeId && item?.competitorPlaceId) {
+          try {
+            weeklyReport = await getWeeklyReport({
+              KV,
+              myPlaceId: item.placeId,
+              lang,
+            });
+          } catch {
+            weeklyReport = null;
+          }
+        }
+        return publicSavedListing(item, { origin, lang, weeklyReport });
+      })
+    );
     return json({
       ok: true,
-      listings: listings.map((item) => publicSavedListing(item, { origin, lang })),
+      listings: publicListings,
     });
   }
 

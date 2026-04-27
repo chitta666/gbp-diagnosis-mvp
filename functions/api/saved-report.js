@@ -1,5 +1,6 @@
 import { buildListingReport } from "../_lib/report.js";
 import { resolveRequestLanguage } from "../_lib/i18n.js";
+import { getWeeklyReport } from "../_lib/weeklyReport.js";
 import {
   ensureSavedListingMetrics,
   getSavedListing,
@@ -71,6 +72,15 @@ export async function onRequest({ request, env }) {
     );
   }
 
+  let weeklyReport = null;
+  if (saved?.placeId && saved?.competitorPlaceId) {
+    try {
+      weeklyReport = await getWeeklyReport({ KV, myPlaceId: saved.placeId, lang });
+    } catch {
+      weeklyReport = null;
+    }
+  }
+
   const report = await buildListingReport({ key, placeId: saved.placeId, lang });
   if (!report.ok) {
     return json({ ok: false, error: report.code, message: report.message }, 400);
@@ -85,6 +95,7 @@ export async function onRequest({ request, env }) {
     savedListing: publicSavedListing(saved, {
       origin: url.origin,
       lang,
+      weeklyReport,
     }),
   });
 }

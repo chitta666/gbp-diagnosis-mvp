@@ -273,6 +273,112 @@ button {
   font-size: var(--fs-2);
 }
 
+.report-weekly-diff {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-2);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.035), rgba(37, 99, 235, 0.035)),
+    var(--surface);
+}
+
+.report-weekly-diff--warning {
+  border-color: rgba(220, 38, 38, 0.18);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.07), rgba(15, 23, 42, 0.02));
+}
+
+.report-weekly-diff--positive {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.07), rgba(15, 23, 42, 0.02));
+}
+
+.report-weekly-diff--collecting {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.11), rgba(15, 23, 42, 0.02));
+}
+
+.report-weekly-diff__eyebrow {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.report-weekly-diff__headline {
+  margin-top: 4px;
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 850;
+  color: var(--fg);
+}
+
+.report-weekly-diff__period {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.report-weekly-diff__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.report-weekly-diff__metric {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.report-weekly-diff__metric--warning {
+  border-color: rgba(220, 38, 38, 0.17);
+  background: rgba(220, 38, 38, 0.04);
+}
+
+.report-weekly-diff__metric--positive {
+  border-color: rgba(22, 163, 74, 0.17);
+  background: rgba(22, 163, 74, 0.04);
+}
+
+.report-weekly-diff__metric-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+.report-weekly-diff__metric-value {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 850;
+  color: var(--fg);
+}
+
+.report-weekly-diff__note,
+.report-weekly-diff__action {
+  margin-top: 10px;
+  font-size: var(--fs-2);
+  line-height: 1.5;
+  color: var(--fg);
+}
+
+.report-weekly-diff__note span,
+.report-weekly-diff__action span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
 .priority-row {
   display: flex;
   flex-wrap: wrap;
@@ -1553,6 +1659,10 @@ button {
   }
 
   .saved__weekly-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-weekly-diff__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

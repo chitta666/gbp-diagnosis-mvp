@@ -60,6 +60,8 @@ Analyze a Google Maps listing against the competitor a customer may choose inste
       <div id="diagnosisMeta" class="diagnosis-hero__meta muted"></div>
     </div>
 
+    <div id="reportWeeklyDiffSummary" class="report-weekly-diff hidden"></div>
+
     <div id="priorityRow" class="priority-row"></div>
 
     <div class="section">
@@ -486,6 +488,7 @@ const card = document.getElementById("card");
 const diagnosisHeadlineEl = document.getElementById("diagnosisHeadline");
 const diagnosisSummaryEl = document.getElementById("diagnosisSummary");
 const diagnosisMetaEl = document.getElementById("diagnosisMeta");
+const reportWeeklyDiffSummaryEl = document.getElementById("reportWeeklyDiffSummary");
 const priorityRowEl = document.getElementById("priorityRow");
 const primaryActionsListEl = document.getElementById("primaryActionsList");
 const comparisonFocusEl = document.getElementById("comparisonFocus");
@@ -668,6 +671,17 @@ const COPY = {
     savedMsgDefault:
       "Analyze a listing, then save it so you can reopen the latest report quickly from this app.",
     reportTitle: "Google Maps Analysis Report",
+    reportWeeklyDiffTitle: "This week's change",
+    reportWeeklyMomentumBehind: "Competitor gained review momentum this week",
+    reportWeeklyMomentumAhead: "This listing gained review momentum this week",
+    reportWeeklyReviewGapBehind: "Competitor still leads in review volume",
+    reportWeeklyReviewGapAhead: "This listing leads in review volume",
+    reportWeeklyStable: "No major weekly movement",
+    reportWeeklyCollecting: "Collecting weekly comparison history",
+    reportWeeklyActionWarning: "Add fresh proof this week: new photos plus one review request push.",
+    reportWeeklyActionPositive: "Mention the visible progress in the next client update and keep the same cadence.",
+    reportWeeklyActionNeutral: "Keep monitoring and use the current comparison in the next client update.",
+    reportWeeklyActionCollecting: "Keep this listing saved and check it again next week.",
     nextActionsTitle: "Next Actions",
     competitiveGapTitle: "Competitive Gap",
     comparisonFocusTitle: "Comparison Focus",
@@ -1011,6 +1025,17 @@ const COPY = {
     savedMsgDefault:
       "分析後に保存すると、このアプリから最新レポートをすぐ開き直せます。",
     reportTitle: "Googleマップ分析レポート",
+    reportWeeklyDiffTitle: "今週の変化",
+    reportWeeklyMomentumBehind: "今週は競合のレビュー増加ペースが強めです",
+    reportWeeklyMomentumAhead: "今週は自店舗のレビュー増加ペースが上回っています",
+    reportWeeklyReviewGapBehind: "競合がレビュー総数でまだ先行しています",
+    reportWeeklyReviewGapAhead: "自店舗がレビュー総数で先行しています",
+    reportWeeklyStable: "今週の大きな変化はありません",
+    reportWeeklyCollecting: "週次比較の履歴を収集中です",
+    reportWeeklyActionWarning: "今週は新しい写真追加とレビュー依頼を1回実施してください。",
+    reportWeeklyActionPositive: "次回定例で見える進捗として共有し、同じ改善ペースを続けてください。",
+    reportWeeklyActionNeutral: "この比較を次回定例の材料にしつつ、継続して確認してください。",
+    reportWeeklyActionCollecting: "この店舗を保存したまま、次週もう一度確認してください。",
     nextActionsTitle: "次のアクション",
     competitiveGapTitle: "競合差分",
     comparisonFocusTitle: "比較の読みどころ",
@@ -1690,6 +1715,7 @@ function applyLanguage(lang, options = {}) {
 
   renderReviewSupportCta(currentResult);
   renderFeedbackCta(currentResult);
+  renderReportWeeklyDiffSummary(currentResult);
   renderFeedbackContextPreview(currentResult);
 
   if (historyEl) {
@@ -2501,6 +2527,10 @@ function resetUI() {
   if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "";
   if (diagnosisSummaryEl) diagnosisSummaryEl.innerHTML = "";
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
+  if (reportWeeklyDiffSummaryEl) {
+    reportWeeklyDiffSummaryEl.classList.add("hidden");
+    reportWeeklyDiffSummaryEl.innerHTML = "";
+  }
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
   if (comparisonFocusEl) comparisonFocusEl.textContent = "";
@@ -4158,6 +4188,7 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
           competitorName: selectedCompetitor?.name ?? currentResult.savedListing?.competitorName ?? null,
           competitorAddress:
             selectedCompetitor?.address ?? currentResult.savedListing?.competitorAddress ?? null,
+          weeklyDiffSummary: null,
         }
       : currentResult?.savedListing;
 
@@ -4172,6 +4203,7 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
 
     renderCompare(compare, selectedCompetitor);
     renderWeeklyReport(weeklyReport);
+    renderReportWeeklyDiffSummary(currentResult);
     renderInsight(currentResult);
     competitorChooserOpen = options.keepOpen === true;
     renderCompetitorControls(currentResult);
@@ -4198,6 +4230,7 @@ async function updateSelectedCompetitor(competitorPlaceId, options = {}) {
   } catch (error) {
     renderCompare(currentResult?.compare, currentResult?.selectedCompetitor);
     renderWeeklyReport(currentResult?.weeklyReport);
+    renderReportWeeklyDiffSummary(currentResult);
     renderInsight(currentResult);
     renderCompetitorControls(currentResult);
     setSavedMessage(error?.message || String(error), true);
@@ -4542,6 +4575,176 @@ function renderWeeklyReport(report) {
   }
 }
 
+function weeklyPointTone(value) {
+  if (!Number.isFinite(value) || value === 0) return "neutral";
+  return value > 0 ? "positive" : "warning";
+}
+
+function buildReportWeeklyMetric({ key, label, current, tone = "neutral" }) {
+  return {
+    key,
+    label,
+    current: Number.isFinite(current) ? Number(current) : null,
+    tone,
+  };
+}
+
+function buildReportWeeklyDiffFromWeeklyReport(report) {
+  if (!report?.ok || report?.status === "cached_only") return null;
+
+  const totalDiff = Number.isFinite(report?.totalDiff) ? Number(report.totalDiff) : null;
+  const weeklyGainDiff = Number.isFinite(report?.weeklyGainDiff)
+    ? Number(report.weeklyGainDiff)
+    : null;
+  const myWeeklyGain = Number.isFinite(report?.my?.weeklyGain)
+    ? Number(report.my.weeklyGain)
+    : null;
+  const competitorWeeklyGain = Number.isFinite(report?.competitor?.weeklyGain)
+    ? Number(report.competitor.weeklyGain)
+    : null;
+  const ready = report?.status === "ready";
+
+  let tone = "collecting";
+  let headline = t("reportWeeklyCollecting");
+  let nextAction = t("reportWeeklyActionCollecting");
+
+  if (ready) {
+    if (Number.isFinite(weeklyGainDiff) && weeklyGainDiff < 0) {
+      tone = "warning";
+      headline = t("reportWeeklyMomentumBehind");
+      nextAction = t("reportWeeklyActionWarning");
+    } else if (Number.isFinite(weeklyGainDiff) && weeklyGainDiff > 0) {
+      tone = "positive";
+      headline = t("reportWeeklyMomentumAhead");
+      nextAction = t("reportWeeklyActionPositive");
+    } else if (Number.isFinite(totalDiff) && totalDiff < 0) {
+      tone = "warning";
+      headline = t("reportWeeklyReviewGapBehind");
+      nextAction = t("reportWeeklyActionWarning");
+    } else if (Number.isFinite(totalDiff) && totalDiff > 0) {
+      tone = "positive";
+      headline = t("reportWeeklyReviewGapAhead");
+      nextAction = t("reportWeeklyActionPositive");
+    } else {
+      tone = "neutral";
+      headline = t("reportWeeklyStable");
+      nextAction = t("reportWeeklyActionNeutral");
+    }
+  }
+
+  const metrics = [
+    buildReportWeeklyMetric({
+      key: "your_weekly_growth",
+      label: t("weeklyLabelYourGrowth"),
+      current: myWeeklyGain,
+      tone: weeklyPointTone(myWeeklyGain),
+    }),
+    buildReportWeeklyMetric({
+      key: "competitor_weekly_growth",
+      label: t("weeklyLabelCompetitorGrowth"),
+      current: competitorWeeklyGain,
+      tone: Number.isFinite(competitorWeeklyGain) && competitorWeeklyGain > 0 ? "warning" : "neutral",
+    }),
+    buildReportWeeklyMetric({
+      key: "weekly_momentum_gap",
+      label: t("weeklyLabelGrowthDifference"),
+      current: weeklyGainDiff,
+      tone: weeklyPointTone(weeklyGainDiff),
+    }),
+    buildReportWeeklyMetric({
+      key: "competitor_review_gap",
+      label: t("compareLabelTotalReviewDifference"),
+      current: totalDiff,
+      tone: weeklyPointTone(totalDiff),
+    }),
+  ].filter((metric) => Number.isFinite(metric.current));
+
+  return {
+    status: ready ? "ready" : "collecting_history",
+    tone,
+    period: {
+      from: report?.weekAgo ?? null,
+      to: report?.today ?? null,
+      label: report?.weekAgo && report?.today ? `${report.weekAgo} -> ${report.today}` : null,
+    },
+    headline,
+    clientSummary: [ready ? report?.insight : weeklyTrackingCopy(report)].filter(Boolean),
+    metrics,
+    nextAction,
+  };
+}
+
+function buildReportWeeklyDiffView(result) {
+  const savedSummary =
+    result?.savedListing?.weeklyDiffSummary ??
+    result?.weeklyDiffSummary ??
+    null;
+  if (savedSummary?.headline) return savedSummary;
+  return buildReportWeeklyDiffFromWeeklyReport(result?.weeklyReport);
+}
+
+function renderReportWeeklyDiffSummary(result) {
+  if (!reportWeeklyDiffSummaryEl) return;
+
+  const summary = buildReportWeeklyDiffView(result);
+  if (!summary?.headline) {
+    reportWeeklyDiffSummaryEl.classList.add("hidden");
+    reportWeeklyDiffSummaryEl.innerHTML = "";
+    return;
+  }
+
+  const tone = savedWeeklyToneClass(summary.tone);
+  const metrics = Array.isArray(summary.metrics) ? summary.metrics.slice(0, 4) : [];
+  const clientSummary = Array.isArray(summary.clientSummary)
+    ? summary.clientSummary.filter(Boolean).slice(0, 1)
+    : [];
+
+  reportWeeklyDiffSummaryEl.className = `report-weekly-diff report-weekly-diff--${escapeAttr(tone)}`;
+  reportWeeklyDiffSummaryEl.innerHTML = `
+    <div class="report-weekly-diff__eyebrow">${escapeHtml(t("reportWeeklyDiffTitle"))}</div>
+    <div class="report-weekly-diff__headline">${escapeHtml(summary.headline)}</div>
+    ${
+      summary?.period?.label
+        ? `<div class="report-weekly-diff__period">${escapeHtml(summary.period.label)}</div>`
+        : ""
+    }
+    ${
+      metrics.length
+        ? `<div class="report-weekly-diff__metrics">
+            ${metrics
+              .map(
+                (metric) => `
+                  <div class="report-weekly-diff__metric report-weekly-diff__metric--${escapeAttr(
+                    savedWeeklyToneClass(metric?.tone)
+                  )}">
+                    <div class="report-weekly-diff__metric-label">${escapeHtml(metric?.label || "")}</div>
+                    <div class="report-weekly-diff__metric-value">${escapeHtml(formatWeeklyMetricValue(metric))}</div>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>`
+        : ""
+    }
+    ${
+      clientSummary.length
+        ? `<div class="report-weekly-diff__note">
+            <span>${escapeHtml(t("savedWeeklyClientNoteLabel"))}</span>
+            ${escapeHtml(clientSummary.join(" "))}
+          </div>`
+        : ""
+    }
+    ${
+      summary.nextAction
+        ? `<div class="report-weekly-diff__action">
+            <span>${escapeHtml(t("savedWeeklyNextActionLabel"))}</span>
+            ${escapeHtml(summary.nextAction)}
+          </div>`
+        : ""
+    }
+  `;
+}
+
 async function showResult(data, options = {}) {
   const allowNetwork = options.allowNetwork !== false;
   const diagnosis = data?.diagnosis ?? data;
@@ -4624,6 +4827,7 @@ async function showResult(data, options = {}) {
   };
 
   currentResult = hydrated;
+  renderReportWeeklyDiffSummary(hydrated);
   renderInsight(hydrated);
   renderCompetitorControls(hydrated);
   renderReviewSupportCta(hydrated);

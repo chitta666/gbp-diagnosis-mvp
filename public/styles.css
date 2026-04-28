@@ -423,6 +423,43 @@ button {
   color: var(--fg);
 }
 
+.action-task-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.action-task {
+  padding: 10px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.055), rgba(15, 23, 42, 0.015)),
+    var(--surface);
+}
+
+.action-task__label {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.action-task__body {
+  display: block;
+  font-size: var(--fs-2);
+  line-height: 1.55;
+  color: var(--fg);
+}
+
 .customer-choice-card {
   padding: 14px 16px;
   border: 1px solid rgba(37, 99, 235, 0.16);

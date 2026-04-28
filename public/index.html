@@ -682,7 +682,7 @@ const COPY = {
     reportWeeklyActionPositive: "Mention the visible progress in the next client update and keep the same cadence.",
     reportWeeklyActionNeutral: "Keep monitoring and use the current comparison in the next client update.",
     reportWeeklyActionCollecting: "Keep this listing saved and check it again next week.",
-    nextActionsTitle: "Next Actions",
+    nextActionsTitle: "This week's tasks",
     competitiveGapTitle: "Competitive Gap",
     comparisonFocusTitle: "Comparison Focus",
     comparisonFocusReviewTitle: "Review-Based Win / Lose",
@@ -1036,7 +1036,7 @@ const COPY = {
     reportWeeklyActionPositive: "次回定例で見える進捗として共有し、同じ改善ペースを続けてください。",
     reportWeeklyActionNeutral: "この比較を次回定例の材料にしつつ、継続して確認してください。",
     reportWeeklyActionCollecting: "この店舗を保存したまま、次週もう一度確認してください。",
-    nextActionsTitle: "次のアクション",
+    nextActionsTitle: "今週の実行タスク",
     competitiveGapTitle: "競合差分",
     comparisonFocusTitle: "比較の読みどころ",
     comparisonFocusReviewTitle: "レビュー起点の勝ち負け",
@@ -3309,7 +3309,7 @@ function buildCustomerChoiceView(data) {
       bullets: uniqueStrings(bullets).slice(0, 3),
       priorityAction: sentence(
         reviewClues.priorityAction ||
-          actions[0] ||
+          actionTaskBody(actions[0]) ||
           langText(
             "Keep the strongest trust signals easier to notice before a visit.",
             "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
@@ -3328,7 +3328,7 @@ function buildCustomerChoiceView(data) {
     summary: buildCustomerChoiceCopy(context),
     bullets: [],
     priorityAction: sentence(
-      actions[0] ||
+      actionTaskBody(actions[0]) ||
         langText(
           "Keep the strongest trust signals easier to notice before a visit.",
           "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
@@ -3410,6 +3410,10 @@ function actionSlot(labelEn, labelJa, body) {
   return `${langText(labelEn, labelJa)}: ${text}`;
 }
 
+function actionTaskBody(item) {
+  return splitActionTask(item, 0).body;
+}
+
 function canUseReviewComparison(data) {
   const reviewClues = data?.reviewClues ?? null;
   const selectedCompetitorPlaceId = data?.selectedCompetitor?.placeId ?? null;
@@ -3442,37 +3446,37 @@ function comparisonAxisBehindAction(axis) {
   const label = axis?.label || langText("this area", "この軸");
   if (axis?.key === "service") {
     return langText(
-      `Recent visible reviews suggest ${label} is weaker than the competitor. Review service friction, then clarify wait time, booking, or process expectations before the visit.`,
-      `直近の見えているレビューでは、${label}が競合より弱く見えます。接客まわりの不満を確認し、待ち時間・予約・案内の期待値を来店前に分かりやすくしてください。`
+      `Review the latest low-rated service comments, then add one clear wait-time, booking, or first-step expectation before the visit.`,
+      `直近の低評価レビューから接客まわりの不満を確認し、待ち時間・予約・最初の案内について来店前に分かる説明を1つ追加してください。`
     );
   }
   if (axis?.key === "atmosphere") {
     return langText(
-      `Recent visible reviews suggest ${label} is weaker than the competitor. Add first-view photos that make the expected atmosphere clear before a visit.`,
-      `直近の見えているレビューでは、${label}が競合より弱く見えます。来店前に雰囲気が伝わる写真を、最初に見える位置で増やしてください。`
+      `Add 3 to 5 first-view photos that show the atmosphere customers should expect before they visit.`,
+      `来店前に雰囲気が伝わる写真を3〜5枚追加し、最初に見える位置で見せてください。`
     );
   }
   if (axis?.key === "product_service") {
     return langText(
-      `Recent visible reviews suggest ${label} is weaker than the competitor. Make the strongest menu, service, or finish result easier to see before a visit.`,
-      `直近の見えているレビューでは、${label}が競合より弱く見えます。強い商品・サービス・仕上がりが来店前に伝わる根拠を前面に出してください。`
+      `Add 3 proof points for the strongest menu, service, or finished result so the value is visible before a visit.`,
+      `強い商品・サービス・仕上がりが来店前に伝わる根拠を3つ追加してください。`
     );
   }
   if (axis?.key === "price") {
     return langText(
-      `Recent visible reviews suggest ${label} is weaker or less clear than the competitor. Improve value framing before considering a price change.`,
-      `直近の見えているレビューでは、${label}の納得感が競合より弱い可能性があります。値下げより先に、何が含まれ、なぜその価格なのかを分かりやすくしてください。`
+      `Improve price framing before changing price: add what is included, what outcome customers get, and why it is worth it.`,
+      `値下げより先に価格の見せ方を直してください。何が含まれ、どんな結果が得られ、なぜその価格なのかを追記してください。`
     );
   }
   if (axis?.key === "cleanliness") {
     return langText(
-      `Recent visible reviews suggest ${label} is weaker than the competitor. Treat this as a trust issue and reinforce cleanliness with recent photos and calm owner replies.`,
-      `直近の見えているレビューでは、${label}が競合より弱く見えます。信頼に直結する論点として、最近の写真と落ち着いたオーナー返信で清潔感を補強してください。`
+      `Treat cleanliness as a trust issue: add recent clean-area photos and prepare calm owner replies for cleanliness complaints.`,
+      `清潔感は信頼に直結する論点として扱い、最近の清潔感が伝わる写真追加と、関連レビューへの落ち着いた返信を用意してください。`
     );
   }
   return langText(
-    `Recent visible reviews suggest ${label} is weaker than the competitor. Pick one visible proof point that narrows this gap before the next check.`,
-    `直近の見えているレビューでは、${label}が競合より弱く見えます。次回確認までに、この差を縮める見える根拠を1つ増やしてください。`
+    `Pick one visible proof point that narrows the ${label} gap before the next saved check.`,
+    `次回の保存チェックまでに、${label}の差を縮める見える根拠を1つ増やしてください。`
   );
 }
 
@@ -3480,27 +3484,27 @@ function comparisonAxisMixedAction(axis) {
   const label = axis?.label || langText("this area", "この軸");
   if (axis?.key === "price") {
     return langText(
-      `Reviews are split on ${label}. Clarify what is included, what outcome customers get, and why the price is justified.`,
-      `${label}の受け止め方が割れています。何が含まれ、どんな結果が得られ、なぜその価格なのかを分かりやすくしてください。`
+      `Clarify price value this week: what is included, what outcome customers get, and why the price is justified.`,
+      `今週は価格の納得感を補強してください。何が含まれ、どんな結果が得られ、なぜその価格なのかを分かりやすくしてください。`
     );
   }
   if (axis?.key === "service") {
     return langText(
-      `Reviews are split on ${label}. Tighten expectation-setting around wait time, booking, and the first service steps.`,
-      `${label}の受け止め方が割れています。待ち時間・予約・最初の案内など、期待値がずれやすい部分を整えてください。`
+      `Tighten one expectation-setting point around wait time, booking, or the first service step.`,
+      `待ち時間・予約・最初の案内のうち、期待値がずれやすい説明を1つ整えてください。`
     );
   }
   return langText(
-    `Reviews are split on ${label}. Make the expected experience clearer before a visit so customers do not have to guess.`,
-    `${label}の受け止め方が割れています。来店前に期待する体験が分かるようにし、顧客が推測しなくてよい状態にしてください。`
+    `Make the expected ${label} experience clearer before a visit so customers do not have to guess.`,
+    `来店前に${label}の期待値が分かるようにし、顧客が推測しなくてよい状態にしてください。`
   );
 }
 
 function comparisonAxisAheadAction(axis) {
   const label = axis?.label || langText("this area", "この軸");
   return langText(
-    `Recent visible reviews already show ${label} as a strength. Keep that proof easy to notice in photos, copy, and review responses.`,
-    `直近の見えているレビューでは、${label}はすでに勝ち筋です。写真・説明文・返信で、その根拠が見え続けるようにしてください。`
+    `Keep ${label} visible: reuse the strongest review phrase in photos, profile copy, or owner replies.`,
+    `${label}の勝ち筋を見え続けさせてください。強いレビュー表現を写真・説明文・オーナー返信のどこかに反映してください。`
   );
 }
 
@@ -3514,8 +3518,8 @@ function googleProofGapAction(reviewClues, context) {
     joined.includes("競合はwebサイト")
   ) {
     return langText(
-      "Add or improve the website, reservation, or service-detail link so key details are easier to verify before a visit.",
-      "来店前に確認しやすいように、Web サイト・予約・サービス詳細への導線を追加または改善してください。"
+      "Add or improve one website, reservation, or service-detail link so key details are easier to verify before a visit.",
+      "来店前に確認しやすいように、Web サイト・予約・サービス詳細への導線を1つ追加または改善してください。"
     );
   }
 
@@ -3525,8 +3529,8 @@ function googleProofGapAction(reviewClues, context) {
     (Number.isFinite(context?.missingPhotos) && context.missingPhotos > 0)
   ) {
     return langText(
-      "Add targeted first-view photos before deeper copy work, especially shots that prove the experience customers compare on.",
-      "深い説明文より先に、比較される体験が伝わる初見向け写真を追加してください。"
+      "Add 3 targeted first-view photos before deeper copy work, especially shots that prove the experience customers compare on.",
+      "深い説明文より先に、比較される体験が伝わる初見向け写真を3枚追加してください。"
     );
   }
 
@@ -3536,8 +3540,8 @@ function googleProofGapAction(reviewClues, context) {
     (Number.isFinite(context?.totalDiff) && context.totalDiff < 0)
   ) {
     return langText(
-      "Strengthen the review request flow, then re-check whether visible trust narrows after the next saved check.",
-      "レビュー獲得導線を強め、次回の保存チェックで見える信頼差が縮まるか確認してください。"
+      "Run one review-request push, then re-check whether visible trust narrows after the next saved check.",
+      "レビュー依頼を1回実施し、次回の保存チェックで見える信頼差が縮まるか確認してください。"
     );
   }
 
@@ -3617,16 +3621,24 @@ function buildPrimaryActions(context, data) {
     actions.push(...(Array.isArray(context.diagnosis?.todos) ? context.diagnosis.todos : []));
     if (!actions.length && Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
       actions.push(
-        langText(
-          "Add enough photos to make the listing feel complete at a glance.",
-          "ひと目で十分な情報量に見えるよう、写真を追加してください。"
+        actionSlot(
+          "Fix the first visible gap",
+          "最初に直す見える不足",
+          langText(
+            "Add enough photos to make the listing feel complete at a glance.",
+            "ひと目で十分な情報量に見えるよう、写真を追加してください。"
+          )
         )
       );
     }
     actions.push(
-      langText(
-        "Re-check competitor comparison after the basics are fixed.",
-        "基本情報を整えたあとで、競合比較を見直してください。"
+      actionSlot(
+        "Follow-up check",
+        "次回確認",
+        langText(
+          "Re-check competitor comparison after the basics are fixed.",
+          "基本情報を整えたあとで、競合比較を見直してください。"
+        )
       )
     );
     return uniqueStrings(actions).slice(0, 3);
@@ -3639,24 +3651,36 @@ function buildPrimaryActions(context, data) {
       (Number.isFinite(context.deltaDiff) && context.deltaDiff < 0)
     ) {
       actions.push(
-        langText(
-          "Strengthen your review request flow.",
-          "レビュー獲得の導線を強めてください。"
+        actionSlot(
+          "Review acquisition",
+          "レビュー獲得",
+          langText(
+            "Run one review-request push this week.",
+            "今週レビュー依頼を1回実施してください。"
+          )
         )
       );
     }
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
       actions.push(
-        langText(
-          "Improve photo coverage so the listing feels more proven at a glance.",
-          "ひと目で根拠が伝わるように、写真の充実度を上げてください。"
+        actionSlot(
+          "Photo proof",
+          "写真の根拠",
+          langText(
+            "Add photos that make the listing feel more proven at a glance.",
+            "ひと目で根拠が伝わる写真を追加してください。"
+          )
         )
       );
     }
     actions.push(
-      currentLanguage === "ja"
-        ? `最初の改善後に ${context.competitorName} ともう一度比較してください。`
-        : `Re-check against ${context.competitorName} after the first improvements.`
+      actionSlot(
+        "Measure again",
+        "再計測",
+        currentLanguage === "ja"
+          ? `最初の改善後に ${context.competitorName} ともう一度比較してください。`
+          : `Re-check against ${context.competitorName} after the first improvements.`
+      )
     );
     return uniqueStrings(actions).slice(0, 3);
   }
@@ -3665,21 +3689,33 @@ function buildPrimaryActions(context, data) {
     if (context.materialReviewDrop) {
       actions.push(...comparisonActions);
       actions.push(
-        langText(
-          "Confirm whether the lower review count persists on the next saved check.",
-          "次回の保存チェックでもレビュー減少が続くか確認してください。"
+        actionSlot(
+          "Verify the drop",
+          "減少確認",
+          langText(
+            "Confirm whether the lower review count persists on the next saved check.",
+            "次回の保存チェックでもレビュー減少が続くか確認してください。"
+          )
         )
       );
       actions.push(
-        langText(
-          "Keep review request flow steady to rebuild visible proof.",
-          "見える根拠を戻すために、レビュー獲得導線を安定して回してください。"
+        actionSlot(
+          "Rebuild proof",
+          "根拠の回復",
+          langText(
+            "Keep review request flow steady to rebuild visible proof.",
+            "見える根拠を戻すために、レビュー獲得導線を安定して回してください。"
+          )
         )
       );
       actions.push(
-        currentLanguage === "ja"
-          ? `${context.competitorName} と再比較して、差がどう変わったか見てください。`
-          : `Re-check against ${context.competitorName} to see whether the gap changed.`
+        actionSlot(
+          "Measure again",
+          "再計測",
+          currentLanguage === "ja"
+            ? `${context.competitorName} と再比較して、差がどう変わったか見てください。`
+            : `Re-check against ${context.competitorName} to see whether the gap changed.`
+        )
       );
       return uniqueStrings(actions).slice(0, 3);
     }
@@ -3687,43 +3723,67 @@ function buildPrimaryActions(context, data) {
     actions.push(...comparisonActions);
     if (Number.isFinite(context.missingPhotos) && context.missingPhotos > 0) {
       actions.push(
-        langText(
-          "Improve photo coverage and other first-impression proof.",
-          "写真やその他の第一印象の根拠を強めてください。"
+        actionSlot(
+          "First-impression proof",
+          "第一印象の根拠",
+          langText(
+            "Improve photo coverage and other first-impression proof.",
+            "写真やその他の第一印象の根拠を強めてください。"
+          )
         )
       );
     }
     actions.push(
-      langText(
-        "Make your strongest trust signals easier to notice before a visit.",
-        "来店前に強い信頼シグナルがもっと見えるようにしてください。"
+      actionSlot(
+        "Trust signal",
+        "信頼シグナル",
+        langText(
+          "Make your strongest trust signals easier to notice before a visit.",
+          "来店前に強い信頼シグナルがもっと見えるようにしてください。"
+        )
       )
     );
     actions.push(
-      currentLanguage === "ja"
-        ? "第一印象のシグナルを改善したあとで、同じ競合をもう一度確認してください。"
-        : "Re-check the same competitor after the first-impression signals improve."
+      actionSlot(
+        "Measure again",
+        "再計測",
+        currentLanguage === "ja"
+          ? "第一印象のシグナルを改善したあとで、同じ競合をもう一度確認してください。"
+          : "Re-check the same competitor after the first-impression signals improve."
+      )
     );
     return uniqueStrings(actions).slice(0, 3);
   }
 
   actions.push(...comparisonActions);
   actions.push(
-    langText(
-      "Keep review and photo momentum steady.",
-      "レビューと写真の勢いを安定して保ってください。"
+    actionSlot(
+      "Maintain proof",
+      "根拠の維持",
+      langText(
+        "Keep review and photo momentum steady.",
+        "レビューと写真の勢いを安定して保ってください。"
+      )
     )
   );
   actions.push(
-    langText(
-      "Watch for any slowdown in recent review growth.",
-      "直近のレビュー増加が鈍らないか見てください。"
+    actionSlot(
+      "Watch momentum",
+      "勢いの確認",
+      langText(
+        "Watch for any slowdown in recent review growth.",
+        "直近のレビュー増加が鈍らないか見てください。"
+      )
     )
   );
   actions.push(
-    langText(
-      "Check the same competitor again after more data comes in.",
-      "データがもう少したまったら、同じ競合を再確認してください。"
+    actionSlot(
+      "Measure again",
+      "再計測",
+      langText(
+        "Check the same competitor again after more data comes in.",
+        "データがもう少したまったら、同じ競合を再確認してください。"
+      )
     )
   );
   return uniqueStrings(actions).slice(0, 3);
@@ -3935,6 +3995,7 @@ function buildDiagnosisFirstView(data) {
 
 function renderSimpleList(listEl, items) {
   if (!listEl) return;
+  listEl.className = "list";
   listEl.innerHTML = "";
 
   const safeItems = uniqueStrings(items);
@@ -3946,6 +4007,48 @@ function renderSimpleList(listEl, items) {
   safeItems.forEach((item) => {
     const li = document.createElement("li");
     li.textContent = item;
+    listEl.appendChild(li);
+  });
+}
+
+function splitActionTask(item, index) {
+  const text = sentence(item);
+  const separatorIndex = text.indexOf(": ");
+  if (separatorIndex > 0 && separatorIndex < 34) {
+    return {
+      label: text.slice(0, separatorIndex),
+      body: text.slice(separatorIndex + 2),
+    };
+  }
+
+  return {
+    label:
+      currentLanguage === "ja"
+        ? `タスク ${index + 1}`
+        : `Task ${index + 1}`,
+    body: text,
+  };
+}
+
+function renderActionTaskList(listEl, items) {
+  if (!listEl) return;
+  listEl.className = "action-task-list";
+  listEl.innerHTML = "";
+
+  const safeItems = uniqueStrings(items).map(splitActionTask).filter((item) => item.body);
+  if (!safeItems.length) {
+    listEl.className = "list";
+    listEl.innerHTML = `<li>${escapeHtml(t("noImmediateActions"))}</li>`;
+    return;
+  }
+
+  safeItems.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "action-task";
+    li.innerHTML = `
+      <span class="action-task__label">${escapeHtml(item.label)}</span>
+      <span class="action-task__body">${escapeHtml(item.body)}</span>
+    `;
     listEl.appendChild(li);
   });
 }
@@ -4124,7 +4227,7 @@ function renderInsight(data) {
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
   renderPriorityRow(firstView.priorityItems);
-  renderSimpleList(primaryActionsListEl, firstView.actions);
+  renderActionTaskList(primaryActionsListEl, firstView.actions);
   renderComparisonFocusView(comparisonFocus);
   renderCustomerChoiceView(firstView.customerChoice);
   if (foundationSummaryEl) foundationSummaryEl.textContent = firstView.foundation.summary;
@@ -4632,32 +4735,34 @@ function buildReportWeeklyDiffFromWeeklyReport(report) {
     }
   }
 
-  const metrics = [
-    buildReportWeeklyMetric({
-      key: "your_weekly_growth",
-      label: t("weeklyLabelYourGrowth"),
-      current: myWeeklyGain,
-      tone: weeklyPointTone(myWeeklyGain),
-    }),
-    buildReportWeeklyMetric({
-      key: "competitor_weekly_growth",
-      label: t("weeklyLabelCompetitorGrowth"),
-      current: competitorWeeklyGain,
-      tone: Number.isFinite(competitorWeeklyGain) && competitorWeeklyGain > 0 ? "warning" : "neutral",
-    }),
-    buildReportWeeklyMetric({
-      key: "weekly_momentum_gap",
-      label: t("weeklyLabelGrowthDifference"),
-      current: weeklyGainDiff,
-      tone: weeklyPointTone(weeklyGainDiff),
-    }),
-    buildReportWeeklyMetric({
-      key: "competitor_review_gap",
-      label: t("compareLabelTotalReviewDifference"),
-      current: totalDiff,
-      tone: weeklyPointTone(totalDiff),
-    }),
-  ].filter((metric) => Number.isFinite(metric.current));
+  const metrics = ready
+    ? [
+        buildReportWeeklyMetric({
+          key: "your_weekly_growth",
+          label: t("weeklyLabelYourGrowth"),
+          current: myWeeklyGain,
+          tone: weeklyPointTone(myWeeklyGain),
+        }),
+        buildReportWeeklyMetric({
+          key: "competitor_weekly_growth",
+          label: t("weeklyLabelCompetitorGrowth"),
+          current: competitorWeeklyGain,
+          tone: Number.isFinite(competitorWeeklyGain) && competitorWeeklyGain > 0 ? "warning" : "neutral",
+        }),
+        buildReportWeeklyMetric({
+          key: "weekly_momentum_gap",
+          label: t("weeklyLabelGrowthDifference"),
+          current: weeklyGainDiff,
+          tone: weeklyPointTone(weeklyGainDiff),
+        }),
+        buildReportWeeklyMetric({
+          key: "competitor_review_gap",
+          label: t("compareLabelTotalReviewDifference"),
+          current: totalDiff,
+          tone: weeklyPointTone(totalDiff),
+        }),
+      ].filter((metric) => Number.isFinite(metric.current))
+    : [];
 
   return {
     status: ready ? "ready" : "collecting_history",

@@ -62,6 +62,8 @@ Analyze a Google Maps listing against the competitor a customer may choose inste
 
     <div id="reportWeeklyDiffSummary" class="report-weekly-diff hidden"></div>
 
+    <div id="clientReportSummary" class="client-report-summary hidden"></div>
+
     <div id="priorityRow" class="priority-row"></div>
 
     <div class="section">
@@ -489,6 +491,7 @@ const diagnosisHeadlineEl = document.getElementById("diagnosisHeadline");
 const diagnosisSummaryEl = document.getElementById("diagnosisSummary");
 const diagnosisMetaEl = document.getElementById("diagnosisMeta");
 const reportWeeklyDiffSummaryEl = document.getElementById("reportWeeklyDiffSummary");
+const clientReportSummaryEl = document.getElementById("clientReportSummary");
 const priorityRowEl = document.getElementById("priorityRow");
 const primaryActionsListEl = document.getElementById("primaryActionsList");
 const comparisonFocusEl = document.getElementById("comparisonFocus");
@@ -2531,6 +2534,7 @@ function resetUI() {
     reportWeeklyDiffSummaryEl.classList.add("hidden");
     reportWeeklyDiffSummaryEl.innerHTML = "";
   }
+  renderClientReportSummary([]);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
   if (comparisonFocusEl) comparisonFocusEl.textContent = "";
@@ -2593,6 +2597,7 @@ function setLoading(isLoading) {
       diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(t("loadingSummary"))}</p>`;
     }
     if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
+    renderClientReportSummary([]);
     if (priorityRowEl) priorityRowEl.innerHTML = "";
     if (primaryActionsListEl) {
       primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("loadingPriority"))}</li>`;
@@ -2626,6 +2631,7 @@ function showError(message) {
     diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(message)}</p>`;
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
+  renderClientReportSummary([]);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) {
     primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("retryMoreSpecific"))}</li>`;
@@ -4053,6 +4059,63 @@ function renderActionTaskList(listEl, items) {
   });
 }
 
+function buildClientReportSummary(firstView) {
+  const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
+  const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
+  const task = actions.length ? splitActionTask(actions[0], 0) : null;
+  const taskBody = task?.body
+    ? `${task.label}: ${task.body}`
+    : langText(
+        "Keep this report saved and re-check the same competitor next week.",
+        "このレポートを保存し、次週も同じ競合で再チェックしてください。"
+      );
+
+  return [
+    {
+      label: langText("Client update", "クライアント報告"),
+      body: sentence(firstView?.headline),
+    },
+    {
+      label: langText("Why it matters", "伝える意味"),
+      body: sentence(summaryLines[1] || summaryLines[0]),
+    },
+    {
+      label: langText("This week's task", "今週の実行"),
+      body: sentence(taskBody),
+    },
+  ].filter((item) => item.body);
+}
+
+function renderClientReportSummary(items) {
+  if (!clientReportSummaryEl) return;
+  const safeItems = Array.isArray(items) ? items.filter((item) => item?.body) : [];
+
+  if (!safeItems.length) {
+    clientReportSummaryEl.classList.add("hidden");
+    clientReportSummaryEl.innerHTML = "";
+    return;
+  }
+
+  clientReportSummaryEl.classList.remove("hidden");
+  clientReportSummaryEl.innerHTML = `
+    <div class="client-report-summary__eyebrow">${escapeHtml(
+      langText("Client-ready summary", "クライアント提出用サマリー")
+    )}</div>
+    <div class="client-report-summary__grid">
+      ${safeItems
+        .map(
+          (item) => `
+            <div class="client-report-summary__item">
+              <div class="client-report-summary__label">${escapeHtml(item.label)}</div>
+              <div class="client-report-summary__body">${escapeHtml(item.body)}</div>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function renderPriorityRow(items) {
   if (!priorityRowEl) return;
   priorityRowEl.innerHTML = "";
@@ -4226,6 +4289,7 @@ function renderInsight(data) {
       .join("");
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
+  renderClientReportSummary(buildClientReportSummary(firstView));
   renderPriorityRow(firstView.priorityItems);
   renderActionTaskList(primaryActionsListEl, firstView.actions);
   renderComparisonFocusView(comparisonFocus);

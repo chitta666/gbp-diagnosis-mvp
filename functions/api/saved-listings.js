@@ -11,8 +11,20 @@ import {
   upsertSavedListing,
 } from "../_lib/savedListings.js";
 
+const FREE_SAVED_LISTING_LIMIT = 3;
+const PRO_SAVED_LISTING_TARGET = 25;
+
 function t(lang, en, ja) {
   return lang === "ja" ? ja : en;
+}
+
+function savedListingPlanSummary(count) {
+  return {
+    plan: "free_beta",
+    savedListingsUsed: count,
+    freeSavedListingLimit: FREE_SAVED_LISTING_LIMIT,
+    proSavedListingTarget: PRO_SAVED_LISTING_TARGET,
+  };
 }
 
 export async function onRequest({ request, env }) {
@@ -80,6 +92,7 @@ export async function onRequest({ request, env }) {
     return json({
       ok: true,
       listings: publicListings,
+      plan: savedListingPlanSummary(publicListings.length),
     });
   }
 
@@ -117,6 +130,27 @@ export async function onRequest({ request, env }) {
           ),
         },
         400
+      );
+    }
+
+    const existingListings = await listSavedListingsByEmail({ KV, email: body.email });
+    const existingListing = existingListings.find(
+      (item) => String(item?.placeId || "") === String(body.placeId || "")
+    );
+    if (!existingListing && existingListings.length >= FREE_SAVED_LISTING_LIMIT) {
+      return json(
+        {
+          ok: false,
+          error: "SAVED_LISTING_LIMIT_REACHED",
+          code: "SAVED_LISTING_LIMIT_REACHED",
+          plan: savedListingPlanSummary(existingListings.length),
+          message: t(
+            lang,
+            `Free beta allows up to ${FREE_SAVED_LISTING_LIMIT} saved listings. Reopen an existing listing or upgrade to Pro when it is available.`,
+            `Free ベータで保存できる店舗は ${FREE_SAVED_LISTING_LIMIT} 件までです。既存の保存済み店舗を開くか、Pro提供時に追加保存してください。`
+          ),
+        },
+        402
       );
     }
 
@@ -160,6 +194,9 @@ export async function onRequest({ request, env }) {
     return json({
       ok: true,
       listing: publicSavedListing(listing, { origin, lang }),
+      plan: savedListingPlanSummary(
+        existingListing ? existingListings.length : existingListings.length + 1
+      ),
       snapshotStatus,
       message: lang === "ja"
         ? "店舗を保存しました。保存済み店舗からいつでも再表示できます。"

@@ -46,6 +46,7 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
     <div id="savedMsg" class="muted" data-i18n-key="savedMsgDefault">
       Analyze a listing, then save it so you can reopen the latest report quickly from this app.
     </div>
+    <div id="savedPlanNotice" class="saved-plan"></div>
     <div id="savedWeeklyRollup" class="saved-weekly-rollup hidden"></div>
     <ul id="savedListings" class="saved-list"></ul>
   </div>
@@ -463,6 +464,7 @@ const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
 const savedMsgEl = document.getElementById("savedMsg");
+const savedPlanNoticeEl = document.getElementById("savedPlanNotice");
 const savedWeeklyRollupEl = document.getElementById("savedWeeklyRollup");
 const savedListingsEl = document.getElementById("savedListings");
 const savedListingsTitleEl = document.getElementById("savedListingsTitle");
@@ -655,6 +657,8 @@ const HISTORY_MAX = 10;
 const SUBSCRIBER_EMAIL_KEY = "gbp_subscriber_email_v1";
 const APP_LANGUAGE_KEY = "gbp_app_language_v1";
 const DEFAULT_LANGUAGE = "en";
+const FREE_SAVED_LISTING_LIMIT = 3;
+const PRO_SAVED_LISTING_TARGET = 25;
 
 const COPY = {
   en: {
@@ -879,6 +883,14 @@ const COPY = {
     loadingSavedListing: "Loading saved listing...",
     savedListingLoaded: "Saved listing loaded.",
     savedListingsEmpty: "No saved listings yet",
+    savedPlanLabel: "Free beta",
+    savedPlanUsage: "{count}/{limit} saved listings used",
+    savedPlanProHint:
+      "Pro is planned for up to {limit} saved listings, persistent action history, and client-ready reporting.",
+    savedPlanLimitReached:
+      "Free beta limit reached. You can still reopen or update existing saved listings.",
+    savedPlanUpgradeHint:
+      "Use Pro later when you need more client locations and repeat reporting history.",
     savedListingDefaultName: "Saved Listing",
     savedListingAddressUnavailable: "Address not available",
     savedListingUpdated: "Updated",
@@ -937,6 +949,8 @@ const COPY = {
     saveListingMissingAnalysis: "Analyze a listing before saving it.",
     saveListingInvalidEmail: "Enter a valid email address before saving a listing.",
     saveListingMissingCompetitor: "A competitor must be selected before weekly reports can be created.",
+    saveListingLimitReached:
+      "Free beta allows up to {limit} saved listings. Reopen an existing listing or upgrade to Pro when it is available.",
     saveListingSaving: "Saving listing...",
     saveListingSaved: "Listing saved. You can reopen it anytime from Saved Listings.",
     noImmediateActions: "No immediate actions required.",
@@ -1253,6 +1267,14 @@ const COPY = {
     loadingSavedListing: "保存した店舗を読み込み中...",
     savedListingLoaded: "保存した店舗を読み込みました。",
     savedListingsEmpty: "保存した店舗はまだありません",
+    savedPlanLabel: "Free ベータ",
+    savedPlanUsage: "保存済み店舗 {count}/{limit} 件",
+    savedPlanProHint:
+      "Proでは保存済み店舗 {limit} 件、継続的な実行履歴、クライアント提出用レポートを想定しています。",
+    savedPlanLimitReached:
+      "Free ベータの保存上限に達しています。既存の保存済み店舗は引き続き開く・更新できます。",
+    savedPlanUpgradeHint:
+      "より多くのクライアント店舗と継続レポート履歴が必要になったら、Proで使う想定です。",
     savedListingDefaultName: "保存した店舗",
     savedListingAddressUnavailable: "住所情報なし",
     savedListingUpdated: "更新",
@@ -1311,6 +1333,8 @@ const COPY = {
     saveListingMissingAnalysis: "保存する前に店舗を分析してください。",
     saveListingInvalidEmail: "保存する前に有効なメールアドレスを入力してください。",
     saveListingMissingCompetitor: "週間レポートを作るには競合を選ぶ必要があります。",
+    saveListingLimitReached:
+      "Free ベータで保存できる店舗は {limit} 件までです。既存の保存済み店舗を開くか、Pro提供時に追加保存してください。",
     saveListingSaving: "保存しています...",
     saveListingSaved: "保存しました。保存した店舗からいつでも開き直せます。",
     noImmediateActions: "今すぐ必要な追加アクションはありません。",
@@ -1465,6 +1489,12 @@ function t(key) {
   return dict[key] ?? COPY.en[key] ?? key;
 }
 
+function copyWithValues(template, values = {}) {
+  return String(template || "").replace(/\{(\w+)\}/g, (_, key) =>
+    values[key] === undefined || values[key] === null ? "" : String(values[key])
+  );
+}
+
 const REVIEW_DISPUTE_TRIAGE_BOOLEAN_FIELDS = [
   reviewDisputeTriageCustomerRecordEl,
   reviewDisputeTriagePaymentRecordEl,
@@ -1596,6 +1626,7 @@ function renderStaticCopy() {
       "actionHistorySaved",
       "actionHistoryUpdated",
       "actionHistorySaveFirst",
+      "saveListingLimitReached",
     ];
 
     const matchingKey =
@@ -1615,6 +1646,7 @@ function renderStaticCopy() {
     }
   }
   if (reportTitleEl) reportTitleEl.textContent = t("reportTitle");
+  renderSavedPlanNotice();
   if (nextActionsTitleEl) nextActionsTitleEl.textContent = t("nextActionsTitle");
   if (competitiveGapTitleEl) competitiveGapTitleEl.textContent = t("competitiveGapTitle");
   if (comparisonFocusTitleEl) comparisonFocusTitleEl.textContent = t("comparisonFocusTitle");
@@ -2574,7 +2606,7 @@ function resetUI() {
   competitorUpdateInFlight = false;
   actionHistoryBusy = false;
   resetCompetitorSearchState();
-  if (saveListingBtn) saveListingBtn.disabled = true;
+  updateSaveListingButtonState();
   msg.textContent = "";
   setReportDate(null);
   if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "";
@@ -5258,7 +5290,7 @@ async function showResult(data, options = {}) {
   renderReviewSupportCta(hydrated);
   renderFeedbackCta(hydrated);
   renderFeedbackContextPreview(hydrated);
-  if (saveListingBtn) saveListingBtn.disabled = false;
+  updateSaveListingButtonState();
 
   const competitorCandidateCount = getCompetitorCandidates(hydrated).length;
   if (allowNetwork) {
@@ -5459,6 +5491,73 @@ function buildInsight(diagnosis, compare, options = {}) {
 }
 
 // ===== saved listings =====
+function currentResultPlaceId() {
+  return (
+    currentResult?.placeId ??
+    currentResult?.details?.placeId ??
+    currentResult?.details?.place_id ??
+    currentResult?.savedListing?.placeId ??
+    null
+  );
+}
+
+function currentListingAlreadySaved() {
+  const currentSavedId = currentResult?.savedListing?.id;
+  if (currentSavedId) return true;
+
+  const placeId = currentResultPlaceId();
+  if (!placeId) return false;
+  return currentSavedListings.some((item) => String(item?.placeId || "") === String(placeId));
+}
+
+function freeSavedListingLimitReached() {
+  return (
+    currentSavedListings.length >= FREE_SAVED_LISTING_LIMIT &&
+    !currentListingAlreadySaved()
+  );
+}
+
+function updateSaveListingButtonState() {
+  if (!saveListingBtn) return;
+
+  const limitReached = freeSavedListingLimitReached();
+  saveListingBtn.disabled = !currentResult || limitReached;
+  saveListingBtn.title = limitReached
+    ? copyWithValues(t("saveListingLimitReached"), {
+        limit: FREE_SAVED_LISTING_LIMIT,
+      })
+    : "";
+}
+
+function renderSavedPlanNotice(listings = currentSavedListings) {
+  if (!savedPlanNoticeEl) return;
+
+  const count = Array.isArray(listings) ? listings.length : 0;
+  const isAtLimit = count >= FREE_SAVED_LISTING_LIMIT;
+  const usage = copyWithValues(t("savedPlanUsage"), {
+    count,
+    limit: FREE_SAVED_LISTING_LIMIT,
+  });
+  const proHint = copyWithValues(t("savedPlanProHint"), {
+    limit: PRO_SAVED_LISTING_TARGET,
+  });
+  const limitCopy = isAtLimit
+    ? `<div class="saved-plan__limit">${escapeHtml(t("savedPlanLimitReached"))}</div>`
+    : "";
+
+  savedPlanNoticeEl.classList.toggle("saved-plan--limit", isAtLimit);
+  savedPlanNoticeEl.innerHTML = `
+    <div class="saved-plan__top">
+      <span class="saved-plan__label">${escapeHtml(t("savedPlanLabel"))}</span>
+      <span class="saved-plan__usage">${escapeHtml(usage)}</span>
+    </div>
+    <div class="saved-plan__hint">${escapeHtml(proHint)}</div>
+    ${limitCopy}
+    <div class="saved-plan__upgrade">${escapeHtml(t("savedPlanUpgradeHint"))}</div>
+  `;
+  updateSaveListingButtonState();
+}
+
 function buildSavedListingMilestoneBlock(progress) {
   if (!progress?.visible) return null;
 
@@ -5827,6 +5926,7 @@ function renderSavedListings(listings) {
   currentSavedListings = Array.isArray(listings) ? listings.slice() : [];
 
   savedListingsEl.innerHTML = "";
+  renderSavedPlanNotice(currentSavedListings);
   renderSavedWeeklyRollup(listings);
 
   if (!Array.isArray(listings) || !listings.length) {
@@ -6330,6 +6430,14 @@ if (saveListingBtn) {
         throw new Error(t("saveListingMissingCompetitor"));
       }
 
+      if (freeSavedListingLimitReached()) {
+        throw new Error(
+          copyWithValues(t("saveListingLimitReached"), {
+            limit: FREE_SAVED_LISTING_LIMIT,
+          })
+        );
+      }
+
       persistSubscriberEmail(payload.email);
       setSavedMessageKey("saveListingSaving");
       const response = await saveListingSubscription(payload);
@@ -6513,7 +6621,7 @@ if (historyEl) {
         showResult(item.data, { allowNetwork: false })
           .then((hydrated) => {
             currentResult = hydrated;
-            if (saveListingBtn) saveListingBtn.disabled = false;
+            updateSaveListingButtonState();
             setUrlSavedParam(null);
             msg.textContent = t("loadedHistoryItem");
           })

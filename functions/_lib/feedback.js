@@ -100,6 +100,7 @@ function compactContext(context) {
     savedListingCount: compactText(context?.savedListingCount, 20) || null,
     savedListingLimit: compactText(context?.savedListingLimit, 20) || null,
     freeLimitReached: Boolean(context?.freeLimitReached),
+    intent: compactText(context?.intent, 40) || null,
     diagnosisHeadline: compactText(context?.diagnosisHeadline, 200) || null,
     path: compactText(context?.path, 120) || null,
     href: compactText(context?.href, 300) || null,

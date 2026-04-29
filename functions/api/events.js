@@ -7,6 +7,8 @@ const ALLOWED_EVENTS = new Set([
   "recommended_competitor_reset",
   "searched_competitor_selected",
   "competitor_report_updated",
+  "pro_interest_cta_clicked",
+  "pro_interest_feedback_submitted",
 ]);
 
 const ALLOWED_PAGES = new Set(["home", "report", "saved_report", "unknown"]);
@@ -18,7 +20,18 @@ const ALLOWED_SOURCES = new Set([
   "recommended",
   "reset",
   "saved",
+  "saved_plan",
+  "feedback_modal",
   "search",
+  "unknown",
+]);
+
+const ALLOWED_FEEDBACK_TYPES = new Set([
+  "useful_result",
+  "confusing_output",
+  "bug_report",
+  "missing_feature",
+  "other",
   "unknown",
 ]);
 
@@ -67,6 +80,14 @@ function clampedInteger(value, min, max, fallback = 0) {
   return Math.min(max, Math.max(min, Math.round(number)));
 }
 
+function compactToken(value, max = 60) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "")
+    .slice(0, max);
+}
+
 function buildEventRecord(body, now) {
   const event = String(body?.event || "").trim();
   if (!ALLOWED_EVENTS.has(event)) {
@@ -87,6 +108,12 @@ function buildEventRecord(body, now) {
       source: allowedValue(body?.source, ALLOWED_SOURCES),
       path: sanitizedPath(body?.path),
       candidateCount: clampedInteger(body?.candidateCount, 0, 10),
+      savedListingCount: clampedInteger(body?.savedListingCount, 0, 100),
+      savedListingLimit: clampedInteger(body?.savedListingLimit, 0, 100),
+      freeLimitReached: optionalBoolean(body?.freeLimitReached),
+      intent: compactToken(body?.intent, 40) || null,
+      feedbackType: allowedValue(body?.feedbackType, ALLOWED_FEEDBACK_TYPES),
+      hasFeedbackEmail: optionalBoolean(body?.hasFeedbackEmail),
       hasPlaceId: Boolean(body?.hasPlaceId),
       hasRecommendedCompetitor: Boolean(body?.hasRecommendedCompetitor),
       hasSelectedCompetitor: Boolean(body?.hasSelectedCompetitor),

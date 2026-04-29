@@ -397,9 +397,82 @@ button {
   color: var(--muted);
 }
 
+.client-report-summary__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.client-report-summary__title {
+  margin-top: 3px;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 900;
+  color: var(--fg);
+}
+
+.client-report-summary__subtitle {
+  margin-top: 4px;
+  font-size: var(--fs-2);
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.client-report-summary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 320px;
+}
+
+.client-report-summary__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.11);
+  background: rgba(255, 255, 255, 0.74);
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.client-report-summary__chip strong {
+  color: var(--fg);
+  font-weight: 850;
+}
+
+.client-report-summary__chip--ready {
+  border-color: rgba(22, 163, 74, 0.24);
+  background: rgba(220, 252, 231, 0.74);
+}
+
+.client-report-summary__chip--pending {
+  border-color: rgba(245, 158, 11, 0.26);
+  background: rgba(254, 243, 199, 0.62);
+}
+
+.client-report-summary__handoff {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: rgba(239, 246, 255, 0.72);
+}
+
+.client-report-summary__handoff-body {
+  margin-top: 5px;
+  font-size: var(--fs-2);
+  line-height: 1.55;
+  color: var(--fg);
+}
+
 .client-report-summary__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
   margin-top: 10px;
 }
@@ -2016,6 +2089,15 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .client-report-summary__top {
+    flex-direction: column;
+  }
+
+  .client-report-summary__chips {
+    justify-content: flex-start;
+    max-width: none;
+  }
+
   .client-report-summary__grid {
     grid-template-columns: 1fr;
   }
@@ -2151,6 +2233,20 @@ button {
     background: #fff;
   }
 
+  .client-report-summary__top {
+    gap: 8px;
+  }
+
+  .client-report-summary__chips {
+    max-width: none;
+  }
+
+  .client-report-summary__chip,
+  .client-report-summary__handoff {
+    border-color: #ddd;
+    background: #fff;
+  }
+
   .client-report-summary__grid,
   .action-history__grid {
     grid-template-columns: 1fr;
@@ -2159,6 +2255,7 @@ button {
 
   .client-report-summary__item,
   .action-history__item,
+  .client-report-summary__handoff,
   .action-history__handoff {
     padding: 7px 8px;
     border-color: #ddd;
@@ -2170,7 +2267,9 @@ button {
   }
 
   .action-history__title,
+  .client-report-summary__title,
   .client-report-summary__body,
+  .client-report-summary__handoff-body,
   .action-history__body,
   .action-history__handoff-body {
     color: #111;

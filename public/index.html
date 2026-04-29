@@ -48,6 +48,7 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
     </div>
     <div id="savedPlanNotice" class="saved-plan"></div>
     <div id="savedWeeklyRollup" class="saved-weekly-rollup hidden"></div>
+    <div id="savedWorkQueue" class="saved-work-queue hidden"></div>
     <ul id="savedListings" class="saved-list"></ul>
   </div>
 
@@ -466,6 +467,7 @@ const loadSavedBtn = document.getElementById("loadSavedBtn");
 const savedMsgEl = document.getElementById("savedMsg");
 const savedPlanNoticeEl = document.getElementById("savedPlanNotice");
 const savedWeeklyRollupEl = document.getElementById("savedWeeklyRollup");
+const savedWorkQueueEl = document.getElementById("savedWorkQueue");
 const savedListingsEl = document.getElementById("savedListings");
 const savedListingsTitleEl = document.getElementById("savedListingsTitle");
 const reportTitleEl = document.getElementById("reportTitle");
@@ -915,6 +917,21 @@ const COPY = {
     savedWeeklyDiffLabel: "Weekly diff",
     savedWeeklyClientNoteLabel: "Client note",
     savedWeeklyNextActionLabel: "This week",
+    savedWorkQueueTitle: "This week's client queue",
+    savedWorkQueueSubtitle:
+      "Start with these saved listings before writing reports.",
+    savedWorkQueueEmpty:
+      "No saved client needs urgent attention yet. Reopen listings after the next check to build history.",
+    savedWorkQueueOpen: "Open report",
+    savedWorkQueueHigh: "High priority",
+    savedWorkQueueMedium: "Medium priority",
+    savedWorkQueueWatch: "Watch",
+    savedWorkQueuePlannedAction: "Planned task waiting",
+    savedWorkQueueWarningDiff: "Weekly diff needs attention",
+    savedWorkQueueReviewDrop: "Review count changed",
+    savedWorkQueueStatusWarning: "Profile needs attention",
+    savedWorkQueueCollecting: "Still collecting history",
+    savedWorkQueueStable: "Monitor",
     clientReportSummaryEyebrow: "Client-ready summary",
     clientReportSummaryTitle: "One-page update for client reporting",
     clientReportSummarySubtitle:
@@ -1391,6 +1408,21 @@ const COPY = {
     savedWeeklyDiffLabel: "今週の変化",
     savedWeeklyClientNoteLabel: "定例で伝えること",
     savedWeeklyNextActionLabel: "今週やること",
+    savedWorkQueueTitle: "今週のクライアント対応キュー",
+    savedWorkQueueSubtitle:
+      "定例レポートを書く前に、まず確認すべき保存済み店舗です。",
+    savedWorkQueueEmpty:
+      "今すぐ優先対応すべき保存クライアントはまだありません。次回チェック後に履歴がたまると優先度が出ます。",
+    savedWorkQueueOpen: "レポートを開く",
+    savedWorkQueueHigh: "優先度 高",
+    savedWorkQueueMedium: "優先度 中",
+    savedWorkQueueWatch: "確認",
+    savedWorkQueuePlannedAction: "未完了タスクあり",
+    savedWorkQueueWarningDiff: "週次差分が要確認",
+    savedWorkQueueReviewDrop: "レビュー数に変化",
+    savedWorkQueueStatusWarning: "プロフィール要確認",
+    savedWorkQueueCollecting: "履歴収集中",
+    savedWorkQueueStable: "経過観察",
     clientReportSummaryEyebrow: "クライアント提出用サマリー",
     clientReportSummaryTitle: "定例報告に使える1ページ要約",
     clientReportSummarySubtitle:
@@ -6630,6 +6662,130 @@ function buildSavedListingActionBlock(action) {
   return block;
 }
 
+function savedWorkQueuePriorityLabel(score) {
+  if (score >= 60) return t("savedWorkQueueHigh");
+  if (score >= 30) return t("savedWorkQueueMedium");
+  return t("savedWorkQueueWatch");
+}
+
+function buildSavedWorkQueueItem(item) {
+  if (!item?.id) return null;
+
+  const reasons = [];
+  let score = 0;
+
+  if (item?.latestAction?.status === "planned") {
+    score += 34;
+    reasons.push(t("savedWorkQueuePlannedAction"));
+  }
+
+  if (item?.reviewDropSignal?.visible === true) {
+    score += 45;
+    reasons.push(item.reviewDropSignal.reason || t("savedWorkQueueReviewDrop"));
+  }
+
+  if (item?.weeklyDiffSummary?.tone === "warning") {
+    score += 42;
+    reasons.push(item.weeklyDiffSummary.headline || t("savedWorkQueueWarningDiff"));
+  } else if (item?.weeklyDiffSummary?.tone === "positive") {
+    score += 18;
+    reasons.push(item.weeklyDiffSummary.headline);
+  } else if (item?.weeklyDiffSummary?.tone === "collecting" || item?.weeklyDiffSummary?.status !== "ready") {
+    score += 6;
+    reasons.push(t("savedWorkQueueCollecting"));
+  }
+
+  if (item?.statusSummary?.tone === "warning") {
+    score += 28;
+    reasons.push(item.statusSummary.reason || t("savedWorkQueueStatusWarning"));
+  } else if (item?.statusSummary?.tone === "accent") {
+    score += 12;
+    if (item.statusSummary.reason) reasons.push(item.statusSummary.reason);
+  }
+
+  const nextAction =
+    item?.weeklyDiffSummary?.nextAction ||
+    (item?.latestAction?.status === "planned"
+      ? [item.latestAction.label, item.latestAction.body].filter(Boolean).join(": ")
+      : "") ||
+    (Array.isArray(item?.changeSummary?.lines) ? item.changeSummary.lines[0] : "") ||
+    t("savedWorkQueueStable");
+
+  return {
+    id: item.id,
+    name: item.name || item.q || item.placeId || t("savedListingDefaultName"),
+    competitorName: item.competitorName || "",
+    updatedAt: item.updatedAt || item.lastCheckedAt || item.createdAt || "",
+    score,
+    priorityLabel: savedWorkQueuePriorityLabel(score),
+    reasons: uniqueStrings(reasons.map(sentence)).filter(Boolean).slice(0, 3),
+    nextAction: sentence(nextAction),
+  };
+}
+
+function renderSavedWorkQueue(listings) {
+  if (!savedWorkQueueEl) return;
+
+  const queue = (Array.isArray(listings) ? listings : [])
+    .map(buildSavedWorkQueueItem)
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+
+  if (!queue.length) {
+    savedWorkQueueEl.classList.add("hidden");
+    savedWorkQueueEl.innerHTML = "";
+    return;
+  }
+
+  savedWorkQueueEl.classList.remove("hidden");
+  savedWorkQueueEl.innerHTML = `
+    <div class="saved-work-queue__top">
+      <div>
+        <div class="saved-work-queue__label">${escapeHtml(t("savedWorkQueueTitle"))}</div>
+        <div class="saved-work-queue__subtitle">${escapeHtml(t("savedWorkQueueSubtitle"))}</div>
+      </div>
+      <span class="saved__badge saved__badge--accent">${escapeHtml(String(queue.length))}</span>
+    </div>
+    <div class="saved-work-queue__list">
+      ${queue
+        .map(
+          (item) => `
+            <div class="saved-work-queue__item">
+              <div class="saved-work-queue__body">
+                <div class="saved-work-queue__headline">
+                  <span>${escapeHtml(item.name)}</span>
+                  <strong>${escapeHtml(item.priorityLabel)}</strong>
+                </div>
+                ${
+                  item.competitorName
+                    ? `<div class="saved-work-queue__meta">${escapeHtml(
+                        `${t("savedListingComparedWith")}: ${item.competitorName}`
+                      )}</div>`
+                    : ""
+                }
+                <div class="saved-work-queue__next">${escapeHtml(item.nextAction)}</div>
+                ${
+                  item.reasons.length
+                    ? `<div class="saved-work-queue__reasons">
+                        ${item.reasons
+                          .map((reason) => `<span>${escapeHtml(reason)}</span>`)
+                          .join("")}
+                      </div>`
+                    : ""
+                }
+              </div>
+              <button class="btn" type="button" data-saved-work-open="${escapeAttr(item.id)}">
+                ${escapeHtml(t("savedWorkQueueOpen"))}
+              </button>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
   currentSavedListings = Array.isArray(listings) ? listings.slice() : [];
@@ -6637,6 +6793,7 @@ function renderSavedListings(listings) {
   savedListingsEl.innerHTML = "";
   renderSavedPlanNotice(currentSavedListings);
   renderSavedWeeklyRollup(listings);
+  renderSavedWorkQueue(listings);
 
   if (!Array.isArray(listings) || !listings.length) {
     savedListingsEl.innerHTML = `<li class="muted">${escapeHtml(t("savedListingsEmpty"))}</li>`;
@@ -7294,6 +7451,16 @@ if (savedListingsEl) {
         setSavedMessage(error?.message || String(error), true);
       }
     }
+  });
+}
+
+if (savedWorkQueueEl) {
+  savedWorkQueueEl.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-saved-work-open]");
+    if (!button) return;
+    const id = button.dataset.savedWorkOpen;
+    if (!id) return;
+    await openSavedListing(id);
   });
 }
 

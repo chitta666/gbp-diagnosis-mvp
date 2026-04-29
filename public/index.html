@@ -982,6 +982,24 @@ const COPY = {
     actionHistoryCurrentChange: "What changed",
     actionHistoryNextTask: "Next task",
     actionHistoryClientHandoff: "Client handoff",
+    actionBriefTitle: "Execution brief",
+    actionBriefWhyLabel: "Why this task",
+    actionBriefDoneLabel: "Done when",
+    actionBriefNextCheckLabel: "Next check",
+    actionBriefWhyFallback:
+      "This task is the clearest next step from the current competitor and profile signals.",
+    actionBriefDoneFallback:
+      "The change is completed and can be referenced in the next client update.",
+    actionBriefNextCheckFallback:
+      "Reopen the saved listing next week and confirm whether the same gap improved.",
+    actionBriefPhoneDone:
+      "Phone number is visible on the Google profile and no longer appears as a basics gap.",
+    actionBriefWebsiteDone:
+      "Website link is visible on the Google profile and no longer appears as a basics gap.",
+    actionBriefPhotoDone:
+      "New proof photos are added and the next report can show stronger photo coverage.",
+    actionBriefReviewDone:
+      "Review request or reply work is completed and review momentum can be checked next time.",
     actionHistorySavedLanguage: "Saved in {language}",
     actionHistoryEmpty: "No saved action yet.",
     actionHistoryNoWeeklyChange: "Open this saved listing again next week to compare movement.",
@@ -1440,6 +1458,24 @@ const COPY = {
     actionHistoryCurrentChange: "今回の変化",
     actionHistoryNextTask: "次のタスク",
     actionHistoryClientHandoff: "クライアント報告文",
+    actionBriefTitle: "実行ブリーフ",
+    actionBriefWhyLabel: "なぜこのタスクか",
+    actionBriefDoneLabel: "完了条件",
+    actionBriefNextCheckLabel: "次回見ること",
+    actionBriefWhyFallback:
+      "現在の競合比較とプロフィール上の見えるシグナルから、次に進めるべき施策です。",
+    actionBriefDoneFallback:
+      "施策が実行済みになり、次回のクライアント報告で実施内容として説明できます。",
+    actionBriefNextCheckFallback:
+      "次週この保存済み店舗を開き、同じ差分が改善しているか確認します。",
+    actionBriefPhoneDone:
+      "Googleプロフィール上で電話番号が表示され、基本情報の不足として出なくなります。",
+    actionBriefWebsiteDone:
+      "Googleプロフィール上でWebサイトリンクが表示され、基本情報の不足として出なくなります。",
+    actionBriefPhotoDone:
+      "根拠写真が追加され、次回レポートで写真カバーの強化を説明できます。",
+    actionBriefReviewDone:
+      "レビュー依頼または返信対応が完了し、次回レビュー増加ペースを確認できます。",
     actionHistorySavedLanguage: "保存時の言語: {language}",
     actionHistoryEmpty: "保存済みアクションはまだありません。",
     actionHistoryNoWeeklyChange: "次週もう一度この保存済み店舗を開くと、変化を比較できます。",
@@ -4782,10 +4818,15 @@ function buildCurrentActionTask(result, firstView = null) {
 
   const task = splitActionTask(rawTask, 0);
   const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
-
-  return {
+  const normalizedTask = {
     label: task?.label || t("actionHistoryNextTask"),
     body: task?.body || rawTask,
+  };
+  const actionBrief = buildActionExecutionBrief(result, normalizedTask);
+
+  return {
+    label: normalizedTask.label,
+    body: normalizedTask.body,
     language: currentLanguage,
     source: "weekly_task",
     status: "planned",
@@ -4805,6 +4846,9 @@ function buildCurrentActionTask(result, firstView = null) {
         result?.weeklyReport?.insight ||
         "",
       weeklyStatus: weeklySummary?.status || "",
+      executionWhy: actionBrief.why,
+      doneCriteria: actionBrief.doneCriteria,
+      nextCheck: actionBrief.nextCheck,
     },
   };
 }
@@ -4816,6 +4860,64 @@ function buildActionHistoryChangeCopy(result) {
     result?.weeklyReport?.insight ||
     t("actionHistoryNoWeeklyChange")
   );
+}
+
+function actionBriefDoneCriteria(task) {
+  const text = `${task?.label || ""} ${task?.body || ""}`.toLowerCase();
+  if (/phone|電話/.test(text)) return t("actionBriefPhoneDone");
+  if (/website|webサイト|サイト|url/.test(text)) return t("actionBriefWebsiteDone");
+  if (/photo|写真/.test(text)) return t("actionBriefPhotoDone");
+  if (/review|レビュー|返信|依頼/.test(text)) return t("actionBriefReviewDone");
+  return t("actionBriefDoneFallback");
+}
+
+function buildActionExecutionBrief(result, task = null, latestAction = null) {
+  const snapshot = latestAction?.snapshotContext || {};
+  const reviewClues = result?.reviewClues || {};
+  const reviewReason = sentence(
+    reviewClues.priorityAction ||
+      reviewClues.summary ||
+      (Array.isArray(reviewClues.verificationGaps) ? reviewClues.verificationGaps[0] : "")
+  );
+  const weeklyReason = sentence(
+    result?.savedListing?.weeklyDiffSummary?.headline ||
+      result?.weeklyReport?.insight ||
+      snapshot.weeklyHeadline ||
+      ""
+  );
+  const googleReason = sentence(
+    Array.isArray(reviewClues.googleSignals) ? reviewClues.googleSignals[0] : ""
+  );
+  const why = sentence(
+    snapshot.executionWhy ||
+      reviewReason ||
+      googleReason ||
+      weeklyReason ||
+      t("actionBriefWhyFallback")
+  );
+  const doneCriteria = sentence(
+    snapshot.doneCriteria || actionBriefDoneCriteria(task || latestAction)
+  );
+  const nextCheck = sentence(
+    snapshot.nextCheck ||
+      (result?.selectedCompetitor?.name || result?.savedListing?.competitorName
+        ? langText(
+            "Reopen this saved listing next week and check whether the same competitor gap narrowed.",
+            "次週この保存済み店舗を開き、同じ競合との差が縮まったか確認します。"
+          )
+        : t("actionBriefNextCheckFallback"))
+  );
+
+  return {
+    why,
+    doneCriteria,
+    nextCheck,
+    items: [
+      { label: t("actionBriefWhyLabel"), body: why },
+      { label: t("actionBriefDoneLabel"), body: doneCriteria },
+      { label: t("actionBriefNextCheckLabel"), body: nextCheck },
+    ].filter((item) => item.body),
+  };
 }
 
 function reportClause(text) {
@@ -4875,6 +4977,8 @@ function renderActionHistoryPanel(result, firstView = null) {
   const canUpdateLatest = Boolean(savedListing?.id && latestAction?.id && status === "planned");
   const saveDisabled = !savedListing?.id || !currentTask || actionHistoryBusy;
   const handoffCopy = buildActionHistoryClientHandoff(result, latestAction, currentTask);
+  const actionBrief = buildActionExecutionBrief(result, currentTask, latestAction);
+  const actionBriefItems = Array.isArray(actionBrief?.items) ? actionBrief.items : [];
   const latestActionMeta = latestAction
     ? [formatDateTime(latestAction.updatedAt) || "", actionHistoryLanguageMeta(latestAction)]
         .filter(Boolean)
@@ -4938,6 +5042,25 @@ function renderActionHistoryPanel(result, firstView = null) {
         }</div>
       </div>
     </div>
+    ${
+      actionBriefItems.length
+        ? `<div class="action-history__brief">
+            <div class="action-history__label">${escapeHtml(t("actionBriefTitle"))}</div>
+            <div class="action-history__brief-grid">
+              ${actionBriefItems
+                .map(
+                  (item) => `
+                    <div class="action-history__brief-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>`
+        : ""
+    }
     <div class="action-history__handoff">
       <div class="action-history__label">${escapeHtml(t("actionHistoryClientHandoff"))}</div>
       <div class="action-history__handoff-body">${escapeHtml(handoffCopy)}</div>

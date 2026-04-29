@@ -528,6 +528,21 @@ button {
   color: var(--muted);
 }
 
+.action-history__handoff {
+  margin-top: 10px;
+  padding: 11px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(22, 163, 74, 0.16);
+  background: rgba(22, 163, 74, 0.055);
+}
+
+.action-history__handoff-body {
+  margin-top: 5px;
+  font-size: var(--fs-2);
+  line-height: 1.55;
+  color: var(--fg);
+}
+
 .action-history__actions {
   display: flex;
   flex-wrap: wrap;
@@ -1954,6 +1969,9 @@ button {
   #savedHub,
   #reviewSupportCta,
   #reviewDisputeAssistant,
+  .action-history__actions,
+  .compare__controls,
+  .feedback-cta,
   #debug,
   details,
   #msg {
@@ -2002,6 +2020,49 @@ button {
     padding: 0;
     border: none;
     box-shadow: none;
+  }
+
+  .diagnosis-hero,
+  .report-weekly-diff,
+  .client-report-summary,
+  .action-history,
+  .comparison-focus-card,
+  .customer-choice-card,
+  .foundation-card {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .client-report-summary,
+  .action-history {
+    padding: 10px 12px;
+    border-color: #ccc;
+    background: #fff;
+  }
+
+  .client-report-summary__grid,
+  .action-history__grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .client-report-summary__item,
+  .action-history__item,
+  .action-history__handoff {
+    padding: 7px 8px;
+    border-color: #ddd;
+    background: #fff;
+  }
+
+  .action-history__handoff {
+    border-width: 2px;
+  }
+
+  .action-history__title,
+  .client-report-summary__body,
+  .action-history__body,
+  .action-history__handoff-body {
+    color: #111;
   }
 
   .kpi {

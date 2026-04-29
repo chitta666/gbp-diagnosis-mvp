@@ -891,6 +891,9 @@ const COPY = {
       "Free beta limit reached. You can still reopen or update existing saved listings.",
     savedPlanUpgradeHint:
       "Use Pro later when saved history becomes part of your recurring client reporting workflow.",
+    savedPlanProRequest: "Request Pro access",
+    savedPlanProPrefill:
+      "I'm interested in Pro. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
     savedListingDefaultName: "Saved Listing",
     savedListingAddressUnavailable: "Address not available",
     savedListingUpdated: "Updated",
@@ -904,10 +907,15 @@ const COPY = {
     savedWeeklyClientNoteLabel: "Client note",
     savedWeeklyNextActionLabel: "This week",
     actionHistoryTitle: "Action history",
+    actionHistoryLoopGuideLabel: "How to read this",
+    actionHistoryLoopGuidePrevious: "Previous action = what was recommended or skipped last time.",
+    actionHistoryLoopGuideCurrent: "What changed = movement this saved report can compare now.",
+    actionHistoryLoopGuideNext: "Next task = the action to send into the next client update.",
     actionHistoryPrevious: "Previous action",
     actionHistoryCurrentChange: "What changed",
     actionHistoryNextTask: "Next task",
     actionHistoryClientHandoff: "Client handoff",
+    actionHistorySavedLanguage: "Saved in {language}",
     actionHistoryEmpty: "No saved action yet.",
     actionHistoryNoWeeklyChange: "Open this saved listing again next week to compare movement.",
     actionHistorySaveTask: "Save this task",
@@ -1275,6 +1283,9 @@ const COPY = {
       "Free ベータの保存上限に達しています。既存の保存済み店舗は引き続き開く・更新できます。",
     savedPlanUpgradeHint:
       "保存履歴が定例レポート業務の一部になったら、Proで使う想定です。",
+    savedPlanProRequest: "Proの相談を送る",
+    savedPlanProPrefill:
+      "Proに関心があります。管理している店舗/クライアントは約___件で、保存履歴、週次差分サマリー、提出しやすいレポートを使いたいです。",
     savedListingDefaultName: "保存した店舗",
     savedListingAddressUnavailable: "住所情報なし",
     savedListingUpdated: "更新",
@@ -1288,10 +1299,15 @@ const COPY = {
     savedWeeklyClientNoteLabel: "定例で伝えること",
     savedWeeklyNextActionLabel: "今週やること",
     actionHistoryTitle: "実行履歴",
+    actionHistoryLoopGuideLabel: "この見方",
+    actionHistoryLoopGuidePrevious: "前回のアクション = 前回提案したこと / 見送ったこと",
+    actionHistoryLoopGuideCurrent: "今回の変化 = 保存レポートで今見えている差分",
+    actionHistoryLoopGuideNext: "次のタスク = 次回のクライアント報告に入れる実行案",
     actionHistoryPrevious: "前回のアクション",
     actionHistoryCurrentChange: "今回の変化",
     actionHistoryNextTask: "次のタスク",
     actionHistoryClientHandoff: "クライアント報告文",
+    actionHistorySavedLanguage: "保存時の言語: {language}",
     actionHistoryEmpty: "保存済みアクションはまだありません。",
     actionHistoryNoWeeklyChange: "次週もう一度この保存済み店舗を開くと、変化を比較できます。",
     actionHistorySaveTask: "このタスクを保存",
@@ -1993,6 +2009,9 @@ function buildFeedbackContext(result = currentResult) {
       result?.savedListing?.competitorName ||
       "",
     savedListingId: result?.savedListing?.id || null,
+    savedListingCount: currentSavedListings.length,
+    savedListingLimit: FREE_SAVED_LISTING_LIMIT,
+    freeLimitReached: freeSavedListingLimitReached(),
     diagnosisHeadline: diagnosisHeadlineEl?.textContent?.trim() || "",
     path: window.location.pathname || "/",
     href: window.location.href,
@@ -2398,6 +2417,20 @@ function resetFeedbackForm() {
   renderFeedbackContextPreview(currentResult);
 }
 
+function applyFeedbackPrefill(options = {}) {
+  const type = String(options?.type || "").trim();
+  if (type) {
+    document.querySelectorAll('input[name="feedbackType"]').forEach((radio) => {
+      radio.checked = radio.value === type;
+    });
+  }
+
+  const message = String(options?.message || "").trim();
+  if (message && feedbackMessageEl) {
+    feedbackMessageEl.value = message;
+  }
+}
+
 function renderReviewSupportCta(result) {
   if (!reviewSupportCtaEl) return;
 
@@ -2458,13 +2491,14 @@ function closeReviewDisputeAssistant() {
   setReviewDisputeMessage("");
 }
 
-function openFeedbackAssistant() {
+function openFeedbackAssistant(options = {}) {
   if (!feedbackAssistantEl) return;
   closeReviewDisputeAssistant();
   renderFeedbackContextPreview(currentResult);
   if (feedbackEmailEl && !feedbackEmailEl.value.trim()) {
     feedbackEmailEl.value = getSubscriberEmail() || loadSubscriberEmail() || "";
   }
+  applyFeedbackPrefill(options);
   feedbackAssistantEl.classList.remove("hidden");
   feedbackAssistantEl.setAttribute("aria-hidden", "false");
   document.body.classList.add("assistant-open");
@@ -4227,6 +4261,33 @@ function actionHistoryStatusLabel(status) {
   return t("actionHistoryStatusPlanned");
 }
 
+function normalizeUiLanguage(value) {
+  return String(value || "").toLowerCase().startsWith("ja") ? "ja" : "en";
+}
+
+function inferActionLanguage(action) {
+  if (action?.language) return normalizeUiLanguage(action.language);
+
+  const text = `${action?.label || ""} ${action?.body || ""}`;
+  if (/[ぁ-んァ-ヶ一-龠]/.test(text)) return "ja";
+  if (/[A-Za-z]/.test(text)) return "en";
+  return "";
+}
+
+function actionHistoryLanguageLabel(language) {
+  return normalizeUiLanguage(language) === "ja"
+    ? langText("Japanese", "日本語")
+    : langText("English", "英語");
+}
+
+function actionHistoryLanguageMeta(action) {
+  const language = inferActionLanguage(action);
+  if (!language || language === currentLanguage) return "";
+  return copyWithValues(t("actionHistorySavedLanguage"), {
+    language: actionHistoryLanguageLabel(language),
+  });
+}
+
 function buildCurrentActionTask(result, firstView = null) {
   const view = firstView || buildDiagnosisFirstView(result);
   const actions = Array.isArray(view?.actions) ? uniqueStrings(view.actions) : [];
@@ -4239,6 +4300,7 @@ function buildCurrentActionTask(result, firstView = null) {
   return {
     label: task?.label || t("actionHistoryNextTask"),
     body: task?.body || rawTask,
+    language: currentLanguage,
     source: "weekly_task",
     status: "planned",
     snapshotContext: {
@@ -4327,6 +4389,11 @@ function renderActionHistoryPanel(result, firstView = null) {
   const canUpdateLatest = Boolean(savedListing?.id && latestAction?.id && status === "planned");
   const saveDisabled = !savedListing?.id || !currentTask || actionHistoryBusy;
   const handoffCopy = buildActionHistoryClientHandoff(result, latestAction, currentTask);
+  const latestActionMeta = latestAction
+    ? [formatDateTime(latestAction.updatedAt) || "", actionHistoryLanguageMeta(latestAction)]
+        .filter(Boolean)
+        .join(" • ")
+    : "";
 
   actionHistoryPanelEl.classList.remove("hidden");
   actionHistoryPanelEl.innerHTML = `
@@ -4348,6 +4415,14 @@ function renderActionHistoryPanel(result, firstView = null) {
           : ""
       }
     </div>
+    <div class="action-history__guide" aria-label="${escapeAttr(t("actionHistoryLoopGuideLabel"))}">
+      <span class="action-history__guide-label">${escapeHtml(t("actionHistoryLoopGuideLabel"))}</span>
+      <div class="action-history__guide-list">
+        <span class="action-history__guide-item">${escapeHtml(t("actionHistoryLoopGuidePrevious"))}</span>
+        <span class="action-history__guide-item">${escapeHtml(t("actionHistoryLoopGuideCurrent"))}</span>
+        <span class="action-history__guide-item">${escapeHtml(t("actionHistoryLoopGuideNext"))}</span>
+      </div>
+    </div>
     <div class="action-history__grid">
       <div class="action-history__item">
         <div class="action-history__label">${escapeHtml(t("actionHistoryPrevious"))}</div>
@@ -4359,8 +4434,8 @@ function renderActionHistoryPanel(result, firstView = null) {
             : escapeHtml(t("actionHistoryEmpty"))
         }</div>
         ${
-          latestAction?.updatedAt
-            ? `<div class="action-history__meta">${escapeHtml(formatDateTime(latestAction.updatedAt) || "")}</div>`
+          latestActionMeta
+            ? `<div class="action-history__meta">${escapeHtml(latestActionMeta)}</div>`
             : ""
         }
       </div>
@@ -5554,6 +5629,11 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
     <div class="saved-plan__hint">${escapeHtml(proHint)}</div>
     ${limitCopy}
     <div class="saved-plan__upgrade">${escapeHtml(t("savedPlanUpgradeHint"))}</div>
+    <div class="saved-plan__actions">
+      <button class="btn saved-plan__pro-btn" type="button" data-saved-plan-pro>${escapeHtml(
+        t("savedPlanProRequest")
+      )}</button>
+    </div>
   `;
   updateSaveListingButtonState();
 }
@@ -5903,6 +5983,7 @@ function buildSavedListingActionBlock(action) {
   if (!action?.label && !action?.body) return null;
 
   const status = action?.status || "planned";
+  const languageMeta = actionHistoryLanguageMeta(action);
   const block = document.createElement("div");
   block.className = "saved__action-history";
   block.innerHTML = `
@@ -5917,6 +5998,7 @@ function buildSavedListingActionBlock(action) {
         action?.body ? `: ${escapeHtml(action.body)}` : ""
       }
     </div>
+    ${languageMeta ? `<div class="saved__action-meta">${escapeHtml(languageMeta)}</div>` : ""}
   `;
   return block;
 }
@@ -6319,6 +6401,17 @@ if (openReviewDisputeAssistantBtn) {
 if (openFeedbackBtn) {
   openFeedbackBtn.addEventListener("click", () => {
     openFeedbackAssistant();
+  });
+}
+
+if (savedPlanNoticeEl) {
+  savedPlanNoticeEl.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-saved-plan-pro]");
+    if (!button) return;
+    openFeedbackAssistant({
+      type: "missing_feature",
+      message: t("savedPlanProPrefill"),
+    });
   });
 }
 

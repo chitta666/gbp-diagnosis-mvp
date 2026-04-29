@@ -31,6 +31,10 @@ const FEEDBACK_TAG_RULES = [
     keywords: ["saved listing", "saved report", "history", "revisit", "reopen"],
   },
   {
+    tag: "pro_interest",
+    keywords: ["pro", "upgrade", "paid", "saved limit", "client reporting"],
+  },
+  {
     tag: "report_copy",
     keywords: ["headline", "summary", "wording", "copy", "readability", "confusing"],
   },
@@ -93,6 +97,9 @@ function compactContext(context) {
     competitorPlaceId: compactText(context?.competitorPlaceId, 120) || null,
     competitorName: compactText(context?.competitorName, 160) || null,
     savedListingId: compactText(context?.savedListingId, 80) || null,
+    savedListingCount: compactText(context?.savedListingCount, 20) || null,
+    savedListingLimit: compactText(context?.savedListingLimit, 20) || null,
+    freeLimitReached: Boolean(context?.freeLimitReached),
     diagnosisHeadline: compactText(context?.diagnosisHeadline, 200) || null,
     path: compactText(context?.path, 120) || null,
     href: compactText(context?.href, 300) || null,

@@ -488,6 +488,41 @@ button {
   color: #475569;
 }
 
+.action-history__guide {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding: 9px 10px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.action-history__guide-label {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.action-history__guide-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  min-width: 0;
+}
+
+.action-history__guide-item {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .action-history__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1076,6 +1111,20 @@ button {
   color: #991b1b;
 }
 
+.saved-plan__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.saved-plan__pro-btn {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .saved__weekly {
   margin-top: 10px;
   padding: 12px;
@@ -1202,6 +1251,13 @@ button {
   font-size: 12px;
   line-height: 1.45;
   color: var(--fg);
+}
+
+.saved__action-meta {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
 }
 
 .saved__revisit {

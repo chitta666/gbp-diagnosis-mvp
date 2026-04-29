@@ -1453,6 +1453,7 @@ let currentSavedListings = [];
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let actionHistoryBusy = false;
+let feedbackIntent = "";
 let competitorSearchInFlight = false;
 let competitorSearchState = {
   query: "",
@@ -2012,6 +2013,7 @@ function buildFeedbackContext(result = currentResult) {
     savedListingCount: currentSavedListings.length,
     savedListingLimit: FREE_SAVED_LISTING_LIMIT,
     freeLimitReached: freeSavedListingLimitReached(),
+    intent: feedbackIntent || null,
     diagnosisHeadline: diagnosisHeadlineEl?.textContent?.trim() || "",
     path: window.location.pathname || "/",
     href: window.location.href,
@@ -2159,6 +2161,19 @@ function buildEventPayload(event, extra = {}) {
     source: extra.source || "unknown",
     path: window.location.pathname || "/",
     candidateCount,
+    savedListingCount: Number.isFinite(Number(extra.savedListingCount))
+      ? Number(extra.savedListingCount)
+      : currentSavedListings.length,
+    savedListingLimit: Number.isFinite(Number(extra.savedListingLimit))
+      ? Number(extra.savedListingLimit)
+      : FREE_SAVED_LISTING_LIMIT,
+    freeLimitReached:
+      typeof extra.freeLimitReached === "boolean"
+        ? extra.freeLimitReached
+        : freeSavedListingLimitReached(),
+    intent: extra.intent || feedbackIntent || "",
+    feedbackType: extra.feedbackType || "",
+    hasFeedbackEmail: typeof extra.hasFeedbackEmail === "boolean" ? extra.hasFeedbackEmail : null,
     hasPlaceId: Boolean(eventPlaceId(result)),
     hasRecommendedCompetitor: Boolean(recommendedPlaceId),
     hasSelectedCompetitor: Boolean(selectedPlaceId),
@@ -2414,10 +2429,13 @@ function resetFeedbackForm() {
   if (feedbackEmailEl) {
     feedbackEmailEl.value = getSubscriberEmail() || loadSubscriberEmail() || "";
   }
+  feedbackIntent = "";
   renderFeedbackContextPreview(currentResult);
 }
 
 function applyFeedbackPrefill(options = {}) {
+  feedbackIntent = String(options?.intent || "").trim();
+
   const type = String(options?.type || "").trim();
   if (type) {
     document.querySelectorAll('input[name="feedbackType"]').forEach((radio) => {
@@ -2513,6 +2531,7 @@ function closeFeedbackAssistant() {
   feedbackAssistantEl.classList.add("hidden");
   feedbackAssistantEl.setAttribute("aria-hidden", "true");
   document.body.classList.remove("assistant-open");
+  feedbackIntent = "";
   setFeedbackMessage("");
 }
 
@@ -2575,6 +2594,7 @@ function collectFeedbackInput() {
     type: selectedFeedbackType(),
     message: feedbackMessageEl?.value?.trim() || "",
     email: feedbackEmailEl?.value?.trim() || "",
+    intent: feedbackIntent,
     context: buildFeedbackContext(currentResult),
   };
 }
@@ -6408,8 +6428,16 @@ if (savedPlanNoticeEl) {
   savedPlanNoticeEl.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-saved-plan-pro]");
     if (!button) return;
+    trackEvent("pro_interest_cta_clicked", {
+      source: "saved_plan",
+      intent: "pro_interest",
+      savedListingCount: currentSavedListings.length,
+      savedListingLimit: FREE_SAVED_LISTING_LIMIT,
+      freeLimitReached: currentSavedListings.length >= FREE_SAVED_LISTING_LIMIT,
+    });
     openFeedbackAssistant({
       type: "missing_feature",
+      intent: "pro_interest",
       message: t("savedPlanProPrefill"),
     });
   });
@@ -6494,6 +6522,18 @@ if (feedbackFormEl) {
         if (emailInput && !emailInput.value.trim()) {
           emailInput.value = payload.email.trim().toLowerCase();
         }
+      }
+
+      if (payload.intent === "pro_interest") {
+        trackEvent("pro_interest_feedback_submitted", {
+          source: "feedback_modal",
+          intent: payload.intent,
+          feedbackType: payload.type,
+          hasFeedbackEmail: Boolean(payload.email),
+          savedListingCount: payload.context?.savedListingCount,
+          savedListingLimit: payload.context?.savedListingLimit,
+          freeLimitReached: payload.context?.freeLimitReached,
+        });
       }
 
       resetFeedbackForm();

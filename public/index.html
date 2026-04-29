@@ -55,6 +55,7 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
   <div id="card" class="card hidden">
     <h2 id="reportTitle" class="section__title">Google Maps Analysis Report</h2>
     <p id="reportDate" class="muted"></p>
+    <div id="printCover" class="print-cover" aria-hidden="true"></div>
 
     <div id="diagnosisHero" class="diagnosis-hero">
       <div id="diagnosisHeadline" class="diagnosis-hero__headline"></div>
@@ -471,6 +472,7 @@ const savedWorkQueueEl = document.getElementById("savedWorkQueue");
 const savedListingsEl = document.getElementById("savedListings");
 const savedListingsTitleEl = document.getElementById("savedListingsTitle");
 const reportTitleEl = document.getElementById("reportTitle");
+const printCoverEl = document.getElementById("printCover");
 const nextActionsTitleEl = document.getElementById("nextActionsTitle");
 const competitiveGapTitleEl = document.getElementById("competitiveGapTitle");
 const comparisonFocusTitleEl = document.getElementById("comparisonFocusTitle");
@@ -684,6 +686,18 @@ const COPY = {
     savedMsgDefault:
       "Analyze a listing, then save it so you can reopen the latest report quickly from this app.",
     reportTitle: "Google Maps Analysis Report",
+    printCoverEyebrow: "Client report",
+    printCoverTitle: "GBP competitor update",
+    printCoverPreparedBy: "Prepared with Flowmetric",
+    printCoverListing: "Listing",
+    printCoverCompetitor: "Competitor",
+    printCoverGenerated: "Generated",
+    printCoverTask: "This week's task",
+    printCoverNoCompetitor: "No competitor selected yet",
+    printCoverNoTask:
+      "Keep this report saved and re-check the same competitor next week.",
+    printCoverPromise:
+      "Use this report to explain what changed, why the recommendation matters, and what to do before the next client check-in.",
     reportWeeklyDiffTitle: "This week's change",
     reportWeeklyMomentumBehind: "Competitor gained review momentum this week",
     reportWeeklyMomentumAhead: "This listing gained review momentum this week",
@@ -1184,6 +1198,18 @@ const COPY = {
     savedMsgDefault:
       "分析後に保存すると、このアプリから最新レポートをすぐ開き直せます。",
     reportTitle: "Googleマップ分析レポート",
+    printCoverEyebrow: "クライアント提出レポート",
+    printCoverTitle: "GBP競合比較アップデート",
+    printCoverPreparedBy: "Flowmetricで作成",
+    printCoverListing: "対象店舗",
+    printCoverCompetitor: "比較競合",
+    printCoverGenerated: "作成日時",
+    printCoverTask: "今週の実行タスク",
+    printCoverNoCompetitor: "競合はまだ選択されていません",
+    printCoverNoTask:
+      "このレポートを保存し、次週も同じ競合で再チェックしてください。",
+    printCoverPromise:
+      "このレポートは、何が変わったか、なぜその提案が必要か、次回定例までに何を進めるかを説明するための提出用サマリーです。",
     reportWeeklyDiffTitle: "今週の変化",
     reportWeeklyMomentumBehind: "今週は競合のレビュー増加ペースが強めです",
     reportWeeklyMomentumAhead: "今週は自店舗のレビュー増加ペースが上回っています",
@@ -2037,7 +2063,9 @@ function applyLanguage(lang, options = {}) {
   renderFeedbackCta(currentResult);
   renderReportWeeklyDiffSummary(currentResult);
   if (currentResult) {
-    renderClientReportSummary(buildClientReportSummary(buildDiagnosisFirstView(currentResult), currentResult));
+    const firstView = buildDiagnosisFirstView(currentResult);
+    renderPrintCover(currentResult, firstView);
+    renderClientReportSummary(buildClientReportSummary(firstView, currentResult));
   }
   renderActionHistoryPanel(currentResult);
   renderFeedbackContextPreview(currentResult);
@@ -2103,6 +2131,90 @@ function formatReportDate(value) {
 function setReportDate(value) {
   if (!reportDateEl) return;
   reportDateEl.textContent = formatReportDate(value);
+}
+
+function reportListingName(result) {
+  return sentence(
+    result?.details?.name ||
+      result?.savedListing?.name ||
+      input?.value?.trim() ||
+      "-"
+  );
+}
+
+function reportListingAddress(result) {
+  return sentence(
+    result?.details?.formatted_address ||
+      result?.details?.formattedAddress ||
+      result?.details?.address ||
+      result?.savedListing?.address ||
+      ""
+  );
+}
+
+function reportCompetitorName(result) {
+  return sentence(
+    result?.selectedCompetitor?.name ||
+      result?.savedListing?.competitorName ||
+      result?.compare?.competitor?.name ||
+      ""
+  );
+}
+
+function renderPrintCover(result, firstView = null) {
+  if (!printCoverEl) return;
+  if (!result) {
+    printCoverEl.innerHTML = "";
+    printCoverEl.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  const view = firstView || buildDiagnosisFirstView(result);
+  const task = buildCurrentActionTask(result, view);
+  const listingName = reportListingName(result);
+  const listingAddress = reportListingAddress(result);
+  const competitorName = reportCompetitorName(result) || t("printCoverNoCompetitor");
+  const generatedAt = formatDateTime(result?.generatedAt || result?.createdAt);
+  const taskCopy = task?.body
+    ? `${task.label}: ${task.body}`
+    : t("printCoverNoTask");
+  const metaItems = [
+    {
+      label: t("printCoverListing"),
+      value: [listingName, listingAddress].filter(Boolean).join(" / "),
+    },
+    { label: t("printCoverCompetitor"), value: competitorName },
+    { label: t("printCoverGenerated"), value: generatedAt || "-" },
+    { label: t("printCoverTask"), value: taskCopy },
+  ];
+
+  printCoverEl.setAttribute("aria-hidden", "false");
+  printCoverEl.innerHTML = `
+    <div class="print-cover__topline">
+      <span>${escapeHtml(t("printCoverEyebrow"))}</span>
+      <span>${escapeHtml(t("printCoverPreparedBy"))}</span>
+    </div>
+    <div class="print-cover__title">${escapeHtml(t("printCoverTitle"))}</div>
+    ${
+      view?.headline
+        ? `<div class="print-cover__headline">${escapeHtml(view.headline)}</div>`
+        : ""
+    }
+    <div class="print-cover__promise">${escapeHtml(t("printCoverPromise"))}</div>
+    <div class="print-cover__meta">
+      ${metaItems
+        .filter((item) => item.value)
+        .map(
+          (item) => `
+            <div class="print-cover__meta-item">
+              <div class="print-cover__meta-label">${escapeHtml(item.label)}</div>
+              <div class="print-cover__meta-value">${escapeHtml(item.value)}</div>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function valueOrFallback(value, fallback = t("collectingData")) {
@@ -2899,6 +3011,7 @@ function resetUI() {
   updateSaveListingButtonState();
   msg.textContent = "";
   setReportDate(null);
+  renderPrintCover(null);
   if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = "";
   if (diagnosisSummaryEl) diagnosisSummaryEl.innerHTML = "";
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
@@ -2965,6 +3078,7 @@ function setLoading(isLoading) {
     msg.textContent = t("loadingListing");
     showCard();
     renderFeedbackCta(null);
+    renderPrintCover(null);
     if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = t("loadingHeadline");
     if (diagnosisSummaryEl) {
       diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(t("loadingSummary"))}</p>`;
@@ -3000,6 +3114,7 @@ function showError(message) {
   msg.textContent = message;
   showCard();
   renderFeedbackCta(null);
+  renderPrintCover(null);
   if (diagnosisHeadlineEl) diagnosisHeadlineEl.textContent = t("unavailableHeadline");
   if (diagnosisSummaryEl) {
     diagnosisSummaryEl.innerHTML = `<p>${escapeHtml(message)}</p>`;
@@ -5404,6 +5519,7 @@ function renderInsight(data) {
       .join("");
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
+  renderPrintCover(data, firstView);
   renderClientReportSummary(buildClientReportSummary(firstView, data));
   renderActionHistoryPanel(data, firstView);
   renderPriorityRow(firstView.priorityItems);
@@ -7077,6 +7193,7 @@ function applyUpdatedSavedListing(savedListing) {
       savedListing,
     };
     renderActionHistoryPanel(currentResult);
+    renderPrintCover(currentResult);
   }
 
   if (currentSavedListings.some((item) => item?.id === savedListing.id)) {

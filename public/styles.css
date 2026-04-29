@@ -218,6 +218,10 @@ button {
   overflow-wrap: anywhere;
 }
 
+.print-cover {
+  display: none;
+}
+
 .kpi {
   display: flex;
   gap: var(--s-4);
@@ -2469,8 +2473,84 @@ button {
     display: none !important;
   }
 
+  #reportTitle,
   #reportDate {
-    margin: 0 0 12px;
+    display: none;
+  }
+
+  .print-cover {
+    display: block;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border: 1px solid #bbb;
+    border-radius: 10px;
+    background: #fff;
+    break-inside: avoid;
+  }
+
+  .print-cover__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .print-cover__title {
+    color: #111;
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 900;
+  }
+
+  .print-cover__headline {
+    margin-top: 8px;
+    color: #111;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 800;
+  }
+
+  .print-cover__promise {
+    margin-top: 6px;
+    color: #333;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .print-cover__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .print-cover__meta-item {
+    padding: 8px 9px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    break-inside: avoid;
+  }
+
+  .print-cover__meta-label {
+    color: #555;
+    font-size: 10px;
+    line-height: 1.25;
+    font-weight: 850;
+  }
+
+  .print-cover__meta-value {
+    margin-top: 3px;
+    color: #111;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 700;
   }
 
   #card > .section__title,

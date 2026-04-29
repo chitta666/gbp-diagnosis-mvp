@@ -966,6 +966,7 @@ const COPY = {
       "Copy a stable link that reopens the latest report for this saved listing.",
     savedReportShareLinkLabel: "Report link",
     savedReportShareButton: "Copy report link",
+    savedReportPreviewButton: "Open client view",
     savedReportShareCopied: "Report link copied.",
     savedReportShareFailed: "Could not copy the report link.",
     clientReportCopyClientNote: "Client note",
@@ -1488,6 +1489,7 @@ const COPY = {
       "この保存済み店舗の最新レポートを開き直せる安定リンクをコピーできます。",
     savedReportShareLinkLabel: "共有リンク",
     savedReportShareButton: "共有リンクをコピー",
+    savedReportPreviewButton: "クライアント表示を開く",
     savedReportShareCopied: "共有リンクをコピーしました。",
     savedReportShareFailed: "共有リンクをコピーできませんでした。",
     clientReportCopyClientNote: "クライアント報告文",
@@ -4966,11 +4968,18 @@ function renderReportSharePanel(result = currentResult) {
         ${escapeHtml(shareUrl)}
       </div>
     </div>
-    <button class="btn secondary report-share__copy" type="button" data-report-share-copy="${escapeAttr(
-      shareUrl
-    )}">
-      ${escapeHtml(t("savedReportShareButton"))}
-    </button>
+    <div class="report-share__actions">
+      <button class="btn secondary report-share__copy" type="button" data-report-share-copy="${escapeAttr(
+        shareUrl
+      )}">
+        ${escapeHtml(t("savedReportShareButton"))}
+      </button>
+      <a class="btn secondary report-share__preview" href="${escapeAttr(
+        shareUrl
+      )}" target="_blank" rel="noopener noreferrer">
+        ${escapeHtml(t("savedReportPreviewButton"))}
+      </a>
+    </div>
   `;
 }
 

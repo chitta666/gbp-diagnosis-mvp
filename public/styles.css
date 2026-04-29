@@ -1236,6 +1236,107 @@ button {
   margin-top: 8px;
 }
 
+.saved-work-queue {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(22, 163, 74, 0.16);
+  background:
+    linear-gradient(135deg, rgba(22, 163, 74, 0.07), rgba(245, 158, 11, 0.04)),
+    var(--surface);
+}
+
+.saved-work-queue__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saved-work-queue__label {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.saved-work-queue__subtitle {
+  margin-top: 4px;
+  font-size: var(--fs-2);
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+.saved-work-queue__list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.saved-work-queue__item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.saved-work-queue__body {
+  min-width: 0;
+}
+
+.saved-work-queue__headline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 850;
+  color: var(--fg);
+}
+
+.saved-work-queue__headline strong {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.1);
+  color: #166534;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.saved-work-queue__meta,
+.saved-work-queue__next {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.saved-work-queue__next {
+  color: var(--fg);
+}
+
+.saved-work-queue__reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.saved-work-queue__reasons span {
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
 .saved-plan {
   margin-top: 12px;
   padding: 12px;
@@ -2225,6 +2326,15 @@ button {
   }
 
   .saved__actions .btn {
+    width: 100%;
+  }
+
+  .saved-work-queue__top,
+  .saved-work-queue__item {
+    flex-direction: column;
+  }
+
+  .saved-work-queue__item .btn {
     width: 100%;
   }
 

@@ -1021,6 +1021,61 @@ button {
   margin-top: 8px;
 }
 
+.saved-plan {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.035);
+}
+
+.saved-plan--limit {
+  border-color: rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.055);
+}
+
+.saved-plan__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.saved-plan__label {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 800;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.saved-plan__usage {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.saved-plan__hint,
+.saved-plan__upgrade,
+.saved-plan__limit {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.saved-plan__limit {
+  font-weight: 800;
+  color: #991b1b;
+}
+
 .saved__weekly {
   margin-top: 10px;
   padding: 12px;

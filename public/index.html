@@ -906,6 +906,30 @@ const COPY = {
     savedWeeklyDiffLabel: "Weekly diff",
     savedWeeklyClientNoteLabel: "Client note",
     savedWeeklyNextActionLabel: "This week",
+    clientReportSummaryEyebrow: "Client-ready summary",
+    clientReportSummaryTitle: "One-page update for client reporting",
+    clientReportSummarySubtitle:
+      "Copy this into a client update or export it with the PDF.",
+    clientReportWeeklyMovement: "Weekly movement",
+    clientReportProof: "Proof to attach",
+    clientReportHandoffLabel: "Ready-to-send note",
+    clientReportWeeklyCollecting:
+      "Weekly movement will become stronger after this saved listing is checked again.",
+    clientReportProofCompetitor: "Competitor benchmark: {competitor}",
+    clientReportProofPeriod: "Comparison period: {period}",
+    clientReportProofAction: "Previous action record: {action}",
+    clientReportProofSaved:
+      "Saved listing is ready for the next same-competitor check.",
+    clientReportProofSaveNeeded:
+      "Save this listing to attach weekly history to the next report.",
+    clientReportReadinessWeeklyDiff: "Weekly diff",
+    clientReportReadinessActionHistory: "Action history",
+    clientReportReadinessCompetitor: "Competitor",
+    clientReportReady: "Ready",
+    clientReportCollecting: "Collecting",
+    clientReportSaved: "Saved",
+    clientReportMissing: "Missing",
+    clientReportSelected: "Selected",
     actionHistoryTitle: "Action history",
     actionHistoryLoopGuideLabel: "How to read this",
     actionHistoryLoopGuidePrevious: "Previous action = what was recommended or skipped last time.",
@@ -1298,6 +1322,30 @@ const COPY = {
     savedWeeklyDiffLabel: "今週の変化",
     savedWeeklyClientNoteLabel: "定例で伝えること",
     savedWeeklyNextActionLabel: "今週やること",
+    clientReportSummaryEyebrow: "クライアント提出用サマリー",
+    clientReportSummaryTitle: "定例報告に使える1ページ要約",
+    clientReportSummarySubtitle:
+      "このままクライアント報告に転記するか、PDFに含めて共有できます。",
+    clientReportWeeklyMovement: "今週の変化",
+    clientReportProof: "添付する根拠",
+    clientReportHandoffLabel: "そのまま送れる報告文",
+    clientReportWeeklyCollecting:
+      "この保存済み店舗を次回もう一度確認すると、週次変化がより強い報告材料になります。",
+    clientReportProofCompetitor: "比較対象: {competitor}",
+    clientReportProofPeriod: "比較期間: {period}",
+    clientReportProofAction: "前回アクション記録: {action}",
+    clientReportProofSaved:
+      "次回も同じ競合で確認できるよう保存済みです。",
+    clientReportProofSaveNeeded:
+      "次回レポートに週次履歴を添付するには、この店舗を保存してください。",
+    clientReportReadinessWeeklyDiff: "週次差分",
+    clientReportReadinessActionHistory: "実行履歴",
+    clientReportReadinessCompetitor: "競合",
+    clientReportReady: "準備済み",
+    clientReportCollecting: "収集中",
+    clientReportSaved: "保存済み",
+    clientReportMissing: "未保存",
+    clientReportSelected: "選択済み",
     actionHistoryTitle: "実行履歴",
     actionHistoryLoopGuideLabel: "この見方",
     actionHistoryLoopGuidePrevious: "前回のアクション = 前回提案したこと / 見送ったこと",
@@ -1816,6 +1864,9 @@ function applyLanguage(lang, options = {}) {
   renderReviewSupportCta(currentResult);
   renderFeedbackCta(currentResult);
   renderReportWeeklyDiffSummary(currentResult);
+  if (currentResult) {
+    renderClientReportSummary(buildClientReportSummary(buildDiagnosisFirstView(currentResult), currentResult));
+  }
   renderActionHistoryPanel(currentResult);
   renderFeedbackContextPreview(currentResult);
 
@@ -4218,36 +4269,108 @@ function renderActionTaskList(listEl, items) {
   });
 }
 
-function buildClientReportSummary(firstView) {
+function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
-  const task = actions.length ? splitActionTask(actions[0], 0) : null;
+  const currentTask = result ? buildCurrentActionTask(result, firstView) : null;
+  const fallbackTask = actions.length ? splitActionTask(actions[0], 0) : null;
+  const task = currentTask || fallbackTask;
   const taskBody = task?.body
     ? `${task.label}: ${task.body}`
     : langText(
         "Keep this report saved and re-check the same competitor next week.",
         "このレポートを保存し、次週も同じ競合で再チェックしてください。"
       );
+  const weeklySummary = result ? buildReportWeeklyDiffView(result) : null;
+  const weeklyMovement = sentence(
+    weeklySummary?.headline ||
+      result?.weeklyReport?.insight ||
+      t("clientReportWeeklyCollecting")
+  );
+  const savedListing = result?.savedListing || null;
+  const history = Array.isArray(savedListing?.actionHistory) ? savedListing.actionHistory : [];
+  const latestAction = savedListing?.latestAction || history[0] || null;
+  const competitorName =
+    result?.selectedCompetitor?.name ||
+    result?.savedListing?.competitorName ||
+    "";
+  const hasSpecificCompetitor =
+    competitorName && !/selected competitor/i.test(competitorName);
+  const latestActionCopy = latestAction
+    ? [latestAction.label, latestAction.body].filter(Boolean).join(": ")
+    : "";
+  const proofItems = [
+    hasSpecificCompetitor
+      ? copyWithValues(t("clientReportProofCompetitor"), { competitor: competitorName })
+      : "",
+    weeklySummary?.period?.label
+      ? copyWithValues(t("clientReportProofPeriod"), { period: weeklySummary.period.label })
+      : "",
+    latestActionCopy
+      ? copyWithValues(t("clientReportProofAction"), { action: reportClause(latestActionCopy) })
+      : "",
+    savedListing?.id ? t("clientReportProofSaved") : t("clientReportProofSaveNeeded"),
+  ];
+  const proofBody = sentence(uniqueStrings(proofItems).join(" / "));
+  const weeklyReady = weeklySummary?.status === "ready";
+  const handoffCopy = result
+    ? buildActionHistoryClientHandoff(result, latestAction, currentTask)
+    : "";
 
-  return [
-    {
-      label: langText("Client update", "クライアント報告"),
-      body: sentence(firstView?.headline),
-    },
-    {
-      label: langText("Why it matters", "伝える意味"),
-      body: sentence(summaryLines[1] || summaryLines[0]),
-    },
-    {
-      label: langText("This week's task", "今週の実行"),
-      body: sentence(taskBody),
-    },
-  ].filter((item) => item.body);
+  return {
+    chips: [
+      {
+        label: t("clientReportReadinessWeeklyDiff"),
+        value: weeklyReady ? t("clientReportReady") : t("clientReportCollecting"),
+        tone: weeklyReady ? "ready" : "pending",
+      },
+      {
+        label: t("clientReportReadinessActionHistory"),
+        value: latestAction ? t("clientReportSaved") : t("clientReportCollecting"),
+        tone: latestAction ? "ready" : "pending",
+      },
+      {
+        label: t("clientReportReadinessCompetitor"),
+        value: hasSpecificCompetitor ? t("clientReportSelected") : t("clientReportMissing"),
+        tone: hasSpecificCompetitor ? "ready" : "pending",
+      },
+    ],
+    handoff: sentence(handoffCopy),
+    items: [
+      {
+        label: langText("Client update", "クライアント報告"),
+        body: sentence(firstView?.headline),
+      },
+      {
+        label: t("clientReportWeeklyMovement"),
+        body: weeklyMovement,
+      },
+      {
+        label: langText("Why it matters", "伝える意味"),
+        body: sentence(summaryLines[1] || summaryLines[0]),
+      },
+      {
+        label: langText("This week's task", "今週の実行"),
+        body: sentence(taskBody),
+      },
+      {
+        label: t("clientReportProof"),
+        body: proofBody,
+      },
+    ].filter((item) => item.body),
+  };
 }
 
-function renderClientReportSummary(items) {
+function renderClientReportSummary(summary) {
   if (!clientReportSummaryEl) return;
-  const safeItems = Array.isArray(items) ? items.filter((item) => item?.body) : [];
+  const normalized = Array.isArray(summary) ? { items: summary } : summary || {};
+  const safeItems = Array.isArray(normalized.items)
+    ? normalized.items.filter((item) => item?.body)
+    : [];
+  const safeChips = Array.isArray(normalized.chips)
+    ? normalized.chips.filter((chip) => chip?.label && chip?.value)
+    : [];
+  const handoff = sentence(normalized.handoff || "");
 
   if (!safeItems.length) {
     clientReportSummaryEl.classList.add("hidden");
@@ -4257,9 +4380,39 @@ function renderClientReportSummary(items) {
 
   clientReportSummaryEl.classList.remove("hidden");
   clientReportSummaryEl.innerHTML = `
-    <div class="client-report-summary__eyebrow">${escapeHtml(
-      langText("Client-ready summary", "クライアント提出用サマリー")
-    )}</div>
+    <div class="client-report-summary__top">
+      <div>
+        <div class="client-report-summary__eyebrow">${escapeHtml(t("clientReportSummaryEyebrow"))}</div>
+        <div class="client-report-summary__title">${escapeHtml(t("clientReportSummaryTitle"))}</div>
+        <div class="client-report-summary__subtitle">${escapeHtml(t("clientReportSummarySubtitle"))}</div>
+      </div>
+      ${
+        safeChips.length
+          ? `<div class="client-report-summary__chips">
+              ${safeChips
+                .map(
+                  (chip) => `
+                    <span class="client-report-summary__chip client-report-summary__chip--${escapeAttr(
+                      chip.tone || "pending"
+                    )}">
+                      <span>${escapeHtml(chip.label)}</span>
+                      <strong>${escapeHtml(chip.value)}</strong>
+                    </span>
+                  `
+                )
+                .join("")}
+            </div>`
+          : ""
+      }
+    </div>
+    ${
+      handoff
+        ? `<div class="client-report-summary__handoff">
+            <div class="client-report-summary__label">${escapeHtml(t("clientReportHandoffLabel"))}</div>
+            <div class="client-report-summary__handoff-body">${escapeHtml(handoff)}</div>
+          </div>`
+        : ""
+    }
     <div class="client-report-summary__grid">
       ${safeItems
         .map(
@@ -4671,7 +4824,7 @@ function renderInsight(data) {
       .join("");
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
-  renderClientReportSummary(buildClientReportSummary(firstView));
+  renderClientReportSummary(buildClientReportSummary(firstView, data));
   renderActionHistoryPanel(data, firstView);
   renderPriorityRow(firstView.priorityItems);
   renderActionTaskList(primaryActionsListEl, firstView.actions);

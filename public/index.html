@@ -964,6 +964,7 @@ const COPY = {
     savedReportShareCopied: "Report link copied.",
     savedReportShareFailed: "Could not copy the report link.",
     clientReportCopyClientNote: "Client note",
+    clientReportCopyReportLink: "Report link",
     clientReportCopySummary: "Summary",
     clientReportCopyChecklist: "Send checklist",
     clientReportCopyEvidence: "Evidence pack",
@@ -1483,6 +1484,7 @@ const COPY = {
     savedReportShareCopied: "共有リンクをコピーしました。",
     savedReportShareFailed: "共有リンクをコピーできませんでした。",
     clientReportCopyClientNote: "クライアント報告文",
+    clientReportCopyReportLink: "レポートリンク",
     clientReportCopySummary: "要約",
     clientReportCopyChecklist: "提出チェックリスト",
     clientReportCopyEvidence: "根拠パック",
@@ -4852,6 +4854,7 @@ function formatClientReportCopySection(title, items, options = {}) {
 function buildClientReportCopyText({
   safeItems,
   handoff,
+  reportLink,
   sendChecklistItems,
   evidenceItems,
   nextCheckItems,
@@ -4864,6 +4867,9 @@ function buildClientReportCopyText({
     sentence(t("clientReportSummaryTitle")),
     handoff
       ? [sentence(t("clientReportCopyClientNote")), handoff].filter(Boolean).join("\n")
+      : "",
+    reportLink
+      ? [sentence(t("clientReportCopyReportLink")), reportLink].filter(Boolean).join("\n")
       : "",
     formatClientReportCopySection(
       t("clientReportCopyChecklist"),
@@ -5006,6 +5012,7 @@ function renderClientReportSummary(summary) {
   const sendChecklistItems = Array.isArray(sendChecklist.items)
     ? sendChecklist.items.map((item) => sentence(item)).filter(Boolean)
     : [];
+  const reportLink = savedReportShareUrl(currentResult?.savedListing?.id);
 
   if (!safeItems.length) {
     clientReportSummaryEl.classList.add("hidden");
@@ -5017,6 +5024,7 @@ function renderClientReportSummary(summary) {
   currentClientReportCopyText = buildClientReportCopyText({
     safeItems,
     handoff,
+    reportLink,
     sendChecklistItems,
     evidenceItems,
     nextCheckItems,

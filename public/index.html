@@ -659,6 +659,7 @@ const APP_LANGUAGE_KEY = "gbp_app_language_v1";
 const DEFAULT_LANGUAGE = "en";
 const FREE_SAVED_LISTING_LIMIT = 3;
 const PRO_SAVED_LISTING_TARGET = 25;
+const PRO_MONTHLY_PRICE_JPY = 2980;
 
 const COPY = {
   en: {
@@ -885,15 +886,23 @@ const COPY = {
     savedListingsEmpty: "No saved listings yet",
     savedPlanLabel: "Free beta",
     savedPlanUsage: "{count}/{limit} saved listings used",
+    savedPlanProPrice: "Pro beta target: ¥{price}/mo",
     savedPlanProHint:
       "Pro is planned for consultants managing more client locations: up to {limit} saved listings, repeat action history, and client-ready weekly updates.",
+    savedPlanValueTarget:
+      "Built for recurring reporting, not one-off diagnosis.",
+    savedPlanValueBullets: [
+      "Weekly diff and action history stay attached to each saved client.",
+      "One-page summary is ready to paste into the client update.",
+      "Next check shows what changed against the same competitor.",
+    ],
     savedPlanLimitReached:
       "Free beta limit reached. You can still reopen or update existing saved listings.",
     savedPlanUpgradeHint:
-      "Use Pro later when saved history becomes part of your recurring client reporting workflow.",
+      "Use Pro when saved history becomes part of your recurring client reporting workflow.",
     savedPlanProRequest: "Request Pro access",
     savedPlanProPrefill:
-      "I'm interested in Pro. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
+      "I'm interested in Pro beta at ¥2,980/mo. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
     savedListingDefaultName: "Saved Listing",
     savedListingAddressUnavailable: "Address not available",
     savedListingUpdated: "Updated",
@@ -922,6 +931,17 @@ const COPY = {
       "Saved listing is ready for the next same-competitor check.",
     clientReportProofSaveNeeded:
       "Save this listing to attach weekly history to the next report.",
+    clientReportNextCheckTitle: "Next check preview",
+    clientReportNextCheckSubtitle:
+      "This shows why the report is worth saving before weekly history is complete.",
+    clientReportNextCheckBaseline:
+      "Today's report becomes the baseline for the next client update.",
+    clientReportNextCheckCompetitor:
+      "Re-check the same competitor to see whether the gap widened or narrowed.",
+    clientReportNextCheckSignals:
+      "Review count, review momentum, photos, and visible profile proof are compared again.",
+    clientReportNextCheckAction:
+      "The previous task, what changed, and the next task stay connected.",
     clientReportReadinessWeeklyDiff: "Weekly diff",
     clientReportReadinessActionHistory: "Action history",
     clientReportReadinessCompetitor: "Competitor",
@@ -1301,15 +1321,23 @@ const COPY = {
     savedListingsEmpty: "保存した店舗はまだありません",
     savedPlanLabel: "Free ベータ",
     savedPlanUsage: "保存済み店舗 {count}/{limit} 件",
+    savedPlanProPrice: "Pro ベータ想定: 月額 {price}円",
     savedPlanProHint:
       "Proは複数クライアント店舗を運用する方向けに、保存済み店舗 {limit} 件、継続的な実行履歴、提出用の週次更新を想定しています。",
+    savedPlanValueTarget:
+      "単発診断ではなく、継続レポート業務で使う前提です。",
+    savedPlanValueBullets: [
+      "保存クライアントごとに週次差分と実行履歴が残ります。",
+      "1ページ要約をそのままクライアント報告に貼れます。",
+      "次回チェックで同じ競合との差が広がったか縮まったかを見ます。",
+    ],
     savedPlanLimitReached:
       "Free ベータの保存上限に達しています。既存の保存済み店舗は引き続き開く・更新できます。",
     savedPlanUpgradeHint:
       "保存履歴が定例レポート業務の一部になったら、Proで使う想定です。",
     savedPlanProRequest: "Proの相談を送る",
     savedPlanProPrefill:
-      "Proに関心があります。管理している店舗/クライアントは約___件で、保存履歴、週次差分サマリー、提出しやすいレポートを使いたいです。",
+      "月額2,980円のProベータに関心があります。管理している店舗/クライアントは約___件で、保存履歴、週次差分サマリー、提出しやすいレポートを使いたいです。",
     savedListingDefaultName: "保存した店舗",
     savedListingAddressUnavailable: "住所情報なし",
     savedListingUpdated: "更新",
@@ -1338,6 +1366,17 @@ const COPY = {
       "次回も同じ競合で確認できるよう保存済みです。",
     clientReportProofSaveNeeded:
       "次回レポートに週次履歴を添付するには、この店舗を保存してください。",
+    clientReportNextCheckTitle: "次回チェックで見えること",
+    clientReportNextCheckSubtitle:
+      "週次履歴がまだ揃う前でも、保存する理由が分かるようにしています。",
+    clientReportNextCheckBaseline:
+      "今回のレポートが次回クライアント報告の比較基準になります。",
+    clientReportNextCheckCompetitor:
+      "同じ競合で再チェックし、差が広がったか縮まったかを確認します。",
+    clientReportNextCheckSignals:
+      "レビュー数、レビュー増加ペース、写真、見えるプロフィール根拠を再比較します。",
+    clientReportNextCheckAction:
+      "前回タスク、今回の変化、次のタスクをつなげて報告できます。",
     clientReportReadinessWeeklyDiff: "週次差分",
     clientReportReadinessActionHistory: "実行履歴",
     clientReportReadinessCompetitor: "競合",
@@ -1968,6 +2007,12 @@ function formatDistanceLabel(distanceMeters) {
 function formatReviewCountLabel(reviewCount) {
   if (!Number.isFinite(reviewCount)) return "";
   return t("reviewCountShort").replace("{count}", String(Math.round(reviewCount)));
+}
+
+function formatYenAmount(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+  return String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function competitorScaleLabel(reviewCount, myReviewCount) {
@@ -4316,6 +4361,12 @@ function buildClientReportSummary(firstView, result = null) {
   const handoffCopy = result
     ? buildActionHistoryClientHandoff(result, latestAction, currentTask)
     : "";
+  const nextCheckItems = uniqueStrings([
+    t("clientReportNextCheckBaseline"),
+    t("clientReportNextCheckCompetitor"),
+    t("clientReportNextCheckSignals"),
+    t("clientReportNextCheckAction"),
+  ]);
 
   return {
     chips: [
@@ -4336,6 +4387,11 @@ function buildClientReportSummary(firstView, result = null) {
       },
     ],
     handoff: sentence(handoffCopy),
+    nextCheck: {
+      title: t("clientReportNextCheckTitle"),
+      subtitle: t("clientReportNextCheckSubtitle"),
+      items: nextCheckItems,
+    },
     items: [
       {
         label: langText("Client update", "クライアント報告"),
@@ -4371,6 +4427,10 @@ function renderClientReportSummary(summary) {
     ? normalized.chips.filter((chip) => chip?.label && chip?.value)
     : [];
   const handoff = sentence(normalized.handoff || "");
+  const nextCheck = normalized.nextCheck || {};
+  const nextCheckItems = Array.isArray(nextCheck.items)
+    ? nextCheck.items.map((item) => sentence(item)).filter(Boolean)
+    : [];
 
   if (!safeItems.length) {
     clientReportSummaryEl.classList.add("hidden");
@@ -4410,6 +4470,27 @@ function renderClientReportSummary(summary) {
         ? `<div class="client-report-summary__handoff">
             <div class="client-report-summary__label">${escapeHtml(t("clientReportHandoffLabel"))}</div>
             <div class="client-report-summary__handoff-body">${escapeHtml(handoff)}</div>
+          </div>`
+        : ""
+    }
+    ${
+      nextCheckItems.length
+        ? `<div class="client-report-summary__next-check">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                nextCheck.title || t("clientReportNextCheckTitle")
+              )}</div>
+              ${
+                nextCheck.subtitle
+                  ? `<div class="client-report-summary__next-check-subtitle">${escapeHtml(
+                      nextCheck.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <ul class="client-report-summary__next-check-list">
+              ${nextCheckItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
           </div>`
         : ""
     }
@@ -5789,6 +5870,13 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
   const proHint = copyWithValues(t("savedPlanProHint"), {
     limit: PRO_SAVED_LISTING_TARGET,
   });
+  const proPrice = copyWithValues(t("savedPlanProPrice"), {
+    price: formatYenAmount(PRO_MONTHLY_PRICE_JPY),
+  });
+  const valueTarget = t("savedPlanValueTarget");
+  const valueBullets = Array.isArray(t("savedPlanValueBullets"))
+    ? t("savedPlanValueBullets")
+    : [];
   const limitCopy = isAtLimit
     ? `<div class="saved-plan__limit">${escapeHtml(t("savedPlanLimitReached"))}</div>`
     : "";
@@ -5799,7 +5887,18 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
       <span class="saved-plan__label">${escapeHtml(t("savedPlanLabel"))}</span>
       <span class="saved-plan__usage">${escapeHtml(usage)}</span>
     </div>
+    <div class="saved-plan__price-row">
+      <span class="saved-plan__price">${escapeHtml(proPrice)}</span>
+      <span class="saved-plan__value-target">${escapeHtml(valueTarget)}</span>
+    </div>
     <div class="saved-plan__hint">${escapeHtml(proHint)}</div>
+    ${
+      valueBullets.length
+        ? `<ul class="saved-plan__value-list">
+            ${valueBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>`
+        : ""
+    }
     ${limitCopy}
     <div class="saved-plan__upgrade">${escapeHtml(t("savedPlanUpgradeHint"))}</div>
     <div class="saved-plan__actions">
@@ -6587,6 +6686,7 @@ if (savedPlanNoticeEl) {
       savedListingCount: currentSavedListings.length,
       savedListingLimit: FREE_SAVED_LISTING_LIMIT,
       freeLimitReached: currentSavedListings.length >= FREE_SAVED_LISTING_LIMIT,
+      proMonthlyPriceJpy: PRO_MONTHLY_PRICE_JPY,
     });
     openFeedbackAssistant({
       type: "missing_feature",

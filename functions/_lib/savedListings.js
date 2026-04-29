@@ -5,6 +5,10 @@ import { buildWeeklyDiffSummary } from "./weeklyDiffSummary.js";
 
 const SAVED_INDEX_KEY = "saved:index";
 const REVIEW_THEME_HISTORY_LIMIT = 12;
+const ACTION_HISTORY_LIMIT = 12;
+const ACTION_HISTORY_PUBLIC_LIMIT = 5;
+const ACTION_STATUSES = new Set(["planned", "done", "skipped"]);
+const ACTION_SOURCES = new Set(["weekly_task", "manual"]);
 
 function safeJson(text, fallback = null) {
   try {
@@ -24,6 +28,72 @@ function compactStringList(values, limit = 2) {
       .map((value) => String(value || "").trim())
       .filter(Boolean)
   ).slice(0, limit);
+}
+
+function compactText(value, limit = 500) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text ? text.slice(0, limit) : null;
+}
+
+function normalizeActionStatus(value) {
+  const status = String(value || "").trim().toLowerCase();
+  return ACTION_STATUSES.has(status) ? status : "planned";
+}
+
+function normalizeActionSource(value) {
+  const source = String(value || "").trim().toLowerCase();
+  return ACTION_SOURCES.has(source) ? source : "weekly_task";
+}
+
+function normalizeActionSnapshotContext(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return {
+    generatedAt: compactText(value.generatedAt, 48),
+    placeName: compactText(value.placeName, 160),
+    competitorName: compactText(value.competitorName, 160),
+    weeklyHeadline: compactText(value.weeklyHeadline, 260),
+    weeklyStatus: compactText(value.weeklyStatus, 80),
+  };
+}
+
+function normalizeSavedAction(action = {}, fallback = {}) {
+  const now = fallback.now || new Date().toISOString();
+  const label = compactText(action?.label || fallback.label, 90);
+  const body = compactText(action?.body || fallback.body, 560);
+
+  if (!label && !body) return null;
+
+  const status = normalizeActionStatus(action?.status || fallback.status);
+  const completedAt =
+    status === "planned"
+      ? null
+      : compactText(action?.completedAt, 48) || now;
+
+  return {
+    id: compactText(action?.id, 80) || crypto.randomUUID(),
+    createdAt: compactText(action?.createdAt, 48) || now,
+    updatedAt: compactText(action?.updatedAt, 48) || now,
+    label: label || "Task",
+    body: body || "",
+    source: normalizeActionSource(action?.source || fallback.source),
+    status,
+    note: compactText(action?.note, 500),
+    completedAt,
+    snapshotContext: normalizeActionSnapshotContext(action?.snapshotContext),
+  };
+}
+
+function normalizeActionHistory(history) {
+  return (Array.isArray(history) ? history : [])
+    .map((item) => normalizeSavedAction(item))
+    .filter(Boolean)
+    .sort((a, b) =>
+      String(b?.createdAt || "").localeCompare(String(a?.createdAt || ""))
+    )
+    .slice(0, ACTION_HISTORY_LIMIT);
 }
 
 const STORED_THEME_LABELS = {
@@ -223,6 +293,7 @@ export function publicSavedListing(
     { lang }
   );
   const ratingMilestoneProgress = buildRatingMilestoneProgress(record, { lang });
+  const actionHistory = normalizeActionHistory(record.actionHistory);
   const weeklyDiffSummary = buildWeeklyDiffSummary(record, {
     lang,
     reviewThemeMonitoring,
@@ -254,6 +325,8 @@ export function publicSavedListing(
     reviewDropSignal,
     reviewThemeMonitoring,
     ratingMilestoneProgress,
+    actionHistory: actionHistory.slice(0, ACTION_HISTORY_PUBLIC_LIMIT),
+    latestAction: actionHistory[0] ?? null,
     weeklyDiffSummary,
   };
 
@@ -1191,6 +1264,7 @@ export async function upsertSavedListing({ KV, payload }) {
     previousMetrics: existing?.previousMetrics ?? null,
     latestMetrics: existing?.latestMetrics ?? null,
     reviewThemeHistory: normalizedReviewThemeHistory(existing?.reviewThemeHistory),
+    actionHistory: normalizeActionHistory(existing?.actionHistory),
     lastReviewThemeCapturedAt: existing?.lastReviewThemeCapturedAt ?? null,
   };
 
@@ -1204,6 +1278,71 @@ export async function upsertSavedListing({ KV, payload }) {
   await writeIdList(KV, emailKey(email), [...emailIds, id]);
 
   return record;
+}
+
+export async function appendSavedListingAction({ KV, id, action }) {
+  const current = await getSavedListing(KV, id);
+  if (!current) return null;
+
+  const now = new Date().toISOString();
+  const savedAction = normalizeSavedAction(action, { now });
+  if (!savedAction) {
+    throw new Error("action label or body is required");
+  }
+
+  const existingHistory = normalizeActionHistory(current.actionHistory);
+  const dedupedHistory = existingHistory.filter(
+    (item) =>
+      !(
+        item.status === "planned" &&
+        item.label === savedAction.label &&
+        item.body === savedAction.body
+      )
+  );
+  const actionHistory = [savedAction, ...dedupedHistory].slice(0, ACTION_HISTORY_LIMIT);
+  const next = {
+    ...current,
+    actionHistory,
+    updatedAt: now,
+  };
+
+  await KV.put(savedKey(id), JSON.stringify(next));
+  return { record: next, action: savedAction };
+}
+
+export async function updateSavedListingAction({ KV, id, actionId, status, note }) {
+  const current = await getSavedListing(KV, id);
+  if (!current) return null;
+
+  const now = new Date().toISOString();
+  const nextStatus = normalizeActionStatus(status);
+  let updatedAction = null;
+  const actionHistory = normalizeActionHistory(current.actionHistory).map((item) => {
+    if (String(item.id) !== String(actionId || "")) return item;
+
+    updatedAction = {
+      ...item,
+      status: nextStatus,
+      note: note === undefined ? item.note : compactText(note, 500),
+      updatedAt: now,
+      completedAt:
+        nextStatus === "planned"
+          ? null
+          : item.completedAt || now,
+    };
+    return updatedAction;
+  });
+
+  if (!updatedAction) return null;
+
+  const next = {
+    ...current,
+    actionHistory,
+    updatedAt: now,
+  };
+
+  await KV.put(savedKey(id), JSON.stringify(next));
+  return { record: next, action: updatedAction };
 }
 
 export async function listSavedListingsByEmail({ KV, email }) {

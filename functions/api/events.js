@@ -9,6 +9,7 @@ const ALLOWED_EVENTS = new Set([
   "competitor_report_updated",
   "pro_interest_cta_clicked",
   "pro_interest_feedback_submitted",
+  "client_report_copied",
 ]);
 
 const ALLOWED_PAGES = new Set(["home", "report", "saved_report", "unknown"]);
@@ -21,6 +22,7 @@ const ALLOWED_SOURCES = new Set([
   "reset",
   "saved",
   "saved_plan",
+  "client_report_summary",
   "feedback_modal",
   "search",
   "unknown",

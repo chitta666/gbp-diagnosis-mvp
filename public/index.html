@@ -16,7 +16,9 @@
     </div>
   </div>
 
-  <div class="row">
+  <div id="clientViewNotice" class="client-view-notice hidden"></div>
+
+  <div id="analysisControls" class="row">
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
     <button id="btn" class="btn btn--primary" type="button">Analyze Listing</button>
   </div>
@@ -463,6 +465,7 @@ const input = document.getElementById("urlInput");
 const appTitleEl = document.getElementById("appTitle");
 const introTextEl = document.getElementById("introText");
 const heroProofChipEls = Array.from(document.querySelectorAll("[data-proof-chip]"));
+const clientViewNoticeEl = document.getElementById("clientViewNotice");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
@@ -681,6 +684,8 @@ const COPY = {
       "Weekly change tracking",
       "This week's task",
     ],
+    clientViewNotice:
+      "Client report view. Internal saved-listing controls are hidden for sharing.",
     savedListingsTitle: "Saved Listings",
     savedEmailPlaceholder: "Enter email to manage saved listings",
     loadSaved: "Load Saved Listings",
@@ -1201,6 +1206,8 @@ const COPY = {
       "週次変化の追跡",
       "今週の実行タスク",
     ],
+    clientViewNotice:
+      "クライアント共有用ビューです。保存管理や内部操作は非表示にしています。",
     savedListingsTitle: "保存した店舗",
     savedEmailPlaceholder: "保存した店舗を管理するメールアドレス",
     loadSaved: "保存済みを読み込む",
@@ -1849,6 +1856,20 @@ function setUrlLanguage(lang) {
   window.history.replaceState({}, "", url.toString());
 }
 
+function isClientShareView() {
+  const url = new URL(window.location.href);
+  return url.searchParams.get("view") === "client" || url.searchParams.get("client") === "1";
+}
+
+function applyClientShareView() {
+  const enabled = isClientShareView();
+  document.body.classList.toggle("client-share-view", enabled);
+
+  if (!clientViewNoticeEl) return;
+  clientViewNoticeEl.classList.toggle("hidden", !enabled);
+  clientViewNoticeEl.textContent = enabled ? t("clientViewNotice") : "";
+}
+
 function withCurrentLanguage(url) {
   const next = new URL(url, window.location.origin);
   next.searchParams.set("lang", currentLanguage);
@@ -1879,6 +1900,9 @@ function renderStaticCopy() {
   if (input) input.placeholder = t("analyzePlaceholder");
   if (btn) btn.textContent = t("analyzeButton");
   if (introTextEl) introTextEl.textContent = t("introText");
+  if (clientViewNoticeEl && !clientViewNoticeEl.classList.contains("hidden")) {
+    clientViewNoticeEl.textContent = t("clientViewNotice");
+  }
   const proofChips = t("heroProofChips");
   if (Array.isArray(proofChips)) {
     heroProofChipEls.forEach((chipEl, index) => {
@@ -2069,6 +2093,7 @@ function applyLanguage(lang, options = {}) {
   currentLanguage = next;
   renderLanguageToggle();
   renderStaticCopy();
+  applyClientShareView();
 
   if (persist) saveStoredLanguage(next);
   if (syncUrl) setUrlLanguage(next);
@@ -2464,6 +2489,7 @@ function savedReportShareUrl(savedId) {
   url.search = "";
   url.hash = "";
   url.searchParams.set("lang", currentLanguage);
+  url.searchParams.set("view", "client");
   url.searchParams.set("saved", id);
   return url.toString();
 }
@@ -8023,6 +8049,7 @@ btn.addEventListener("click", async () => {
 // init
 renderLanguageToggle();
 renderStaticCopy();
+applyClientShareView();
 renderHistory(loadHistory());
 renderSavedListings([]);
 

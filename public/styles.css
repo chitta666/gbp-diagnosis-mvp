@@ -106,6 +106,16 @@ button {
   box-shadow: 0 2px 8px rgba(17, 24, 39, 0.08);
 }
 
+.client-view-notice {
+  margin: 0 0 var(--s-4);
+  padding: 10px 12px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: var(--r-1);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.07), rgba(15, 23, 42, 0.025));
+  color: var(--muted);
+  font-size: var(--fs-2);
+}
+
 .muted {
   color: var(--muted);
 }
@@ -132,6 +142,22 @@ button {
 }
 
 .hidden {
+  display: none !important;
+}
+
+body.client-share-view #analysisControls,
+body.client-share-view #introText,
+body.client-share-view #heroProofChips,
+body.client-share-view #savedHub,
+body.client-share-view #msg,
+body.client-share-view #historySection,
+body.client-share-view #feedbackCta,
+body.client-share-view #reviewSupportCta,
+body.client-share-view #reportSharePanel,
+body.client-share-view #pdfBtn,
+body.client-share-view .compare__controls,
+body.client-share-view .client-report-summary__copy,
+body.client-share-view .action-history__actions {
   display: none !important;
 }
 

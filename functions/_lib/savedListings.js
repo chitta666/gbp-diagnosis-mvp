@@ -71,6 +71,7 @@ function normalizeSavedAction(action = {}, fallback = {}) {
     status === "planned"
       ? null
       : compactText(action?.completedAt, 48) || now;
+  const language = normalizeActionLanguage(action?.language || fallback.language);
 
   return {
     id: compactText(action?.id, 80) || crypto.randomUUID(),
@@ -83,6 +84,7 @@ function normalizeSavedAction(action = {}, fallback = {}) {
     note: compactText(action?.note, 500),
     completedAt,
     snapshotContext: normalizeActionSnapshotContext(action?.snapshotContext),
+    ...(language ? { language } : {}),
   };
 }
 
@@ -151,6 +153,12 @@ function isJapanese(lang = "en") {
 
 function normalizePreferredLanguage(value, fallback = "en") {
   return isJapanese(value) ? "ja" : fallback;
+}
+
+function normalizeActionLanguage(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return isJapanese(text) ? "ja" : "en";
 }
 
 function localizedString(value, lang = "en") {
@@ -1351,7 +1359,7 @@ export async function listSavedListingsByEmail({ KV, email }) {
   const records = await Promise.all(ids.map((id) => getSavedListing(KV, id)));
 
   return records
-    .filter((item) => item?.status !== "deleted")
+    .filter((item) => item && item.status !== "deleted")
     .sort((a, b) => String(b?.updatedAt || "").localeCompare(String(a?.updatedAt || "")));
 }
 
@@ -1359,7 +1367,7 @@ export async function listAllSavedListings({ KV }) {
   const ids = await readIdList(KV, SAVED_INDEX_KEY);
   const records = await Promise.all(ids.map((id) => getSavedListing(KV, id)));
 
-  return records.filter((item) => item?.status !== "deleted");
+  return records.filter((item) => item && item.status !== "deleted");
 }
 
 export async function deleteSavedListing({ KV, id, email }) {

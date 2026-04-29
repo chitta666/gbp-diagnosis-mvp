@@ -936,6 +936,15 @@ const COPY = {
     clientReportSummaryTitle: "One-page update for client reporting",
     clientReportSummarySubtitle:
       "Copy this into a client update or export it with the PDF.",
+    clientReportCopyButton: "Copy client update",
+    clientReportCopied: "Copied client update.",
+    clientReportCopyFailed:
+      "Could not copy. Select the summary text manually.",
+    clientReportCopyClientNote: "Client note",
+    clientReportCopySummary: "Summary",
+    clientReportCopyChecklist: "Send checklist",
+    clientReportCopyEvidence: "Evidence pack",
+    clientReportCopyNextCheck: "Next check",
     clientReportWeeklyMovement: "Weekly movement",
     clientReportProof: "Proof to attach",
     clientReportHandoffLabel: "Ready-to-send note",
@@ -1427,6 +1436,15 @@ const COPY = {
     clientReportSummaryTitle: "定例報告に使える1ページ要約",
     clientReportSummarySubtitle:
       "このままクライアント報告に転記するか、PDFに含めて共有できます。",
+    clientReportCopyButton: "報告文をコピー",
+    clientReportCopied: "報告文をコピーしました。",
+    clientReportCopyFailed:
+      "コピーできませんでした。要約テキストを手動で選択してください。",
+    clientReportCopyClientNote: "クライアント報告文",
+    clientReportCopySummary: "要約",
+    clientReportCopyChecklist: "提出チェックリスト",
+    clientReportCopyEvidence: "根拠パック",
+    clientReportCopyNextCheck: "次回チェック",
     clientReportWeeklyMovement: "今週の変化",
     clientReportProof: "添付する根拠",
     clientReportHandoffLabel: "そのまま送れる報告文",
@@ -1651,6 +1669,7 @@ const COPY = {
 let currentResult = null;
 let currentLanguage = DEFAULT_LANGUAGE;
 let currentSavedListings = [];
+let currentClientReportCopyText = "";
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let actionHistoryBusy = false;
@@ -4667,6 +4686,85 @@ function buildClientReportSummary(firstView, result = null) {
   };
 }
 
+function formatClientReportCopySection(title, items, options = {}) {
+  const safeItems = uniqueStrings(
+    (Array.isArray(items) ? items : [items]).map((item) => sentence(item))
+  ).filter(Boolean);
+  if (!safeItems.length) return "";
+  const prefix = options.ordered ? (index) => `${index + 1}. ` : () => "- ";
+  return [
+    sentence(title),
+    safeItems.map((item, index) => `${prefix(index)}${item}`).join("\n"),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function buildClientReportCopyText({
+  safeItems,
+  handoff,
+  sendChecklistItems,
+  evidenceItems,
+  nextCheckItems,
+}) {
+  const summaryLines = (Array.isArray(safeItems) ? safeItems : [])
+    .filter((item) => item?.label && item?.body)
+    .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`);
+
+  return [
+    sentence(t("clientReportSummaryTitle")),
+    handoff
+      ? [sentence(t("clientReportCopyClientNote")), handoff].filter(Boolean).join("\n")
+      : "",
+    formatClientReportCopySection(
+      t("clientReportCopyChecklist"),
+      sendChecklistItems,
+      { ordered: true }
+    ),
+    formatClientReportCopySection(t("clientReportCopyEvidence"), evidenceItems),
+    formatClientReportCopySection(t("clientReportCopyNextCheck"), nextCheckItems),
+    formatClientReportCopySection(t("clientReportCopySummary"), summaryLines),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function copyTextWithTextarea(value) {
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+  try {
+    const copied = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    if (!copied) throw new Error("execCommand copy failed");
+  } catch (error) {
+    document.body.removeChild(textarea);
+    throw error;
+  }
+}
+
+async function copyTextToClipboard(text) {
+  const value = String(text || "");
+  if (!value) throw new Error("No text to copy");
+  try {
+    copyTextWithTextarea(value);
+    return;
+  } catch (fallbackError) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+    throw fallbackError;
+  }
+}
+
 function renderClientReportSummary(summary) {
   if (!clientReportSummaryEl) return;
   const normalized = Array.isArray(summary) ? { items: summary } : summary || {};
@@ -4693,8 +4791,17 @@ function renderClientReportSummary(summary) {
   if (!safeItems.length) {
     clientReportSummaryEl.classList.add("hidden");
     clientReportSummaryEl.innerHTML = "";
+    currentClientReportCopyText = "";
     return;
   }
+
+  currentClientReportCopyText = buildClientReportCopyText({
+    safeItems,
+    handoff,
+    sendChecklistItems,
+    evidenceItems,
+    nextCheckItems,
+  });
 
   clientReportSummaryEl.classList.remove("hidden");
   clientReportSummaryEl.innerHTML = `
@@ -4704,24 +4811,29 @@ function renderClientReportSummary(summary) {
         <div class="client-report-summary__title">${escapeHtml(t("clientReportSummaryTitle"))}</div>
         <div class="client-report-summary__subtitle">${escapeHtml(t("clientReportSummarySubtitle"))}</div>
       </div>
-      ${
-        safeChips.length
-          ? `<div class="client-report-summary__chips">
-              ${safeChips
-                .map(
-                  (chip) => `
-                    <span class="client-report-summary__chip client-report-summary__chip--${escapeAttr(
-                      chip.tone || "pending"
-                    )}">
-                      <span>${escapeHtml(chip.label)}</span>
-                      <strong>${escapeHtml(chip.value)}</strong>
-                    </span>
-                  `
-                )
-                .join("")}
-            </div>`
-          : ""
-      }
+      <div class="client-report-summary__top-actions">
+        ${
+          safeChips.length
+            ? `<div class="client-report-summary__chips">
+                ${safeChips
+                  .map(
+                    (chip) => `
+                      <span class="client-report-summary__chip client-report-summary__chip--${escapeAttr(
+                        chip.tone || "pending"
+                      )}">
+                        <span>${escapeHtml(chip.label)}</span>
+                        <strong>${escapeHtml(chip.value)}</strong>
+                      </span>
+                    `
+                  )
+                  .join("")}
+              </div>`
+            : ""
+        }
+        <button class="btn secondary client-report-summary__copy" type="button" data-client-report-copy>
+          ${escapeHtml(t("clientReportCopyButton"))}
+        </button>
+      </div>
     </div>
     ${
       handoff
@@ -7205,6 +7317,35 @@ if (savedPlanNoticeEl) {
       intent: "pro_interest",
       message: t("savedPlanProPrefill"),
     });
+  });
+}
+
+if (clientReportSummaryEl) {
+  clientReportSummaryEl.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-client-report-copy]");
+    if (!button) return;
+
+    const originalLabel = t("clientReportCopyButton");
+    button.disabled = true;
+    try {
+      await copyTextToClipboard(currentClientReportCopyText);
+      button.textContent = t("clientReportCopied");
+      trackEvent("client_report_copied", {
+        source: "client_report_summary",
+        hasSavedListing: Boolean(currentResult?.savedListing?.id),
+        copyLength: currentClientReportCopyText.length,
+      });
+      window.setTimeout(() => {
+        button.textContent = originalLabel;
+        button.disabled = false;
+      }, 1600);
+    } catch {
+      button.textContent = t("clientReportCopyFailed");
+      window.setTimeout(() => {
+        button.textContent = originalLabel;
+        button.disabled = false;
+      }, 2200);
+    }
   });
 }
 

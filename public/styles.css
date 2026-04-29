@@ -427,6 +427,19 @@ button {
   max-width: 320px;
 }
 
+.client-report-summary__top-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.client-report-summary__copy {
+  min-height: 34px;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
 .client-report-summary__chip {
   display: inline-flex;
   align-items: center;
@@ -2361,6 +2374,15 @@ button {
   .client-report-summary__chips {
     justify-content: flex-start;
     max-width: none;
+  }
+
+  .client-report-summary__top-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .client-report-summary__copy {
+    width: 100%;
   }
 
   .client-report-summary__grid {

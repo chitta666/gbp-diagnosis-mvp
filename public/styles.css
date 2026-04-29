@@ -583,6 +583,57 @@ button {
   color: var(--fg);
 }
 
+.report-share {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 13px 15px;
+  border-radius: var(--r-2);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(15, 23, 42, 0.025)),
+    var(--surface);
+}
+
+.report-share__body {
+  min-width: 0;
+}
+
+.report-share__title {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 850;
+  color: var(--fg);
+}
+
+.report-share__subtitle {
+  margin-top: 3px;
+  font-size: var(--fs-2);
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.report-share__link {
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.report-share__copy {
+  flex: none;
+  min-height: 34px;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
 .action-history {
   margin-top: 12px;
   padding: 14px 16px;
@@ -2389,6 +2440,14 @@ button {
     width: 100%;
   }
 
+  .report-share {
+    flex-direction: column;
+  }
+
+  .report-share__copy {
+    width: 100%;
+  }
+
   .client-report-summary__grid {
     grid-template-columns: 1fr;
   }
@@ -2462,6 +2521,7 @@ button {
   #historySection,
   #clearHistory,
   #savedHub,
+  #reportSharePanel,
   #reviewSupportCta,
   #reviewDisputeAssistant,
   .action-history__actions,

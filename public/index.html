@@ -66,6 +66,7 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
     <div id="reportWeeklyDiffSummary" class="report-weekly-diff hidden"></div>
 
     <div id="clientReportSummary" class="client-report-summary hidden"></div>
+    <div id="reportSharePanel" class="report-share hidden"></div>
 
     <div id="actionHistoryPanel" class="action-history hidden"></div>
 
@@ -500,6 +501,7 @@ const diagnosisSummaryEl = document.getElementById("diagnosisSummary");
 const diagnosisMetaEl = document.getElementById("diagnosisMeta");
 const reportWeeklyDiffSummaryEl = document.getElementById("reportWeeklyDiffSummary");
 const clientReportSummaryEl = document.getElementById("clientReportSummary");
+const reportSharePanelEl = document.getElementById("reportSharePanel");
 const actionHistoryPanelEl = document.getElementById("actionHistoryPanel");
 const priorityRowEl = document.getElementById("priorityRow");
 const primaryActionsListEl = document.getElementById("primaryActionsList");
@@ -954,6 +956,13 @@ const COPY = {
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
       "Could not copy. Select the summary text manually.",
+    savedReportShareTitle: "Share saved report",
+    savedReportShareSubtitle:
+      "Copy a stable link that reopens the latest report for this saved listing.",
+    savedReportShareLinkLabel: "Report link",
+    savedReportShareButton: "Copy report link",
+    savedReportShareCopied: "Report link copied.",
+    savedReportShareFailed: "Could not copy the report link.",
     clientReportCopyClientNote: "Client note",
     clientReportCopySummary: "Summary",
     clientReportCopyChecklist: "Send checklist",
@@ -1466,6 +1475,13 @@ const COPY = {
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
       "コピーできませんでした。要約テキストを手動で選択してください。",
+    savedReportShareTitle: "保存済みレポートを共有",
+    savedReportShareSubtitle:
+      "この保存済み店舗の最新レポートを開き直せる安定リンクをコピーできます。",
+    savedReportShareLinkLabel: "共有リンク",
+    savedReportShareButton: "共有リンクをコピー",
+    savedReportShareCopied: "共有リンクをコピーしました。",
+    savedReportShareFailed: "共有リンクをコピーできませんでした。",
     clientReportCopyClientNote: "クライアント報告文",
     clientReportCopySummary: "要約",
     clientReportCopyChecklist: "提出チェックリスト",
@@ -2066,6 +2082,9 @@ function applyLanguage(lang, options = {}) {
     const firstView = buildDiagnosisFirstView(currentResult);
     renderPrintCover(currentResult, firstView);
     renderClientReportSummary(buildClientReportSummary(firstView, currentResult));
+    renderReportSharePanel(currentResult);
+  } else {
+    renderReportSharePanel(null);
   }
   renderActionHistoryPanel(currentResult);
   renderFeedbackContextPreview(currentResult);
@@ -2433,6 +2452,18 @@ function setUrlSavedParam(savedId) {
   if (savedId) url.searchParams.set("saved", savedId);
   else url.searchParams.delete("saved");
   window.history.replaceState({}, "", url.toString());
+}
+
+function savedReportShareUrl(savedId) {
+  const id = String(savedId || "").trim();
+  if (!id) return "";
+  const url = new URL(window.location.href);
+  url.pathname = "/";
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("lang", currentLanguage);
+  url.searchParams.set("saved", id);
+  return url.toString();
 }
 
 async function fetchApiJson(url, options = {}) {
@@ -3020,6 +3051,7 @@ function resetUI() {
     reportWeeklyDiffSummaryEl.innerHTML = "";
   }
   renderClientReportSummary([]);
+  renderReportSharePanel(null);
   renderActionHistoryPanel(null);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
@@ -3085,6 +3117,7 @@ function setLoading(isLoading) {
     }
     if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
     renderClientReportSummary([]);
+    renderReportSharePanel(null);
     renderActionHistoryPanel(null);
     if (priorityRowEl) priorityRowEl.innerHTML = "";
     if (primaryActionsListEl) {
@@ -3121,6 +3154,7 @@ function showError(message) {
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
   renderClientReportSummary([]);
+  renderReportSharePanel(null);
   renderActionHistoryPanel(null);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) {
@@ -4880,6 +4914,76 @@ async function copyTextToClipboard(text) {
   }
 }
 
+function renderReportSharePanel(result = currentResult) {
+  if (!reportSharePanelEl) return;
+  const savedId = result?.savedListing?.id || "";
+  const shareUrl = savedReportShareUrl(savedId);
+
+  if (!savedId || !shareUrl) {
+    reportSharePanelEl.classList.add("hidden");
+    reportSharePanelEl.innerHTML = "";
+    return;
+  }
+
+  reportSharePanelEl.classList.remove("hidden");
+  reportSharePanelEl.innerHTML = `
+    <div class="report-share__body">
+      <div class="report-share__title">${escapeHtml(t("savedReportShareTitle"))}</div>
+      <div class="report-share__subtitle">${escapeHtml(t("savedReportShareSubtitle"))}</div>
+      <div class="report-share__link" aria-label="${escapeAttr(t("savedReportShareLinkLabel"))}">
+        ${escapeHtml(shareUrl)}
+      </div>
+    </div>
+    <button class="btn secondary report-share__copy" type="button" data-report-share-copy="${escapeAttr(
+      shareUrl
+    )}">
+      ${escapeHtml(t("savedReportShareButton"))}
+    </button>
+  `;
+}
+
+async function copySavedReportLink(button, savedId, source = "saved_report_share") {
+  const shareUrl =
+    button?.dataset?.shareUrl ||
+    button?.dataset?.reportShareCopy ||
+    savedReportShareUrl(savedId);
+  if (!button || !shareUrl) return;
+
+  const originalLabel = button.textContent || t("savedReportShareButton");
+  button.disabled = true;
+  try {
+    await copyTextToClipboard(shareUrl);
+    button.textContent = t("savedReportShareCopied");
+    const savedListingForEvent =
+      currentResult?.savedListing?.id === savedId
+        ? currentResult?.savedListing
+        : currentSavedListings.find((item) => String(item?.id || "") === String(savedId || ""));
+    trackEvent("saved_report_link_copied", {
+      source,
+      result:
+        currentResult?.savedListing?.id === savedId
+          ? currentResult
+          : savedListingForEvent
+            ? {
+                savedListing: savedListingForEvent,
+                placeId: savedListingForEvent.placeId,
+              }
+            : currentResult,
+      savedListingCount: currentSavedListings.length,
+    });
+    window.setTimeout(() => {
+      button.textContent = originalLabel;
+      button.disabled = false;
+    }, 1600);
+  } catch {
+    button.textContent = t("savedReportShareFailed");
+    window.setTimeout(() => {
+      button.textContent = originalLabel;
+      button.disabled = false;
+    }, 2200);
+  }
+}
+
 function renderClientReportSummary(summary) {
   if (!clientReportSummaryEl) return;
   const normalized = Array.isArray(summary) ? { items: summary } : summary || {};
@@ -5521,6 +5625,7 @@ function renderInsight(data) {
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
   renderPrintCover(data, firstView);
   renderClientReportSummary(buildClientReportSummary(firstView, data));
+  renderReportSharePanel(data);
   renderActionHistoryPanel(data, firstView);
   renderPriorityRow(firstView.priorityItems);
   renderActionTaskList(primaryActionsListEl, firstView.actions);
@@ -7135,6 +7240,14 @@ function renderSavedListings(listings) {
     openBtn.textContent =
       t("openLatestReport");
 
+    const shareBtn = document.createElement("button");
+    shareBtn.type = "button";
+    shareBtn.className = "btn secondary";
+    shareBtn.dataset.action = "copy-link";
+    shareBtn.dataset.savedId = item.id;
+    shareBtn.dataset.shareUrl = savedReportShareUrl(item.id);
+    shareBtn.textContent = t("savedReportShareButton");
+
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "btn";
@@ -7143,6 +7256,7 @@ function renderSavedListings(listings) {
     deleteBtn.textContent = t("deleteLabel");
 
     actions.appendChild(openBtn);
+    actions.appendChild(shareBtn);
     actions.appendChild(deleteBtn);
 
     li.appendChild(content);
@@ -7194,6 +7308,7 @@ function applyUpdatedSavedListing(savedListing) {
     };
     renderActionHistoryPanel(currentResult);
     renderPrintCover(currentResult);
+    renderReportSharePanel(currentResult);
   }
 
   if (currentSavedListings.some((item) => item?.id === savedListing.id)) {
@@ -7466,6 +7581,18 @@ if (clientReportSummaryEl) {
   });
 }
 
+if (reportSharePanelEl) {
+  reportSharePanelEl.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-report-share-copy]");
+    if (!button) return;
+    await copySavedReportLink(
+      button,
+      currentResult?.savedListing?.id,
+      "saved_report_share"
+    );
+  });
+}
+
 if (closeReviewDisputeAssistantBtn) {
   closeReviewDisputeAssistantBtn.addEventListener("click", () => {
     closeReviewDisputeAssistant();
@@ -7688,6 +7815,11 @@ if (savedListingsEl) {
 
     if (action === "open") {
       await openSavedListing(id);
+      return;
+    }
+
+    if (action === "copy-link") {
+      await copySavedReportLink(button, id, "saved_listing_card");
       return;
     }
 

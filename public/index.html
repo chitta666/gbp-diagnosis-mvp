@@ -895,6 +895,7 @@ const COPY = {
     actionHistoryPrevious: "Previous action",
     actionHistoryCurrentChange: "What changed",
     actionHistoryNextTask: "Next task",
+    actionHistoryClientHandoff: "Client handoff",
     actionHistoryEmpty: "No saved action yet.",
     actionHistoryNoWeeklyChange: "Open this saved listing again next week to compare movement.",
     actionHistorySaveTask: "Save this task",
@@ -1268,6 +1269,7 @@ const COPY = {
     actionHistoryPrevious: "前回のアクション",
     actionHistoryCurrentChange: "今回の変化",
     actionHistoryNextTask: "次のタスク",
+    actionHistoryClientHandoff: "クライアント報告文",
     actionHistoryEmpty: "保存済みアクションはまだありません。",
     actionHistoryNoWeeklyChange: "次週もう一度この保存済み店舗を開くと、変化を比較できます。",
     actionHistorySaveTask: "このタスクを保存",
@@ -4236,6 +4238,43 @@ function buildActionHistoryChangeCopy(result) {
   );
 }
 
+function reportClause(text) {
+  return sentence(text).replace(/[.!?。]+$/, "");
+}
+
+function reportSentence(text) {
+  const clean = sentence(text);
+  if (!clean) return "";
+  return /[.!?。]$/.test(clean) ? clean : `${clean}${currentLanguage === "ja" ? "。" : "."}`;
+}
+
+function buildActionHistoryClientHandoff(result, latestAction, currentTask) {
+  const changeCopy = reportSentence(buildActionHistoryChangeCopy(result));
+  const previousCopy = latestAction
+    ? reportSentence(
+        langText(
+          `Previous action was ${actionHistoryStatusLabel(latestAction.status).toLowerCase()}: ${reportClause(latestAction.label)}${latestAction.body ? ` - ${reportClause(latestAction.body)}` : ""}`,
+          `前回のアクションは「${actionHistoryStatusLabel(latestAction.status)}」です: ${reportClause(latestAction.label)}${latestAction.body ? ` - ${reportClause(latestAction.body)}` : ""}`
+        )
+      )
+    : reportSentence(
+        langText(
+          "No previous action has been saved yet.",
+          "前回の保存済みアクションはまだありません。"
+        )
+      );
+  const nextCopy = currentTask
+    ? reportSentence(
+        langText(
+          `Next task: ${reportClause(currentTask.label)} - ${reportClause(currentTask.body)}`,
+          `次のタスク: ${reportClause(currentTask.label)} - ${reportClause(currentTask.body)}`
+        )
+      )
+    : reportSentence(t("noImmediateActions"));
+
+  return [previousCopy, changeCopy, nextCopy].filter(Boolean).join(" ");
+}
+
 function renderActionHistoryPanel(result, firstView = null) {
   if (!actionHistoryPanelEl) return;
 
@@ -4255,6 +4294,7 @@ function renderActionHistoryPanel(result, firstView = null) {
   const status = latestAction?.status || "planned";
   const canUpdateLatest = Boolean(savedListing?.id && latestAction?.id && status === "planned");
   const saveDisabled = !savedListing?.id || !currentTask || actionHistoryBusy;
+  const handoffCopy = buildActionHistoryClientHandoff(result, latestAction, currentTask);
 
   actionHistoryPanelEl.classList.remove("hidden");
   actionHistoryPanelEl.innerHTML = `
@@ -4304,6 +4344,10 @@ function renderActionHistoryPanel(result, firstView = null) {
             : escapeHtml(t("noImmediateActions"))
         }</div>
       </div>
+    </div>
+    <div class="action-history__handoff">
+      <div class="action-history__label">${escapeHtml(t("actionHistoryClientHandoff"))}</div>
+      <div class="action-history__handoff-body">${escapeHtml(handoffCopy)}</div>
     </div>
     <div class="action-history__actions">
       ${

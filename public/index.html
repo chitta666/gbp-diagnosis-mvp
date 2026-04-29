@@ -64,6 +64,8 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
 
     <div id="clientReportSummary" class="client-report-summary hidden"></div>
 
+    <div id="actionHistoryPanel" class="action-history hidden"></div>
+
     <div id="priorityRow" class="priority-row"></div>
 
     <div class="section">
@@ -492,6 +494,7 @@ const diagnosisSummaryEl = document.getElementById("diagnosisSummary");
 const diagnosisMetaEl = document.getElementById("diagnosisMeta");
 const reportWeeklyDiffSummaryEl = document.getElementById("reportWeeklyDiffSummary");
 const clientReportSummaryEl = document.getElementById("clientReportSummary");
+const actionHistoryPanelEl = document.getElementById("actionHistoryPanel");
 const priorityRowEl = document.getElementById("priorityRow");
 const primaryActionsListEl = document.getElementById("primaryActionsList");
 const comparisonFocusEl = document.getElementById("comparisonFocus");
@@ -888,6 +891,25 @@ const COPY = {
     savedWeeklyDiffLabel: "Weekly diff",
     savedWeeklyClientNoteLabel: "Client note",
     savedWeeklyNextActionLabel: "This week",
+    actionHistoryTitle: "Action history",
+    actionHistoryPrevious: "Previous action",
+    actionHistoryCurrentChange: "What changed",
+    actionHistoryNextTask: "Next task",
+    actionHistoryEmpty: "No saved action yet.",
+    actionHistoryNoWeeklyChange: "Open this saved listing again next week to compare movement.",
+    actionHistorySaveTask: "Save this task",
+    actionHistorySaving: "Saving action...",
+    actionHistorySaved: "Action saved.",
+    actionHistoryMarkDone: "Mark done",
+    actionHistoryMarkSkipped: "Skip",
+    actionHistoryStatusPlanned: "Planned",
+    actionHistoryStatusDone: "Done",
+    actionHistoryStatusSkipped: "Skipped",
+    actionHistorySaveFirst:
+      "Save this listing first, then keep the weekly task history here.",
+    actionHistoryUpdated: "Action updated.",
+    actionHistorySaveFailed: "Could not save this action.",
+    actionHistoryUpdateFailed: "Could not update this action.",
     loadSavedPrompt: "Enter your email to load saved listings.",
     savedListingsLoaded: "Saved listings loaded.",
     noSavedListingsForEmail: "No saved listings were found for this email yet.",
@@ -1242,6 +1264,25 @@ const COPY = {
     savedWeeklyDiffLabel: "今週の変化",
     savedWeeklyClientNoteLabel: "定例で伝えること",
     savedWeeklyNextActionLabel: "今週やること",
+    actionHistoryTitle: "実行履歴",
+    actionHistoryPrevious: "前回のアクション",
+    actionHistoryCurrentChange: "今回の変化",
+    actionHistoryNextTask: "次のタスク",
+    actionHistoryEmpty: "保存済みアクションはまだありません。",
+    actionHistoryNoWeeklyChange: "次週もう一度この保存済み店舗を開くと、変化を比較できます。",
+    actionHistorySaveTask: "このタスクを保存",
+    actionHistorySaving: "アクションを保存しています...",
+    actionHistorySaved: "アクションを保存しました。",
+    actionHistoryMarkDone: "完了にする",
+    actionHistoryMarkSkipped: "スキップ",
+    actionHistoryStatusPlanned: "予定",
+    actionHistoryStatusDone: "完了",
+    actionHistoryStatusSkipped: "スキップ",
+    actionHistorySaveFirst:
+      "まずこの店舗を保存すると、今週のタスク履歴をここに残せます。",
+    actionHistoryUpdated: "アクションを更新しました。",
+    actionHistorySaveFailed: "このアクションを保存できませんでした。",
+    actionHistoryUpdateFailed: "このアクションを更新できませんでした。",
     loadSavedPrompt: "保存済みを読み込むにはメールアドレスを入力してください。",
     savedListingsLoaded: "保存済みを読み込みました。",
     noSavedListingsForEmail: "このメールアドレスに紐づく保存済み店舗はまだありません。",
@@ -1369,6 +1410,7 @@ let currentLanguage = DEFAULT_LANGUAGE;
 let currentSavedListings = [];
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
+let actionHistoryBusy = false;
 let competitorSearchInFlight = false;
 let competitorSearchState = {
   query: "",
@@ -1548,6 +1590,10 @@ function renderStaticCopy() {
       "saveListingSaving",
       "saveListingSaved",
       "savedListingDeleted",
+      "actionHistorySaving",
+      "actionHistorySaved",
+      "actionHistoryUpdated",
+      "actionHistorySaveFirst",
     ];
 
     const matchingKey =
@@ -1719,6 +1765,7 @@ function applyLanguage(lang, options = {}) {
   renderReviewSupportCta(currentResult);
   renderFeedbackCta(currentResult);
   renderReportWeeklyDiffSummary(currentResult);
+  renderActionHistoryPanel(currentResult);
   renderFeedbackContextPreview(currentResult);
 
   if (historyEl) {
@@ -2523,6 +2570,7 @@ function resetUI() {
   currentResult = null;
   competitorChooserOpen = false;
   competitorUpdateInFlight = false;
+  actionHistoryBusy = false;
   resetCompetitorSearchState();
   if (saveListingBtn) saveListingBtn.disabled = true;
   msg.textContent = "";
@@ -2535,6 +2583,7 @@ function resetUI() {
     reportWeeklyDiffSummaryEl.innerHTML = "";
   }
   renderClientReportSummary([]);
+  renderActionHistoryPanel(null);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
   if (comparisonFocusEl) comparisonFocusEl.textContent = "";
@@ -2598,6 +2647,7 @@ function setLoading(isLoading) {
     }
     if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
     renderClientReportSummary([]);
+    renderActionHistoryPanel(null);
     if (priorityRowEl) priorityRowEl.innerHTML = "";
     if (primaryActionsListEl) {
       primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("loadingPriority"))}</li>`;
@@ -2632,6 +2682,7 @@ function showError(message) {
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = "";
   renderClientReportSummary([]);
+  renderActionHistoryPanel(null);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) {
     primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("retryMoreSpecific"))}</li>`;
@@ -2697,6 +2748,26 @@ async function setCompetitor(myPlaceId, competitorPlaceId) {
 
 async function runDaily(myPlaceId) {
   return fetchApiJson(`/api/run-daily?my=${encodeURIComponent(myPlaceId)}`);
+}
+
+async function createSavedAction(id, action) {
+  return fetchApiJson("/api/saved-actions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ id, action }),
+  });
+}
+
+async function updateSavedActionStatus(id, actionId, status) {
+  return fetchApiJson("/api/saved-actions", {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ id, actionId, status }),
+  });
 }
 
 function pickDefaultCompetitor(data, myPlaceId) {
@@ -4116,6 +4187,146 @@ function renderClientReportSummary(items) {
   `;
 }
 
+function actionHistoryStatusLabel(status) {
+  if (status === "done") return t("actionHistoryStatusDone");
+  if (status === "skipped") return t("actionHistoryStatusSkipped");
+  return t("actionHistoryStatusPlanned");
+}
+
+function buildCurrentActionTask(result, firstView = null) {
+  const view = firstView || buildDiagnosisFirstView(result);
+  const actions = Array.isArray(view?.actions) ? uniqueStrings(view.actions) : [];
+  const rawTask = actions[0] || "";
+  if (!rawTask) return null;
+
+  const task = splitActionTask(rawTask, 0);
+  const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
+
+  return {
+    label: task?.label || t("actionHistoryNextTask"),
+    body: task?.body || rawTask,
+    source: "weekly_task",
+    status: "planned",
+    snapshotContext: {
+      generatedAt: result?.generatedAt || new Date().toISOString(),
+      placeName:
+        result?.details?.name ||
+        result?.savedListing?.name ||
+        input?.value?.trim() ||
+        "",
+      competitorName:
+        result?.selectedCompetitor?.name ||
+        result?.savedListing?.competitorName ||
+        "",
+      weeklyHeadline:
+        weeklySummary?.headline ||
+        result?.weeklyReport?.insight ||
+        "",
+      weeklyStatus: weeklySummary?.status || "",
+    },
+  };
+}
+
+function buildActionHistoryChangeCopy(result) {
+  const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
+  return (
+    weeklySummary?.headline ||
+    result?.weeklyReport?.insight ||
+    t("actionHistoryNoWeeklyChange")
+  );
+}
+
+function renderActionHistoryPanel(result, firstView = null) {
+  if (!actionHistoryPanelEl) return;
+
+  const savedListing = result?.savedListing || null;
+  const history = Array.isArray(savedListing?.actionHistory)
+    ? savedListing.actionHistory
+    : [];
+  const latestAction = savedListing?.latestAction || history[0] || null;
+  const currentTask = result ? buildCurrentActionTask(result, firstView) : null;
+
+  if (!latestAction && !currentTask) {
+    actionHistoryPanelEl.classList.add("hidden");
+    actionHistoryPanelEl.innerHTML = "";
+    return;
+  }
+
+  const status = latestAction?.status || "planned";
+  const canUpdateLatest = Boolean(savedListing?.id && latestAction?.id && status === "planned");
+  const saveDisabled = !savedListing?.id || !currentTask || actionHistoryBusy;
+
+  actionHistoryPanelEl.classList.remove("hidden");
+  actionHistoryPanelEl.innerHTML = `
+    <div class="action-history__header">
+      <div>
+        <div class="action-history__eyebrow">${escapeHtml(t("actionHistoryTitle"))}</div>
+        <div class="action-history__title">${escapeHtml(
+          langText(
+            "Track what was recommended, what changed, and what to do next.",
+            "前回の提案、今回の変化、次の実行タスクをつなげて確認します。"
+          )
+        )}</div>
+      </div>
+      ${
+        latestAction
+          ? `<span class="action-history__status action-history__status--${escapeAttr(status)}">${escapeHtml(
+              actionHistoryStatusLabel(status)
+            )}</span>`
+          : ""
+      }
+    </div>
+    <div class="action-history__grid">
+      <div class="action-history__item">
+        <div class="action-history__label">${escapeHtml(t("actionHistoryPrevious"))}</div>
+        <div class="action-history__body">${
+          latestAction
+            ? `${escapeHtml(latestAction.label || "")}${
+                latestAction.body ? `: ${escapeHtml(latestAction.body)}` : ""
+              }`
+            : escapeHtml(t("actionHistoryEmpty"))
+        }</div>
+        ${
+          latestAction?.updatedAt
+            ? `<div class="action-history__meta">${escapeHtml(formatDateTime(latestAction.updatedAt) || "")}</div>`
+            : ""
+        }
+      </div>
+      <div class="action-history__item">
+        <div class="action-history__label">${escapeHtml(t("actionHistoryCurrentChange"))}</div>
+        <div class="action-history__body">${escapeHtml(buildActionHistoryChangeCopy(result))}</div>
+      </div>
+      <div class="action-history__item action-history__item--next">
+        <div class="action-history__label">${escapeHtml(t("actionHistoryNextTask"))}</div>
+        <div class="action-history__body">${
+          currentTask
+            ? `${escapeHtml(currentTask.label)}: ${escapeHtml(currentTask.body)}`
+            : escapeHtml(t("noImmediateActions"))
+        }</div>
+      </div>
+    </div>
+    <div class="action-history__actions">
+      ${
+        savedListing?.id
+          ? `<button class="btn btn--primary" type="button" data-action-history="save-current" ${
+              saveDisabled ? "disabled" : ""
+            }>${escapeHtml(actionHistoryBusy ? t("actionHistorySaving") : t("actionHistorySaveTask"))}</button>`
+          : `<div class="action-history__hint muted">${escapeHtml(t("actionHistorySaveFirst"))}</div>`
+      }
+      ${
+        canUpdateLatest
+          ? `<button class="btn" type="button" data-action-history="mark-done" data-action-id="${escapeAttr(
+              latestAction.id
+            )}" ${actionHistoryBusy ? "disabled" : ""}>${escapeHtml(t("actionHistoryMarkDone"))}</button>
+             <button class="btn" type="button" data-action-history="mark-skipped" data-action-id="${escapeAttr(
+               latestAction.id
+             )}" ${actionHistoryBusy ? "disabled" : ""}>${escapeHtml(t("actionHistoryMarkSkipped"))}</button>`
+          : ""
+      }
+    </div>
+  `;
+}
+
 function renderPriorityRow(items) {
   if (!priorityRowEl) return;
   priorityRowEl.innerHTML = "";
@@ -4290,6 +4501,7 @@ function renderInsight(data) {
   }
   if (diagnosisMetaEl) diagnosisMetaEl.textContent = firstView.meta;
   renderClientReportSummary(buildClientReportSummary(firstView));
+  renderActionHistoryPanel(data, firstView);
   renderPriorityRow(firstView.priorityItems);
   renderActionTaskList(primaryActionsListEl, firstView.actions);
   renderComparisonFocusView(comparisonFocus);
@@ -5544,6 +5756,28 @@ function buildSavedListingWeeklyDiffBlock(summary) {
   return block;
 }
 
+function buildSavedListingActionBlock(action) {
+  if (!action?.label && !action?.body) return null;
+
+  const status = action?.status || "planned";
+  const block = document.createElement("div");
+  block.className = "saved__action-history";
+  block.innerHTML = `
+    <div class="saved__action-history-top">
+      <span>${escapeHtml(t("actionHistoryPrevious"))}</span>
+      <span class="saved__action-status saved__action-status--${escapeAttr(status)}">${escapeHtml(
+        actionHistoryStatusLabel(status)
+      )}</span>
+    </div>
+    <div class="saved__action-body">
+      ${escapeHtml(action?.label || t("actionHistoryNextTask"))}${
+        action?.body ? `: ${escapeHtml(action.body)}` : ""
+      }
+    </div>
+  `;
+  return block;
+}
+
 function renderSavedListings(listings) {
   if (!savedListingsEl) return;
   currentSavedListings = Array.isArray(listings) ? listings.slice() : [];
@@ -5636,11 +5870,13 @@ function renderSavedListings(listings) {
     });
 
     const weeklyDiffBlock = buildSavedListingWeeklyDiffBlock(item?.weeklyDiffSummary);
+    const actionHistoryBlock = buildSavedListingActionBlock(item?.latestAction);
 
     content.appendChild(title);
     content.appendChild(meta);
     if (competitorBlock) content.appendChild(competitorBlock);
     if (weeklyDiffBlock) content.appendChild(weeklyDiffBlock);
+    if (actionHistoryBlock) content.appendChild(actionHistoryBlock);
     if (statusBlock) content.appendChild(statusBlock);
     const revisitBlock = buildSavedListingRevisitBlock(item?.reviewDropSignal);
     if (revisitBlock) content.appendChild(revisitBlock);
@@ -5700,6 +5936,33 @@ async function removeSavedListing(id, email) {
 
 async function fetchSavedReport(id) {
   return fetchApiJson(`/api/saved-report?id=${encodeURIComponent(id)}`);
+}
+
+function applyUpdatedSavedListing(savedListing) {
+  if (!savedListing) return;
+
+  if (
+    currentResult &&
+    (
+      currentResult?.savedListing?.id === savedListing.id ||
+      currentResult?.placeId === savedListing.placeId ||
+      currentResult?.details?.placeId === savedListing.placeId ||
+      currentResult?.details?.place_id === savedListing.placeId
+    )
+  ) {
+    currentResult = {
+      ...currentResult,
+      savedListing,
+    };
+    renderActionHistoryPanel(currentResult);
+  }
+
+  if (currentSavedListings.some((item) => item?.id === savedListing.id)) {
+    currentSavedListings = currentSavedListings.map((item) =>
+      item?.id === savedListing.id ? savedListing : item
+    );
+    renderSavedListings(currentSavedListings);
+  }
 }
 
 function buildSavePayload() {
@@ -6030,6 +6293,7 @@ if (saveListingBtn) {
         throw new Error(getApiMessage(response, t("couldNotSaveListing")));
       }
 
+      applyUpdatedSavedListing(response.listing);
       setSavedMessageKey("saveListingSaved");
       await refreshSavedListings({ quiet: true });
     } catch (error) {
@@ -6136,6 +6400,54 @@ if (savedListingsEl) {
       } catch (error) {
         setSavedMessage(error?.message || String(error), true);
       }
+    }
+  });
+}
+
+if (actionHistoryPanelEl) {
+  actionHistoryPanelEl.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-action-history]");
+    if (!button || actionHistoryBusy) return;
+
+    const savedListingId = currentResult?.savedListing?.id;
+    if (!savedListingId) {
+      setSavedMessageKey("actionHistorySaveFirst");
+      return;
+    }
+
+    const action = button.dataset.actionHistory;
+    const actionId = button.dataset.actionId;
+    actionHistoryBusy = true;
+    renderActionHistoryPanel(currentResult);
+
+    try {
+      let response;
+
+      if (action === "save-current") {
+        const task = buildCurrentActionTask(currentResult);
+        if (!task) throw new Error(t("noImmediateActions"));
+
+        setSavedMessageKey("actionHistorySaving");
+        response = await createSavedAction(savedListingId, task);
+        if (!response?.ok) {
+          throw new Error(getApiMessage(response, t("actionHistorySaveFailed")));
+        }
+        setSavedMessageKey("actionHistorySaved");
+      } else if (action === "mark-done" || action === "mark-skipped") {
+        const status = action === "mark-done" ? "done" : "skipped";
+        response = await updateSavedActionStatus(savedListingId, actionId, status);
+        if (!response?.ok) {
+          throw new Error(getApiMessage(response, t("actionHistoryUpdateFailed")));
+        }
+        setSavedMessageKey("actionHistoryUpdated");
+      }
+
+      applyUpdatedSavedListing(response?.savedListing);
+    } catch (error) {
+      setSavedMessage(error?.message || String(error), true);
+    } finally {
+      actionHistoryBusy = false;
+      renderActionHistoryPanel(currentResult);
     }
   });
 }

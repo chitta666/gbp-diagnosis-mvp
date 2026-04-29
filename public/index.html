@@ -931,6 +931,29 @@ const COPY = {
       "Saved listing is ready for the next same-competitor check.",
     clientReportProofSaveNeeded:
       "Save this listing to attach weekly history to the next report.",
+    clientReportEvidenceTitle: "Evidence pack",
+    clientReportEvidenceSubtitle:
+      "Use these proof points when the client asks why this action matters.",
+    clientReportEvidenceReviewSample: "Review sample: {count} recent visible reviews.",
+    clientReportEvidenceReviewCollecting:
+      "Review text signal: collecting enough recent review text for stronger evidence.",
+    clientReportEvidenceAxis: "Review axis: {axis} is {status}. {evidence}",
+    clientReportEvidenceGoogle: "Google-side proof: {signal}",
+    clientReportEvidenceReviewTotals:
+      "Review totals: this listing {my}, competitor {competitor}; gap {gap}.",
+    clientReportEvidenceDaily:
+      "Review momentum: this listing {my}, competitor {competitor}; difference {diff}.",
+    clientReportEvidencePhotos:
+      "Photos: this listing {my}, competitor average {competitor}; missing {missing}.",
+    clientReportSendChecklistTitle: "Send checklist",
+    clientReportSendChecklistSubtitle:
+      "Use this to turn the summary into a client update without rewriting it.",
+    clientReportSendHandoff: "Paste the ready-to-send note as the report opener.",
+    clientReportSendEvidence:
+      "Attach the evidence pack so the recommendation has visible proof.",
+    clientReportSendTask: "Ask for approval on this week's task: {task}",
+    clientReportSendSave:
+      "Keep this listing saved so the next report shows change against the same competitor.",
     clientReportNextCheckTitle: "Next check preview",
     clientReportNextCheckSubtitle:
       "This shows why the report is worth saving before weekly history is complete.",
@@ -1366,6 +1389,29 @@ const COPY = {
       "次回も同じ競合で確認できるよう保存済みです。",
     clientReportProofSaveNeeded:
       "次回レポートに週次履歴を添付するには、この店舗を保存してください。",
+    clientReportEvidenceTitle: "根拠パック",
+    clientReportEvidenceSubtitle:
+      "なぜこの施策を提案するのか聞かれたときに、そのまま説明材料として使えます。",
+    clientReportEvidenceReviewSample: "レビューサンプル: 直近で見えているレビュー {count} 件。",
+    clientReportEvidenceReviewCollecting:
+      "レビュー本文シグナル: より強い根拠を出すための直近レビュー本文を収集中です。",
+    clientReportEvidenceAxis: "レビュー軸: {axis} は「{status}」。{evidence}",
+    clientReportEvidenceGoogle: "Google側の見える根拠: {signal}",
+    clientReportEvidenceReviewTotals:
+      "レビュー総数: 自店舗 {my}、競合 {competitor}、差分 {gap}。",
+    clientReportEvidenceDaily:
+      "レビュー増加ペース: 自店舗 {my}、競合 {competitor}、差分 {diff}。",
+    clientReportEvidencePhotos:
+      "写真: 自店舗 {my}、競合平均 {competitor}、不足 {missing}。",
+    clientReportSendChecklistTitle: "提出チェックリスト",
+    clientReportSendChecklistSubtitle:
+      "この要約を、書き直しなしでクライアント報告に変えるための確認項目です。",
+    clientReportSendHandoff: "そのまま送れる報告文を冒頭に貼ります。",
+    clientReportSendEvidence:
+      "根拠パックを添付し、提案に見える根拠を持たせます。",
+    clientReportSendTask: "今週の実行案として承認を取ります: {task}",
+    clientReportSendSave:
+      "次回も同じ競合との差分を見せるため、この店舗を保存した状態で運用します。",
     clientReportNextCheckTitle: "次回チェックで見えること",
     clientReportNextCheckSubtitle:
       "週次履歴がまだ揃う前でも、保存する理由が分かるようにしています。",
@@ -2013,6 +2059,13 @@ function formatYenAmount(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "";
   return String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatCompactCount(value, fallback = "-") {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return fallback;
+  const locale = currentLanguage === "ja" ? "ja-JP" : "en-US";
+  return new Intl.NumberFormat(locale).format(Math.round(amount));
 }
 
 function competitorScaleLabel(reviewCount, myReviewCount) {
@@ -4314,6 +4367,131 @@ function renderActionTaskList(listEl, items) {
   });
 }
 
+function buildClientReportEvidencePack(result) {
+  if (!result) {
+    return {
+      title: t("clientReportEvidenceTitle"),
+      subtitle: t("clientReportEvidenceSubtitle"),
+      items: [],
+    };
+  }
+
+  const reviewClues = result?.reviewClues ?? {};
+  const compare = result?.compare ?? {};
+  const photo = result?.photoAnalysis ?? {};
+  const items = [];
+
+  if (Number.isFinite(reviewClues?.reviewCountInSample)) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceReviewSample"), {
+        count: formatCompactCount(reviewClues.reviewCountInSample),
+      })
+    );
+  } else {
+    items.push(t("clientReportEvidenceReviewCollecting"));
+  }
+
+  const axes =
+    canUseReviewComparison(result) && Array.isArray(reviewClues?.comparisonAxes)
+      ? reviewClues.comparisonAxes
+      : [];
+  const axis =
+    axes.find((item) => item?.status && item.status !== "no_signal") || axes[0] || null;
+  if (axis?.label) {
+    items.push(
+      sentence(
+        copyWithValues(t("clientReportEvidenceAxis"), {
+          axis: axis.label,
+          status: comparisonFocusStatusLabel(axis.status),
+          evidence: sentence(axis.evidence || axis.summary || ""),
+        })
+      )
+    );
+  }
+
+  const googleSignal = Array.isArray(reviewClues?.googleSignals)
+    ? sentence(reviewClues.googleSignals[0])
+    : "";
+  if (googleSignal) {
+    items.push(copyWithValues(t("clientReportEvidenceGoogle"), { signal: googleSignal }));
+  }
+
+  if (
+    Number.isFinite(compare?.my?.todayTotal) ||
+    Number.isFinite(compare?.competitor?.todayTotal) ||
+    Number.isFinite(compare?.total_diff)
+  ) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceReviewTotals"), {
+        my: formatCompactCount(compare?.my?.todayTotal),
+        competitor: formatCompactCount(compare?.competitor?.todayTotal),
+        gap: Number.isFinite(compare?.total_diff) ? formatWeeklySignedValue(compare.total_diff) : "-",
+      })
+    );
+  }
+
+  if (
+    compare?.status === "ready" &&
+    (
+      Number.isFinite(compare?.my?.delta) ||
+      Number.isFinite(compare?.competitor?.delta) ||
+      Number.isFinite(compare?.delta_diff)
+    )
+  ) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceDaily"), {
+        my: Number.isFinite(compare?.my?.delta) ? formatWeeklySignedValue(compare.my.delta) : "-",
+        competitor: Number.isFinite(compare?.competitor?.delta)
+          ? formatWeeklySignedValue(compare.competitor.delta)
+          : "-",
+        diff: Number.isFinite(compare?.delta_diff) ? formatWeeklySignedValue(compare.delta_diff) : "-",
+      })
+    );
+  }
+
+  if (
+    Number.isFinite(photo?.myPhotos) ||
+    Number.isFinite(photo?.competitorPhotoAvg) ||
+    Number.isFinite(photo?.missingPhotos)
+  ) {
+    items.push(
+      copyWithValues(t("clientReportEvidencePhotos"), {
+        my: formatCompactCount(photo?.myPhotos),
+        competitor: formatCompactCount(photo?.competitorPhotoAvg),
+        missing: formatCompactCount(photo?.missingPhotos, "0"),
+      })
+    );
+  }
+
+  return {
+    title: t("clientReportEvidenceTitle"),
+    subtitle: t("clientReportEvidenceSubtitle"),
+    items: uniqueStrings(items.map(sentence)).slice(0, 5),
+  };
+}
+
+function buildClientReportSendChecklist(task, evidencePack) {
+  const taskCopy = task?.body
+    ? [task.label, task.body].filter(Boolean).join(": ")
+    : "";
+  const items = [
+    t("clientReportSendHandoff"),
+    Array.isArray(evidencePack?.items) && evidencePack.items.length
+      ? t("clientReportSendEvidence")
+      : "",
+    taskCopy
+      ? copyWithValues(t("clientReportSendTask"), { task: reportClause(taskCopy) })
+      : "",
+    t("clientReportSendSave"),
+  ];
+
+  return {
+    title: t("clientReportSendChecklistTitle"),
+    subtitle: t("clientReportSendChecklistSubtitle"),
+    items: uniqueStrings(items.map(sentence)).slice(0, 4),
+  };
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -4367,6 +4545,8 @@ function buildClientReportSummary(firstView, result = null) {
     t("clientReportNextCheckSignals"),
     t("clientReportNextCheckAction"),
   ]);
+  const evidencePack = buildClientReportEvidencePack(result);
+  const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
 
   return {
     chips: [
@@ -4392,6 +4572,8 @@ function buildClientReportSummary(firstView, result = null) {
       subtitle: t("clientReportNextCheckSubtitle"),
       items: nextCheckItems,
     },
+    evidence: evidencePack,
+    sendChecklist,
     items: [
       {
         label: langText("Client update", "クライアント報告"),
@@ -4430,6 +4612,14 @@ function renderClientReportSummary(summary) {
   const nextCheck = normalized.nextCheck || {};
   const nextCheckItems = Array.isArray(nextCheck.items)
     ? nextCheck.items.map((item) => sentence(item)).filter(Boolean)
+    : [];
+  const evidence = normalized.evidence || {};
+  const evidenceItems = Array.isArray(evidence.items)
+    ? evidence.items.map((item) => sentence(item)).filter(Boolean)
+    : [];
+  const sendChecklist = normalized.sendChecklist || {};
+  const sendChecklistItems = Array.isArray(sendChecklist.items)
+    ? sendChecklist.items.map((item) => sentence(item)).filter(Boolean)
     : [];
 
   if (!safeItems.length) {
@@ -4470,6 +4660,48 @@ function renderClientReportSummary(summary) {
         ? `<div class="client-report-summary__handoff">
             <div class="client-report-summary__label">${escapeHtml(t("clientReportHandoffLabel"))}</div>
             <div class="client-report-summary__handoff-body">${escapeHtml(handoff)}</div>
+          </div>`
+        : ""
+    }
+    ${
+      sendChecklistItems.length
+        ? `<div class="client-report-summary__send-checklist">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                sendChecklist.title || t("clientReportSendChecklistTitle")
+              )}</div>
+              ${
+                sendChecklist.subtitle
+                  ? `<div class="client-report-summary__support-subtitle">${escapeHtml(
+                      sendChecklist.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <ol class="client-report-summary__support-list client-report-summary__support-list--ordered">
+              ${sendChecklistItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ol>
+          </div>`
+        : ""
+    }
+    ${
+      evidenceItems.length
+        ? `<div class="client-report-summary__evidence">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                evidence.title || t("clientReportEvidenceTitle")
+              )}</div>
+              ${
+                evidence.subtitle
+                  ? `<div class="client-report-summary__support-subtitle">${escapeHtml(
+                      evidence.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <ul class="client-report-summary__support-list">
+              ${evidenceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
           </div>`
         : ""
     }

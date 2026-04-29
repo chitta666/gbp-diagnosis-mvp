@@ -703,6 +703,46 @@ button {
   color: var(--muted);
 }
 
+.action-history__brief {
+  margin-top: 10px;
+  padding: 11px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: rgba(239, 246, 255, 0.68);
+}
+
+.action-history__brief-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.action-history__brief-item {
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.action-history__brief-item span {
+  display: block;
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.action-history__brief-item strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 700;
+  color: var(--fg);
+}
+
 .action-history__handoff {
   margin-top: 10px;
   padding: 11px 12px;
@@ -2232,6 +2272,10 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .action-history__brief-grid {
+    grid-template-columns: 1fr;
+  }
+
   .action-history__actions .btn {
     width: 100%;
   }
@@ -2367,6 +2411,8 @@ button {
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
   .client-report-summary__next-check,
+  .action-history__brief,
+  .action-history__brief-item,
   .client-report-summary__handoff {
     border-color: #ddd;
     background: #fff;
@@ -2375,6 +2421,7 @@ button {
   .client-report-summary__grid,
   .client-report-summary__support-list,
   .client-report-summary__next-check-list,
+  .action-history__brief-grid,
   .action-history__grid {
     grid-template-columns: 1fr;
     gap: 6px;
@@ -2385,6 +2432,8 @@ button {
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
   .client-report-summary__handoff,
+  .action-history__brief,
+  .action-history__brief-item,
   .action-history__handoff {
     padding: 7px 8px;
     border-color: #ddd;

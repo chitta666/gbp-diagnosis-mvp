@@ -56,6 +56,9 @@ function normalizeActionSnapshotContext(value) {
     competitorName: compactText(value.competitorName, 160),
     weeklyHeadline: compactText(value.weeklyHeadline, 260),
     weeklyStatus: compactText(value.weeklyStatus, 80),
+    executionWhy: compactText(value.executionWhy, 320),
+    doneCriteria: compactText(value.doneCriteria, 320),
+    nextCheck: compactText(value.nextCheck, 320),
   };
 }
 

@@ -470,6 +470,47 @@ button {
   color: var(--fg);
 }
 
+.client-report-summary__send-checklist,
+.client-report-summary__evidence {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.client-report-summary__send-checklist {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: rgba(240, 253, 244, 0.7);
+}
+
+.client-report-summary__evidence {
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(255, 251, 235, 0.74);
+}
+
+.client-report-summary__support-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.client-report-summary__support-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 12px;
+  margin: 9px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+.client-report-summary__support-list--ordered {
+  list-style-position: outside;
+}
+
 .client-report-summary__next-check {
   margin-top: 12px;
   padding: 11px 12px;
@@ -2176,6 +2217,7 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .client-report-summary__support-list,
   .client-report-summary__next-check-list,
   .saved-plan__value-list,
   .saved-plan__price-row {
@@ -2322,6 +2364,8 @@ button {
   }
 
   .client-report-summary__chip,
+  .client-report-summary__send-checklist,
+  .client-report-summary__evidence,
   .client-report-summary__next-check,
   .client-report-summary__handoff {
     border-color: #ddd;
@@ -2329,6 +2373,7 @@ button {
   }
 
   .client-report-summary__grid,
+  .client-report-summary__support-list,
   .client-report-summary__next-check-list,
   .action-history__grid {
     grid-template-columns: 1fr;
@@ -2337,6 +2382,8 @@ button {
 
   .client-report-summary__item,
   .action-history__item,
+  .client-report-summary__send-checklist,
+  .client-report-summary__evidence,
   .client-report-summary__handoff,
   .action-history__handoff {
     padding: 7px 8px;

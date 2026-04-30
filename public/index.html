@@ -1225,6 +1225,23 @@ const COPY = {
       "If this direction looks right, we will run the listed task before the next check.",
     clientReportClosingBaseline:
       "We will use this as the baseline and report movement after the next check.",
+    clientReportConfidenceTitle: "Confidence framing",
+    clientReportConfidenceSubtitle:
+      "Use this note to explain the recommendation without overclaiming.",
+    clientReportConfidenceActionLabel: "How to say it",
+    clientReportConfidenceNextProofLabel: "Next proof to collect",
+    clientReportConfidenceReady:
+      "Client-safe: the recommendation has enough visible proof to present as the next action to approve.",
+    clientReportConfidencePartial:
+      "Directional: the signal is useful, but mention what is still collecting before calling it a trend.",
+    clientReportConfidenceCollecting:
+      "Baseline: use this as the starting point and re-check the same competitor before treating movement as proven.",
+    clientReportConfidenceNextProofReady:
+      "Capture the result after the task so the next report can show movement.",
+    clientReportConfidenceNextProofPartial:
+      "Add one more proof point: fresh reviews, same-competitor check, or Google-side signal.",
+    clientReportConfidenceNextProofCollecting:
+      "Save the report and re-run the same listing after the next check.",
     clientReportCopyButton: "Copy client update",
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
@@ -1246,6 +1263,7 @@ const COPY = {
     clientReportCopySummary: "Summary",
     clientReportCopyRecommendation: "Recommended task",
     clientReportCopyChecklist: "Send checklist",
+    clientReportCopyConfidence: "Confidence framing",
     clientReportCopyEvidence: "Evidence pack",
     clientReportCopyNextCheck: "Next check",
     clientReportCopyVerdict: "Send readiness",
@@ -1937,6 +1955,23 @@ const COPY = {
       "この方向で問題なければ、次回チェックまでに記載の実行案を進めます。",
     clientReportClosingBaseline:
       "この内容を基準値として保存し、次回チェックで変化を報告します。",
+    clientReportConfidenceTitle: "信頼度の伝え方",
+    clientReportConfidenceSubtitle:
+      "提案を言い切りすぎず、根拠の強さに合わせて説明するためのメモです。",
+    clientReportConfidenceActionLabel: "どう伝えるか",
+    clientReportConfidenceNextProofLabel: "次に集める根拠",
+    clientReportConfidenceReady:
+      "クライアントに出せる根拠: 見える根拠が揃っているため、次に承認してもらう実行案として提示できます。",
+    clientReportConfidencePartial:
+      "方向性として使える根拠: シグナルはありますが、トレンドとして言い切る前に収集中の材料も併記してください。",
+    clientReportConfidenceCollecting:
+      "初回基準値: まずは現状整理として提示し、同じ競合で次回再チェックして変化を確認してください。",
+    clientReportConfidenceNextProofReady:
+      "実行後の結果を残し、次回レポートで変化として見せられるようにしてください。",
+    clientReportConfidenceNextProofPartial:
+      "新しいレビュー、同じ競合での再チェック、Google側シグナルのいずれかを1つ追加してください。",
+    clientReportConfidenceNextProofCollecting:
+      "このレポートを保存し、次回チェックで同じ店舗を再実行してください。",
     clientReportCopyButton: "報告文をコピー",
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
@@ -1958,6 +1993,7 @@ const COPY = {
     clientReportCopySummary: "要約",
     clientReportCopyRecommendation: "今週の推奨タスク",
     clientReportCopyChecklist: "提出チェックリスト",
+    clientReportCopyConfidence: "信頼度の伝え方",
     clientReportCopyEvidence: "根拠パック",
     clientReportCopyNextCheck: "次回チェック",
     clientReportCopyVerdict: "送付準備",
@@ -5578,6 +5614,47 @@ function buildClientReportSendChecklist(task, evidencePack) {
   };
 }
 
+function buildClientReportConfidenceFrame(evidencePack, readinessVerdict) {
+  const evidenceTone = evidencePack?.verdict?.tone || "collecting";
+  const readinessTone = readinessVerdict?.tone || "baseline";
+  let tone = "partial";
+
+  if (evidenceTone === "ready" && readinessTone === "ready") {
+    tone = "ready";
+  } else if (evidenceTone === "collecting" || readinessTone === "baseline") {
+    tone = "collecting";
+  }
+
+  const actionKey =
+    tone === "ready"
+      ? "clientReportConfidenceReady"
+      : tone === "partial"
+        ? "clientReportConfidencePartial"
+        : "clientReportConfidenceCollecting";
+  const nextProofKey =
+    tone === "ready"
+      ? "clientReportConfidenceNextProofReady"
+      : tone === "partial"
+        ? "clientReportConfidenceNextProofPartial"
+        : "clientReportConfidenceNextProofCollecting";
+
+  return {
+    title: t("clientReportConfidenceTitle"),
+    subtitle: t("clientReportConfidenceSubtitle"),
+    tone,
+    items: [
+      {
+        label: t("clientReportConfidenceActionLabel"),
+        body: t(actionKey),
+      },
+      {
+        label: t("clientReportConfidenceNextProofLabel"),
+        body: t(nextProofKey),
+      },
+    ],
+  };
+}
+
 function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpecificCompetitor }) {
   const missing = [];
   if (!weeklyReady) missing.push(t("clientReportReadinessWeeklyDiff"));
@@ -5717,6 +5794,7 @@ function buildClientReportSummary(firstView, result = null) {
     t("clientReportNextCheckAction"),
   ]);
   const evidencePack = buildClientReportEvidencePack(result);
+  const confidenceFrame = buildClientReportConfidenceFrame(evidencePack, readinessVerdict);
   const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
   const recommendationWhy = sentence(summaryLines[1] || evidencePack?.items?.[0] || weeklyMovement);
   const recommendationApproval = sentence(
@@ -5787,6 +5865,7 @@ function buildClientReportSummary(firstView, result = null) {
       items: nextCheckItems,
     },
     evidence: evidencePack,
+    confidenceFrame,
     sendChecklist,
     items: [
       {
@@ -5837,6 +5916,7 @@ function buildClientReportCopyText({
   evidenceBasisItems,
   evidenceItems,
   evidenceVerdict,
+  confidenceItems,
   nextCheckItems,
   readinessVerdict,
   deliveryItems,
@@ -5918,6 +5998,12 @@ function buildClientReportCopyText({
           .filter(Boolean)
           .join("\n")
       : "",
+    formatClientReportCopySection(
+      t("clientReportCopyConfidence"),
+      (Array.isArray(confidenceItems) ? confidenceItems : [])
+        .filter((item) => item?.label && item?.body)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
+    ),
     formatClientReportCopySection(t("clientReportCopyEvidence"), evidenceItems),
     formatClientReportCopySection(t("clientReportCopyNextCheck"), nextCheckItems),
     formatClientReportCopySection(t("clientReportCopySummary"), summaryLines),
@@ -6117,6 +6203,10 @@ function renderClientReportSummary(summary) {
     ? evidence.items.map((item) => sentence(item)).filter(Boolean)
     : [];
   const evidenceVerdict = evidence.verdict || null;
+  const confidenceFrame = normalized.confidenceFrame || {};
+  const confidenceItems = Array.isArray(confidenceFrame.items)
+    ? confidenceFrame.items.filter((item) => item?.label && item?.body)
+    : [];
   const evidenceVerdictMissing = Array.isArray(evidenceVerdict?.missing)
     ? evidenceVerdict.missing.map((item) => sentence(item)).filter(Boolean)
     : [];
@@ -6162,6 +6252,7 @@ function renderClientReportSummary(summary) {
     evidenceBasisItems,
     evidenceItems,
     evidenceVerdict,
+    confidenceItems,
     nextCheckItems,
     readinessVerdict,
     deliveryItems,
@@ -6220,6 +6311,38 @@ function renderClientReportSummary(summary) {
                   </div>`
                 : ""
             }
+          </div>`
+        : ""
+    }
+    ${
+      confidenceItems.length
+        ? `<div class="client-report-summary__confidence client-report-summary__confidence--${escapeAttr(
+            confidenceFrame.tone || "partial"
+          )}">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                confidenceFrame.title || t("clientReportConfidenceTitle")
+              )}</div>
+              ${
+                confidenceFrame.subtitle
+                  ? `<div class="client-report-summary__support-subtitle">${escapeHtml(
+                      confidenceFrame.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <div class="client-report-summary__confidence-grid">
+              ${confidenceItems
+                .map(
+                  (item) => `
+                    <div class="client-report-summary__confidence-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
           </div>`
         : ""
     }

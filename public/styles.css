@@ -2078,6 +2078,29 @@ body.client-share-view .print-cover__meta-value {
   color: var(--fg);
 }
 
+.saved-weekly-rollup__reminder {
+  margin-top: 9px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.saved-weekly-rollup__reminder-label {
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.saved-weekly-rollup__reminder-body {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 700;
+  color: var(--fg);
+}
+
 .saved-weekly-rollup__chips {
   display: flex;
   flex-wrap: wrap;

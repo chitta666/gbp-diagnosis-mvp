@@ -5067,6 +5067,39 @@ async function copyTextToClipboard(text) {
   }
 }
 
+function splitClientReportEvidenceLine(item) {
+  const text = sentence(item);
+  if (!text) return null;
+
+  const separators = [": ", "："];
+  for (const separator of separators) {
+    const index = text.indexOf(separator);
+    if (index > 0 && index <= 38) {
+      return {
+        label: sentence(text.slice(0, index)),
+        body: sentence(text.slice(index + separator.length)),
+      };
+    }
+  }
+
+  return {
+    label: t("clientReportProof"),
+    body: text,
+  };
+}
+
+function renderClientReportEvidenceListItem(item) {
+  const evidence = splitClientReportEvidenceLine(item);
+  if (!evidence?.body) return "";
+
+  return `
+    <li class="client-report-summary__evidence-item">
+      <span class="client-report-summary__evidence-source">${escapeHtml(evidence.label)}</span>
+      <strong class="client-report-summary__evidence-body">${escapeHtml(evidence.body)}</strong>
+    </li>
+  `;
+}
+
 function renderReportSharePanel(result = currentResult) {
   if (!reportSharePanelEl) return;
   const savedId = result?.savedListing?.id || "";
@@ -5283,8 +5316,8 @@ function renderClientReportSummary(summary) {
                   : ""
               }
             </div>
-            <ul class="client-report-summary__support-list">
-              ${evidenceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            <ul class="client-report-summary__support-list client-report-summary__evidence-list">
+              ${evidenceItems.map(renderClientReportEvidenceListItem).join("")}
             </ul>
           </div>`
         : ""

@@ -7283,13 +7283,23 @@ function renderSavedListings(listings) {
     openBtn.textContent =
       t("openLatestReport");
 
+    const shareUrl = savedReportShareUrl(item.id);
+
     const shareBtn = document.createElement("button");
     shareBtn.type = "button";
     shareBtn.className = "btn secondary";
     shareBtn.dataset.action = "copy-link";
     shareBtn.dataset.savedId = item.id;
-    shareBtn.dataset.shareUrl = savedReportShareUrl(item.id);
+    shareBtn.dataset.shareUrl = shareUrl;
     shareBtn.textContent = t("savedReportShareButton");
+
+    const previewLink = document.createElement("a");
+    previewLink.className = "btn secondary saved__preview-link";
+    previewLink.href = shareUrl;
+    previewLink.target = "_blank";
+    previewLink.rel = "noopener noreferrer";
+    previewLink.dataset.savedId = item.id;
+    previewLink.textContent = t("savedReportPreviewButton");
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
@@ -7299,6 +7309,7 @@ function renderSavedListings(listings) {
     deleteBtn.textContent = t("deleteLabel");
 
     actions.appendChild(openBtn);
+    actions.appendChild(previewLink);
     actions.appendChild(shareBtn);
     actions.appendChild(deleteBtn);
 

@@ -1329,6 +1329,18 @@ const COPY = {
     actionHistoryCurrentChange: "What changed",
     actionHistoryNextTask: "Next task",
     actionHistoryClientHandoff: "Client handoff",
+    actionOutcomeTitle: "Outcome check",
+    actionOutcomeActionLabel: "Action status",
+    actionOutcomeMovementLabel: "Visible movement",
+    actionOutcomeFollowUpLabel: "Follow-up",
+    actionOutcomeDoneCollecting:
+      "Completed action is saved. Re-check this listing next week to confirm whether the same gap improved.",
+    actionOutcomeDoneReady:
+      "Completed action is now tied to this week's visible movement. Use this as the follow-up note in the client report.",
+    actionOutcomeSkipped:
+      "Skipped action is documented. Keep the next report focused on the new task and the reason priorities changed.",
+    actionOutcomeQueueDone: "Confirm outcome of completed action",
+    actionOutcomeQueueSkipped: "Review next task after skipped action",
     actionBriefTitle: "Execution brief",
     actionBriefWhyLabel: "Why this task",
     actionBriefDoneLabel: "Done when",
@@ -2004,6 +2016,18 @@ const COPY = {
     actionHistoryCurrentChange: "今回の変化",
     actionHistoryNextTask: "次のタスク",
     actionHistoryClientHandoff: "クライアント報告文",
+    actionOutcomeTitle: "成果確認",
+    actionOutcomeActionLabel: "アクション状態",
+    actionOutcomeMovementLabel: "見えている変化",
+    actionOutcomeFollowUpLabel: "次の確認",
+    actionOutcomeDoneCollecting:
+      "完了済みアクションを保存しました。次週もう一度確認し、同じ差分が改善したかを見ます。",
+    actionOutcomeDoneReady:
+      "完了済みアクションと今週の見える変化を紐づけられます。クライアント報告のフォローアップとして使えます。",
+    actionOutcomeSkipped:
+      "スキップしたアクションを記録しました。次回レポートでは、新しいタスクと優先順位を変えた理由に絞って説明します。",
+    actionOutcomeQueueDone: "完了済みアクションの成果確認",
+    actionOutcomeQueueSkipped: "スキップ後の次タスク確認",
     actionBriefTitle: "実行ブリーフ",
     actionBriefWhyLabel: "なぜこのタスクか",
     actionBriefDoneLabel: "完了条件",
@@ -6332,6 +6356,33 @@ function buildActionHistoryChangeCopy(result) {
   );
 }
 
+function buildActionOutcomeCheck(result, latestAction, currentTask = null) {
+  const status = latestAction?.status || "";
+  if (!latestAction || status === "planned") return null;
+
+  const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
+  const weeklyReady = weeklySummary?.status === "ready";
+  const movement = buildActionHistoryChangeCopy(result);
+  const followUp =
+    status === "done"
+      ? weeklyReady
+        ? t("actionOutcomeDoneReady")
+        : latestAction?.snapshotContext?.nextCheck || t("actionOutcomeDoneCollecting")
+      : currentTask
+        ? langText(
+            `Move focus to ${reportClause(currentTask.label)} and explain why this is now the stronger next task.`,
+            `次は「${reportClause(currentTask.label)}」に焦点を移し、なぜ今はこちらを優先するか説明します。`
+          )
+        : t("actionOutcomeSkipped");
+
+  return {
+    tone: status === "done" ? "done" : "skipped",
+    actionStatus: actionHistoryStatusLabel(status),
+    movement,
+    followUp: sentence(followUp),
+  };
+}
+
 function actionBriefDoneCriteria(task) {
   const text = `${task?.label || ""} ${task?.body || ""}`.toLowerCase();
   if (/phone|電話/.test(text)) return t("actionBriefPhoneDone");
@@ -6415,6 +6466,15 @@ function buildActionHistoryClientHandoff(result, latestAction, currentTask) {
           "前回の保存済みアクションはまだありません。"
         )
       );
+  const outcomeCheck = buildActionOutcomeCheck(result, latestAction, currentTask);
+  const outcomeCopy = outcomeCheck
+    ? reportSentence(
+        langText(
+          `Outcome check: ${reportClause(outcomeCheck.followUp)}`,
+          `成果確認: ${reportClause(outcomeCheck.followUp)}`
+        )
+      )
+    : "";
   const nextCopy = currentTask
     ? reportSentence(
         langText(
@@ -6424,7 +6484,7 @@ function buildActionHistoryClientHandoff(result, latestAction, currentTask) {
       )
     : reportSentence(t("noImmediateActions"));
 
-  return [previousCopy, changeCopy, nextCopy].filter(Boolean).join(" ");
+  return [previousCopy, changeCopy, outcomeCopy, nextCopy].filter(Boolean).join(" ");
 }
 
 function renderActionHistoryPanel(result, firstView = null) {
@@ -6449,6 +6509,7 @@ function renderActionHistoryPanel(result, firstView = null) {
   const handoffCopy = buildActionHistoryClientHandoff(result, latestAction, currentTask);
   const actionBrief = buildActionExecutionBrief(result, currentTask, latestAction);
   const actionBriefItems = Array.isArray(actionBrief?.items) ? actionBrief.items : [];
+  const outcomeCheck = buildActionOutcomeCheck(result, latestAction, currentTask);
   const latestActionMeta = latestAction
     ? [formatDateTime(latestAction.updatedAt) || "", actionHistoryLanguageMeta(latestAction)]
         .filter(Boolean)
@@ -6512,6 +6573,29 @@ function renderActionHistoryPanel(result, firstView = null) {
         }</div>
       </div>
     </div>
+    ${
+      outcomeCheck
+        ? `<div class="action-history__outcome action-history__outcome--${escapeAttr(
+            outcomeCheck.tone
+          )}">
+            <div class="action-history__label">${escapeHtml(t("actionOutcomeTitle"))}</div>
+            <div class="action-history__outcome-grid">
+              <div class="action-history__outcome-item">
+                <span>${escapeHtml(t("actionOutcomeActionLabel"))}</span>
+                <strong>${escapeHtml(outcomeCheck.actionStatus)}</strong>
+              </div>
+              <div class="action-history__outcome-item">
+                <span>${escapeHtml(t("actionOutcomeMovementLabel"))}</span>
+                <strong>${escapeHtml(outcomeCheck.movement)}</strong>
+              </div>
+              <div class="action-history__outcome-item">
+                <span>${escapeHtml(t("actionOutcomeFollowUpLabel"))}</span>
+                <strong>${escapeHtml(outcomeCheck.followUp)}</strong>
+              </div>
+            </div>
+          </div>`
+        : ""
+    }
     ${
       actionBriefItems.length
         ? `<div class="action-history__brief">
@@ -8092,11 +8176,12 @@ function buildSavedListingWeeklyDiffBlock(summary) {
   return block;
 }
 
-function buildSavedListingActionBlock(action) {
+function buildSavedListingActionBlock(action, item = null) {
   if (!action?.label && !action?.body) return null;
 
   const status = action?.status || "planned";
   const languageMeta = actionHistoryLanguageMeta(action);
+  const outcome = item ? buildSavedWorkQueueOutcome(item) : null;
   const block = document.createElement("div");
   block.className = "saved__action-history";
   block.innerHTML = `
@@ -8112,6 +8197,14 @@ function buildSavedListingActionBlock(action) {
       }
     </div>
     ${languageMeta ? `<div class="saved__action-meta">${escapeHtml(languageMeta)}</div>` : ""}
+    ${
+      outcome
+        ? `<div class="saved__action-outcome">
+            <span>${escapeHtml(t("actionOutcomeTitle"))}</span>
+            ${escapeHtml(outcome.nextAction)}
+          </div>`
+        : ""
+    }
   `;
   return block;
 }
@@ -8219,16 +8312,45 @@ function savedWorkQueuePriorityLabel(score) {
   return t("savedWorkQueueWatch");
 }
 
+function buildSavedWorkQueueOutcome(item) {
+  const status = item?.latestAction?.status || "";
+  if (!["done", "skipped"].includes(status)) return null;
+
+  const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
+  const headline = sentence(item?.weeklyDiffSummary?.headline || "");
+
+  if (status === "done") {
+    return {
+      score: weeklyReady ? 24 : 14,
+      reason: t("actionOutcomeQueueDone"),
+      nextAction:
+        weeklyReady && headline
+          ? headline
+          : item?.latestAction?.snapshotContext?.nextCheck || t("actionOutcomeDoneCollecting"),
+    };
+  }
+
+  return {
+    score: 10,
+    reason: t("actionOutcomeQueueSkipped"),
+    nextAction: t("actionOutcomeSkipped"),
+  };
+}
+
 function buildSavedWorkQueueItem(item) {
   if (!item?.id) return null;
 
   const reasons = [];
   let score = 0;
   const readiness = getSavedListingReadiness(item);
+  const outcome = buildSavedWorkQueueOutcome(item);
 
   if (item?.latestAction?.status === "planned") {
     score += 34;
     reasons.push(t("savedWorkQueuePlannedAction"));
+  } else if (outcome) {
+    score += outcome.score;
+    reasons.push(outcome.reason);
   }
 
   if (item?.reviewDropSignal?.visible === true) {
@@ -8265,6 +8387,7 @@ function buildSavedWorkQueueItem(item) {
   }
 
   const nextAction =
+    outcome?.nextAction ||
     (!readiness.complete ? readiness.nextStep : "") ||
     item?.weeklyDiffSummary?.nextAction ||
     (item?.latestAction?.status === "planned"
@@ -8284,6 +8407,7 @@ function buildSavedWorkQueueItem(item) {
     readinessLabel: `${readiness.scoreLabel} · ${t(
       readiness.complete ? "savedWorkQueueReadyState" : "savedWorkQueueNeedsWorkState"
     )}`,
+    outcomeLabel: outcome ? actionHistoryStatusLabel(item.latestAction.status) : "",
     reasons: uniqueStrings(reasons.map(sentence)).filter(Boolean).slice(0, 3),
     nextAction: sentence(nextAction),
   };
@@ -8339,6 +8463,14 @@ function renderSavedWorkQueue(listings) {
                     <span>${escapeHtml(t("savedWorkQueueReadinessLabel"))}</span>
                     <strong>${escapeHtml(item.readinessLabel)}</strong>
                   </div>
+                  ${
+                    item.outcomeLabel
+                      ? `<div class="saved-work-queue__brief-item">
+                          <span>${escapeHtml(t("actionOutcomeTitle"))}</span>
+                          <strong>${escapeHtml(item.outcomeLabel)}</strong>
+                        </div>`
+                      : ""
+                  }
                 </div>
                 ${
                   item.reasons.length
@@ -8467,7 +8599,7 @@ function renderSavedListings(listings) {
     });
 
     const weeklyDiffBlock = buildSavedListingWeeklyDiffBlock(item?.weeklyDiffSummary);
-    const actionHistoryBlock = buildSavedListingActionBlock(item?.latestAction);
+    const actionHistoryBlock = buildSavedListingActionBlock(item?.latestAction, item);
     const readinessBlock = buildSavedListingReadinessBlock(item);
 
     content.appendChild(title);

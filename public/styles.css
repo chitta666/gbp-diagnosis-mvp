@@ -1539,6 +1539,28 @@ body.client-share-view .print-cover__meta-value {
   color: var(--muted);
 }
 
+.saved-work-queue__actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+}
+
+.saved-work-queue__actions .btn {
+  min-height: 34px;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.saved-work-queue__actions a.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  text-decoration: none;
+}
+
 .saved-plan {
   margin-top: 12px;
   padding: 12px;
@@ -2645,7 +2667,11 @@ body.client-share-view .print-cover__meta-value {
     flex-direction: column;
   }
 
-  .saved-work-queue__item .btn {
+  .saved-work-queue__actions {
+    width: 100%;
+  }
+
+  .saved-work-queue__actions .btn {
     width: 100%;
   }
 

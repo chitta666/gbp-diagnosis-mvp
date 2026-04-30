@@ -944,6 +944,7 @@ const COPY = {
     savedWorkQueueEmpty:
       "No saved client needs urgent attention yet. Reopen listings after the next check to build history.",
     savedWorkQueueOpen: "Open report",
+    savedWorkQueuePreview: "Client view",
     savedWorkQueueHigh: "High priority",
     savedWorkQueueMedium: "Medium priority",
     savedWorkQueueWatch: "Watch",
@@ -1477,6 +1478,7 @@ const COPY = {
     savedWorkQueueEmpty:
       "今すぐ優先対応すべき保存クライアントはまだありません。次回チェック後に履歴がたまると優先度が出ます。",
     savedWorkQueueOpen: "レポートを開く",
+    savedWorkQueuePreview: "クライアント表示",
     savedWorkQueueHigh: "優先度 高",
     savedWorkQueueMedium: "優先度 中",
     savedWorkQueueWatch: "確認",
@@ -7219,6 +7221,7 @@ function buildSavedWorkQueueItem(item) {
     id: item.id,
     name: item.name || item.q || item.placeId || t("savedListingDefaultName"),
     competitorName: item.competitorName || "",
+    previewUrl: savedReportShareUrl(item.id),
     updatedAt: item.updatedAt || item.lastCheckedAt || item.createdAt || "",
     score,
     priorityLabel: savedWorkQueuePriorityLabel(score),
@@ -7279,9 +7282,16 @@ function renderSavedWorkQueue(listings) {
                     : ""
                 }
               </div>
-              <button class="btn" type="button" data-saved-work-open="${escapeAttr(item.id)}">
-                ${escapeHtml(t("savedWorkQueueOpen"))}
-              </button>
+              <div class="saved-work-queue__actions">
+                <button class="btn" type="button" data-saved-work-open="${escapeAttr(item.id)}">
+                  ${escapeHtml(t("savedWorkQueueOpen"))}
+                </button>
+                <a class="btn secondary" href="${escapeAttr(
+                  item.previewUrl
+                )}" target="_blank" rel="noopener noreferrer">
+                  ${escapeHtml(t("savedWorkQueuePreview"))}
+                </a>
+              </div>
             </div>
           `
         )

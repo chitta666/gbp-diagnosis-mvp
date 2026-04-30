@@ -919,10 +919,13 @@ const COPY = {
     reportWeeklyReviewGapAhead: "This listing leads in review volume",
     reportWeeklyStable: "No major weekly movement",
     reportWeeklyCollecting: "Collecting weekly comparison history",
+    reportWeeklyCollectingTodaySummary:
+      "You can still use today's baseline: competitor choice, visible proof gaps, review signals, and the recommended task.",
     reportWeeklyActionWarning: "Add fresh proof this week: new photos plus one review request push.",
     reportWeeklyActionPositive: "Mention the visible progress in the next client update and keep the same cadence.",
     reportWeeklyActionNeutral: "Keep monitoring and use the current comparison in the next client update.",
-    reportWeeklyActionCollecting: "Keep this listing saved and check it again next week.",
+    reportWeeklyActionCollecting:
+      "Save this listing and reopen it next week to turn today's baseline into actual movement.",
     nextActionsTitle: "This week's tasks",
     competitiveGapTitle: "Competitive Gap",
     comparisonFocusTitle: "Comparison Focus",
@@ -1376,6 +1379,12 @@ const COPY = {
     weeklyTrackingSetup: "Meaningful trends usually appear after about 7 days of daily snapshots.",
     weeklyTrackingNext:
       "Tracking now. Meaningful trends usually appear after about 7 days of daily snapshots.",
+    weeklyLabelUsableToday: "Usable today",
+    weeklyTrackingUsableToday:
+      "Baseline comparison, evidence pack, and recommended task are ready for the first client update.",
+    weeklyLabelNextCheck: "Next check",
+    weeklyTrackingNextCheck:
+      "Reopen this saved listing after the next weekly check to show what changed against the same competitor.",
     weeklyTrackingSavedReport: "Not available in this saved report.",
     weeklyTrackingUnavailable: "Currently unavailable.",
     compareDataUnavailable: "Comparison data is unavailable.",
@@ -1542,10 +1551,13 @@ const COPY = {
     reportWeeklyReviewGapAhead: "自店舗がレビュー総数で先行しています",
     reportWeeklyStable: "今週の大きな変化はありません",
     reportWeeklyCollecting: "週次比較の履歴を収集中です",
+    reportWeeklyCollectingTodaySummary:
+      "今日の時点でも、競合選定・見える根拠差・レビューシグナル・推奨タスクは初回報告に使えます。",
     reportWeeklyActionWarning: "今週は新しい写真追加とレビュー依頼を1回実施してください。",
     reportWeeklyActionPositive: "次回定例で見える進捗として共有し、同じ改善ペースを続けてください。",
     reportWeeklyActionNeutral: "この比較を次回定例の材料にしつつ、継続して確認してください。",
-    reportWeeklyActionCollecting: "この店舗を保存したまま、次週もう一度確認してください。",
+    reportWeeklyActionCollecting:
+      "この店舗を保存し、次週もう一度開いて、今日の基準値を実際の変化に変えてください。",
     nextActionsTitle: "今週の実行タスク",
     competitiveGapTitle: "競合差分",
     comparisonFocusTitle: "比較の読みどころ",
@@ -1999,6 +2011,12 @@ const COPY = {
     weeklyTrackingSetup: "意味のある傾向は、日次スナップショットが約7日分そろうと見えやすくなります。",
     weeklyTrackingNext:
       "現在追跡中です。意味のある傾向は、日次スナップショットが約7日分そろうと見えやすくなります。",
+    weeklyLabelUsableToday: "今日使える材料",
+    weeklyTrackingUsableToday:
+      "基準となる競合比較、根拠パック、推奨タスクは初回クライアント報告に使えます。",
+    weeklyLabelNextCheck: "次回チェック",
+    weeklyTrackingNextCheck:
+      "保存済み店舗を次回の週次確認後に開くと、同じ競合に対する変化として見せられます。",
     weeklyTrackingSavedReport: "この保存済みレポートでは利用できません。",
     weeklyTrackingUnavailable: "現在は利用できません。",
     compareDataUnavailable: "競合比較データを表示できません。",
@@ -6818,6 +6836,18 @@ function renderWeeklyReport(report) {
     );
   } else {
     appendListRow(weeklyReportListEl, t("weeklyLabelChanges"), weeklyTrackingCopy(report));
+    if (report?.status !== "cached_only") {
+      appendListRow(
+        weeklyReportListEl,
+        t("weeklyLabelUsableToday"),
+        t("weeklyTrackingUsableToday")
+      );
+      appendListRow(
+        weeklyReportListEl,
+        t("weeklyLabelNextCheck"),
+        t("weeklyTrackingNextCheck")
+      );
+    }
   }
 }
 
@@ -6916,7 +6946,9 @@ function buildReportWeeklyDiffFromWeeklyReport(report) {
       label: report?.weekAgo && report?.today ? `${report.weekAgo} -> ${report.today}` : null,
     },
     headline,
-    clientSummary: [ready ? report?.insight : weeklyTrackingCopy(report)].filter(Boolean),
+    clientSummary: [
+      ready ? report?.insight : t("reportWeeklyCollectingTodaySummary"),
+    ].filter(Boolean),
     metrics,
     nextAction,
   };

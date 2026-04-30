@@ -1256,6 +1256,17 @@ const COPY = {
     clientReportEvidenceBasisMissing: "Missing",
     clientReportEvidenceBasisEarly: "Early signal",
     clientReportEvidenceBasisSteady: "Steady signal",
+    clientReportEvidenceVerdictTitle: "Evidence verdict",
+    clientReportEvidenceVerdictReadyTitle: "Client-safe proof",
+    clientReportEvidenceVerdictReadyBody:
+      "There is enough visible evidence to explain the recommendation without relying on a generic claim.",
+    clientReportEvidenceVerdictPartialTitle: "Usable early signal",
+    clientReportEvidenceVerdictPartialBody:
+      "Use this as a directional explanation and call out what is still collecting.",
+    clientReportEvidenceVerdictCollectingTitle: "Needs one more proof point",
+    clientReportEvidenceVerdictCollectingBody:
+      "Frame this as a baseline until review text, competitor, or Google-side signals are stronger.",
+    clientReportEvidenceVerdictMissingLabel: "Needs",
     clientReportEvidenceReviewSample: "Review sample: {count} recent visible reviews.",
     clientReportEvidenceReviewCollecting:
       "Review text signal: collecting enough recent review text for stronger evidence.",
@@ -1915,6 +1926,17 @@ const COPY = {
     clientReportEvidenceBasisMissing: "不足",
     clientReportEvidenceBasisEarly: "初期シグナル",
     clientReportEvidenceBasisSteady: "安定シグナル",
+    clientReportEvidenceVerdictTitle: "根拠判定",
+    clientReportEvidenceVerdictReadyTitle: "クライアントに説明できる根拠",
+    clientReportEvidenceVerdictReadyBody:
+      "一般論ではなく、見えている根拠を使って推奨施策を説明できます。",
+    clientReportEvidenceVerdictPartialTitle: "初期シグナルとして利用可能",
+    clientReportEvidenceVerdictPartialBody:
+      "方向性の説明には使えます。まだ収集中の材料は補足として伝えてください。",
+    clientReportEvidenceVerdictCollectingTitle: "もう1つ根拠が必要",
+    clientReportEvidenceVerdictCollectingBody:
+      "レビュー本文、競合比較、Google側シグナルが強くなるまでは初回基準として扱ってください。",
+    clientReportEvidenceVerdictMissingLabel: "不足",
     clientReportEvidenceReviewSample: "レビューサンプル: 直近で見えているレビュー {count} 件。",
     clientReportEvidenceReviewCollecting:
       "レビュー本文シグナル: より強い根拠を出すための直近レビュー本文を収集中です。",
@@ -5180,6 +5202,7 @@ function buildClientReportEvidencePack(result) {
     return {
       title: t("clientReportEvidenceTitle"),
       subtitle: t("clientReportEvidenceSubtitle"),
+      verdict: null,
       basisItems: [],
       items: [],
     };
@@ -5238,6 +5261,35 @@ function buildClientReportEvidencePack(result) {
       tone: isSteadySignal ? "ready" : "pending",
     },
   ];
+  const missing = [];
+  if (!Number.isFinite(reviewSampleCount) || reviewSampleCount <= 0) {
+    missing.push(t("clientReportEvidenceBasisReviews"));
+  }
+  if (!hasCompetitor) missing.push(t("clientReportEvidenceBasisCompetitor"));
+  if (!hasGoogleSignal) missing.push(t("clientReportEvidenceBasisGoogle"));
+  if (!isSteadySignal) missing.push(t("clientReportEvidenceBasisDepth"));
+  const readyCount = basisItems.filter((item) => item.tone === "ready").length;
+  const verdict =
+    readyCount >= 3
+      ? {
+          tone: "ready",
+          title: t("clientReportEvidenceVerdictReadyTitle"),
+          body: t("clientReportEvidenceVerdictReadyBody"),
+          missing: [],
+        }
+      : readyCount >= 2
+        ? {
+            tone: "partial",
+            title: t("clientReportEvidenceVerdictPartialTitle"),
+            body: t("clientReportEvidenceVerdictPartialBody"),
+            missing,
+          }
+        : {
+            tone: "collecting",
+            title: t("clientReportEvidenceVerdictCollectingTitle"),
+            body: t("clientReportEvidenceVerdictCollectingBody"),
+            missing,
+          };
   const items = [];
 
   if (Number.isFinite(reviewSampleCount)) {
@@ -5322,6 +5374,7 @@ function buildClientReportEvidencePack(result) {
   return {
     title: t("clientReportEvidenceTitle"),
     subtitle: t("clientReportEvidenceSubtitle"),
+    verdict,
     basisItems,
     items: uniqueStrings(items.map(sentence)).slice(0, 5),
   };
@@ -5607,6 +5660,7 @@ function buildClientReportCopyText({
   sendChecklistItems,
   evidenceBasisItems,
   evidenceItems,
+  evidenceVerdict,
   nextCheckItems,
   readinessVerdict,
   deliveryItems,
@@ -5671,6 +5725,23 @@ function buildClientReportCopyText({
         .filter((item) => item?.label && item?.value)
         .map((item) => `${sentence(item.label)}: ${sentence(item.value)}`)
     ),
+    evidenceVerdict?.title || evidenceVerdict?.body
+      ? [
+          sentence(t("clientReportEvidenceVerdictTitle")),
+          [evidenceVerdict.title, evidenceVerdict.body]
+            .map((item) => sentence(item))
+            .filter(Boolean)
+            .join(" "),
+          Array.isArray(evidenceVerdict.missing) && evidenceVerdict.missing.length
+            ? `${sentence(t("clientReportEvidenceVerdictMissingLabel"))}: ${evidenceVerdict.missing
+                .map((item) => sentence(item))
+                .filter(Boolean)
+                .join(", ")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "",
     formatClientReportCopySection(t("clientReportCopyEvidence"), evidenceItems),
     formatClientReportCopySection(t("clientReportCopyNextCheck"), nextCheckItems),
     formatClientReportCopySection(t("clientReportCopySummary"), summaryLines),
@@ -5853,6 +5924,10 @@ function renderClientReportSummary(summary) {
   const evidenceItems = Array.isArray(evidence.items)
     ? evidence.items.map((item) => sentence(item)).filter(Boolean)
     : [];
+  const evidenceVerdict = evidence.verdict || null;
+  const evidenceVerdictMissing = Array.isArray(evidenceVerdict?.missing)
+    ? evidenceVerdict.missing.map((item) => sentence(item)).filter(Boolean)
+    : [];
   const sendChecklist = normalized.sendChecklist || {};
   const sendChecklistItems = Array.isArray(sendChecklist.items)
     ? sendChecklist.items.map((item) => sentence(item)).filter(Boolean)
@@ -5894,6 +5969,7 @@ function renderClientReportSummary(summary) {
     sendChecklistItems,
     evidenceBasisItems,
     evidenceItems,
+    evidenceVerdict,
     nextCheckItems,
     readinessVerdict,
     deliveryItems,
@@ -6072,6 +6148,30 @@ function renderClientReportSummary(summary) {
                   : ""
               }
             </div>
+            ${
+              evidenceVerdict?.title || evidenceVerdict?.body
+                ? `<div class="client-report-summary__evidence-verdict client-report-summary__evidence-verdict--${escapeAttr(
+                    evidenceVerdict.tone || "collecting"
+                  )}">
+                    <div>
+                      <div class="client-report-summary__evidence-verdict-title">${escapeHtml(
+                        evidenceVerdict.title || ""
+                      )}</div>
+                      <div class="client-report-summary__evidence-verdict-body">${escapeHtml(
+                        evidenceVerdict.body || ""
+                      )}</div>
+                    </div>
+                    ${
+                      evidenceVerdictMissing.length
+                        ? `<div class="client-report-summary__evidence-verdict-missing">
+                            <span>${escapeHtml(t("clientReportEvidenceVerdictMissingLabel"))}</span>
+                            <strong>${escapeHtml(evidenceVerdictMissing.join(", "))}</strong>
+                          </div>`
+                        : ""
+                    }
+                  </div>`
+                : ""
+            }
             ${
               evidenceBasisItems.length
                 ? `<div class="client-report-summary__evidence-basis">

@@ -119,6 +119,42 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
     </div>
   </div>
 
+  <div id="operatorWorkflow" class="card operator-workflow">
+    <div>
+      <div id="operatorWorkflowEyebrow" class="operator-workflow__eyebrow">
+        Built for weekly client reporting
+      </div>
+      <h2 id="operatorWorkflowTitle" class="section__title">Best fit: consultants managing 5-20 client listings</h2>
+      <p id="operatorWorkflowSubtitle" class="operator-workflow__subtitle muted">
+        Use Flowmetric when GBP checks need to become a repeatable client update, not a one-time audit.
+      </p>
+    </div>
+    <div class="operator-workflow__grid">
+      <div class="operator-workflow__item">
+        <span class="operator-workflow__step" data-operator-workflow-step="0">1</span>
+        <strong data-operator-workflow-title="0">Save the same listing and competitor</strong>
+        <p data-operator-workflow-body="0">Keep the comparison stable so each check shows movement instead of starting from scratch.</p>
+      </div>
+      <div class="operator-workflow__item">
+        <span class="operator-workflow__step" data-operator-workflow-step="1">2</span>
+        <strong data-operator-workflow-title="1">Review the weekly change story</strong>
+        <p data-operator-workflow-body="1">See review momentum, evidence quality, and the gap that matters most for the next report.</p>
+      </div>
+      <div class="operator-workflow__item">
+        <span class="operator-workflow__step" data-operator-workflow-step="2">3</span>
+        <strong data-operator-workflow-title="2">Send one approval-ready task</strong>
+        <p data-operator-workflow-body="2">Turn the analysis into a concrete client ask before the next check-in.</p>
+      </div>
+    </div>
+    <div class="operator-workflow__price-row">
+      <span id="operatorWorkflowPriceLabel" class="operator-workflow__price-label">Pro beta target</span>
+      <strong id="operatorWorkflowPrice" class="operator-workflow__price">¥2,980/mo</strong>
+      <span id="operatorWorkflowPriceHint" class="operator-workflow__price-hint">
+        For operators who need recurring reports across saved client locations.
+      </span>
+    </div>
+  </div>
+
   <div id="savedHub" class="card">
     <h2 id="savedListingsTitle" class="section__title">Saved Listings</h2>
     <div class="row">
@@ -555,6 +591,15 @@ const sampleReportSubtitleEl = document.getElementById("sampleReportSubtitle");
 const sampleReportCardLabelEls = Array.from(document.querySelectorAll("[data-sample-card-label]"));
 const sampleReportCardTitleEls = Array.from(document.querySelectorAll("[data-sample-card-title]"));
 const sampleReportCardBodyEls = Array.from(document.querySelectorAll("[data-sample-card-body]"));
+const operatorWorkflowEyebrowEl = document.getElementById("operatorWorkflowEyebrow");
+const operatorWorkflowTitleEl = document.getElementById("operatorWorkflowTitle");
+const operatorWorkflowSubtitleEl = document.getElementById("operatorWorkflowSubtitle");
+const operatorWorkflowStepEls = Array.from(document.querySelectorAll("[data-operator-workflow-step]"));
+const operatorWorkflowTitleEls = Array.from(document.querySelectorAll("[data-operator-workflow-title]"));
+const operatorWorkflowBodyEls = Array.from(document.querySelectorAll("[data-operator-workflow-body]"));
+const operatorWorkflowPriceLabelEl = document.getElementById("operatorWorkflowPriceLabel");
+const operatorWorkflowPriceEl = document.getElementById("operatorWorkflowPrice");
+const operatorWorkflowPriceHintEl = document.getElementById("operatorWorkflowPriceHint");
 const clientViewNoticeEl = document.getElementById("clientViewNotice");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
@@ -796,6 +841,31 @@ const COPY = {
         body: "The report ends with the task, why it matters now, and the approval request for the next check.",
       },
     ],
+    operatorWorkflowEyebrow: "Built for weekly client reporting",
+    operatorWorkflowTitle: "Best fit: consultants managing 5-20 client listings",
+    operatorWorkflowSubtitle:
+      "Use Flowmetric when GBP checks need to become a repeatable client update, not a one-time audit.",
+    operatorWorkflowSteps: [
+      {
+        step: "1",
+        title: "Save the same listing and competitor",
+        body: "Keep the comparison stable so each check shows movement instead of starting from scratch.",
+      },
+      {
+        step: "2",
+        title: "Review the weekly change story",
+        body: "See review momentum, evidence quality, and the gap that matters most for the next report.",
+      },
+      {
+        step: "3",
+        title: "Send one approval-ready task",
+        body: "Turn the analysis into a concrete client ask before the next check-in.",
+      },
+    ],
+    operatorWorkflowPriceLabel: "Pro beta target",
+    operatorWorkflowPrice: "¥{price}/mo",
+    operatorWorkflowPriceHint:
+      "For operators who need recurring reports across saved client locations.",
     clientViewNotice:
       "Shared client report. Review the summary, evidence, and this week's recommended task below.",
     savedListingsTitle: "Saved Listings",
@@ -1388,6 +1458,31 @@ const COPY = {
         body: "実行案、今やる理由、次回チェックまでに進める承認事項をまとめます。",
       },
     ],
+    operatorWorkflowEyebrow: "週次のクライアント報告向け",
+    operatorWorkflowTitle: "最も合うのは、5〜20件のクライアント店舗を運用するMEO担当者",
+    operatorWorkflowSubtitle:
+      "Flowmetricは、GBPチェックを単発診断ではなく、毎週の報告と次アクションに変えるためのツールです。",
+    operatorWorkflowSteps: [
+      {
+        step: "1",
+        title: "同じ店舗と競合を保存する",
+        body: "比較対象を固定し、毎回ゼロから調べるのではなく、変化を見えるようにします。",
+      },
+      {
+        step: "2",
+        title: "週次の変化ストーリーを見る",
+        body: "レビューの勢い、根拠の厚み、次回レポートで伝えるべき差分を確認します。",
+      },
+      {
+        step: "3",
+        title: "承認を取りやすい1タスクにする",
+        body: "分析結果を、次回定例までにクライアントへ依頼する具体アクションへ落とします。",
+      },
+    ],
+    operatorWorkflowPriceLabel: "Pro ベータ想定",
+    operatorWorkflowPrice: "月額 {price}円",
+    operatorWorkflowPriceHint:
+      "保存したクライアント店舗を継続的にレポートする運用者向けです。",
     clientViewNotice:
       "共有レポートです。要約、根拠、今週の推奨タスクをこのページで確認できます。",
     savedListingsTitle: "保存した店舗",
@@ -2154,6 +2249,32 @@ function renderStaticCopy() {
     sampleReportCardBodyEls.forEach((bodyEl, index) => {
       bodyEl.textContent = sampleCards[index]?.body || bodyEl.textContent;
     });
+  }
+  if (operatorWorkflowEyebrowEl) operatorWorkflowEyebrowEl.textContent = t("operatorWorkflowEyebrow");
+  if (operatorWorkflowTitleEl) operatorWorkflowTitleEl.textContent = t("operatorWorkflowTitle");
+  if (operatorWorkflowSubtitleEl) operatorWorkflowSubtitleEl.textContent = t("operatorWorkflowSubtitle");
+  const operatorWorkflowSteps = t("operatorWorkflowSteps");
+  if (Array.isArray(operatorWorkflowSteps)) {
+    operatorWorkflowStepEls.forEach((stepEl, index) => {
+      stepEl.textContent = operatorWorkflowSteps[index]?.step || stepEl.textContent;
+    });
+    operatorWorkflowTitleEls.forEach((titleEl, index) => {
+      titleEl.textContent = operatorWorkflowSteps[index]?.title || titleEl.textContent;
+    });
+    operatorWorkflowBodyEls.forEach((bodyEl, index) => {
+      bodyEl.textContent = operatorWorkflowSteps[index]?.body || bodyEl.textContent;
+    });
+  }
+  if (operatorWorkflowPriceLabelEl) {
+    operatorWorkflowPriceLabelEl.textContent = t("operatorWorkflowPriceLabel");
+  }
+  if (operatorWorkflowPriceEl) {
+    operatorWorkflowPriceEl.textContent = copyWithValues(t("operatorWorkflowPrice"), {
+      price: formatYenAmount(PRO_MONTHLY_PRICE_JPY),
+    });
+  }
+  if (operatorWorkflowPriceHintEl) {
+    operatorWorkflowPriceHintEl.textContent = t("operatorWorkflowPriceHint");
   }
   if (savedListingsTitleEl) savedListingsTitleEl.textContent = t("savedListingsTitle");
   if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");

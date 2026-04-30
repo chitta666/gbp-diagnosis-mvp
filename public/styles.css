@@ -707,6 +707,48 @@ body.client-share-view .print-cover__meta-value {
   color: var(--fg);
 }
 
+.client-report-summary__recommendation {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 251, 235, 0.9), rgba(239, 246, 255, 0.72)),
+    rgba(255, 255, 255, 0.84);
+}
+
+.client-report-summary__recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.client-report-summary__recommendation-item {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.client-report-summary__recommendation-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.client-report-summary__recommendation-item strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.45;
+  font-weight: 850;
+}
+
 .client-report-summary__send-checklist,
 .client-report-summary__evidence {
   margin-top: 12px;
@@ -2923,6 +2965,7 @@ body.client-share-view .print-cover__meta-value {
   }
 
   .client-report-summary__support-list,
+  .client-report-summary__recommendation-grid,
   .client-report-summary__next-check-list,
   .client-report-summary__evidence-basis-grid,
   .saved-plan__value-list,
@@ -3207,6 +3250,8 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__chip,
   .client-report-summary__brief,
   .client-report-summary__brief-item,
+  .client-report-summary__recommendation,
+  .client-report-summary__recommendation-item,
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
   .client-report-summary__evidence-basis,
@@ -3222,6 +3267,7 @@ body.client-share-view .print-cover__meta-value {
 
   .client-report-summary__grid,
   .client-report-summary__brief-grid,
+  .client-report-summary__recommendation-grid,
   .client-report-summary__support-list,
   .client-report-summary__next-check-list,
   .client-report-summary__evidence-basis-grid,
@@ -3233,6 +3279,8 @@ body.client-share-view .print-cover__meta-value {
 
   .client-report-summary__item,
   .client-report-summary__brief-item,
+  .client-report-summary__recommendation,
+  .client-report-summary__recommendation-item,
   .client-report-summary__evidence-item,
   .action-history__item,
   .client-report-summary__send-checklist,
@@ -3255,6 +3303,7 @@ body.client-share-view .print-cover__meta-value {
   .action-history__title,
   .client-report-summary__title,
   .client-report-summary__body,
+  .client-report-summary__recommendation-item strong,
   .client-report-summary__evidence-basis-item strong,
   .client-report-summary__evidence-body,
   .client-report-summary__handoff-body,

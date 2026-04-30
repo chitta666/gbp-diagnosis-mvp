@@ -2230,6 +2230,7 @@ body.client-share-view .print-cover__meta-value {
 
 .saved__item {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: flex-start;
   justify-content: space-between;
@@ -2238,8 +2239,8 @@ body.client-share-view .print-cover__meta-value {
 }
 
 .saved__content {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 520px;
+  min-width: min(100%, 420px);
 }
 
 .saved__title {
@@ -3062,13 +3063,18 @@ body.client-share-view .print-cover__meta-value {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  flex: none;
+  flex: 1 1 360px;
+  justify-content: flex-end;
+  max-width: 720px;
+  margin-left: auto;
 }
 
 .saved__actions .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 1 1 150px;
+  min-width: 120px;
   width: auto;
   color: var(--fg);
   text-decoration: none;

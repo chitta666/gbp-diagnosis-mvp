@@ -1165,6 +1165,11 @@ const COPY = {
     savedWorkQueueCollecting: "Still collecting history",
     savedWorkQueueReadinessGap: "Report readiness {score}",
     savedWorkQueueStable: "Monitor",
+    savedWorkQueueNextLabel: "Next move",
+    savedWorkQueueWhyLabel: "Why queued",
+    savedWorkQueueReadinessLabel: "Report readiness",
+    savedWorkQueueReadyState: "Ready",
+    savedWorkQueueNeedsWorkState: "Needs work",
     clientReportSummaryEyebrow: "Client-ready summary",
     clientReportSummaryTitle: "One-page update for client reporting",
     clientReportSummarySubtitle:
@@ -1835,6 +1840,11 @@ const COPY = {
     savedWorkQueueCollecting: "履歴収集中",
     savedWorkQueueReadinessGap: "提出準備 {score}",
     savedWorkQueueStable: "経過観察",
+    savedWorkQueueNextLabel: "次にやること",
+    savedWorkQueueWhyLabel: "キュー理由",
+    savedWorkQueueReadinessLabel: "レポート準備",
+    savedWorkQueueReadyState: "準備済み",
+    savedWorkQueueNeedsWorkState: "要対応",
     clientReportSummaryEyebrow: "クライアント提出用サマリー",
     clientReportSummaryTitle: "定例報告に使える1ページ要約",
     clientReportSummarySubtitle:
@@ -8271,6 +8281,9 @@ function buildSavedWorkQueueItem(item) {
     updatedAt: item.updatedAt || item.lastCheckedAt || item.createdAt || "",
     score,
     priorityLabel: savedWorkQueuePriorityLabel(score),
+    readinessLabel: `${readiness.scoreLabel} · ${t(
+      readiness.complete ? "savedWorkQueueReadyState" : "savedWorkQueueNeedsWorkState"
+    )}`,
     reasons: uniqueStrings(reasons.map(sentence)).filter(Boolean).slice(0, 3),
     nextAction: sentence(nextAction),
   };
@@ -8317,13 +8330,27 @@ function renderSavedWorkQueue(listings) {
                       )}</div>`
                     : ""
                 }
-                <div class="saved-work-queue__next">${escapeHtml(item.nextAction)}</div>
+                <div class="saved-work-queue__brief">
+                  <div class="saved-work-queue__brief-item saved-work-queue__brief-item--wide">
+                    <span>${escapeHtml(t("savedWorkQueueNextLabel"))}</span>
+                    <strong>${escapeHtml(item.nextAction)}</strong>
+                  </div>
+                  <div class="saved-work-queue__brief-item">
+                    <span>${escapeHtml(t("savedWorkQueueReadinessLabel"))}</span>
+                    <strong>${escapeHtml(item.readinessLabel)}</strong>
+                  </div>
+                </div>
                 ${
                   item.reasons.length
-                    ? `<div class="saved-work-queue__reasons">
+                    ? `<div class="saved-work-queue__reason-block">
+                        <div class="saved-work-queue__reason-label">${escapeHtml(
+                          t("savedWorkQueueWhyLabel")
+                        )}</div>
+                        <div class="saved-work-queue__reasons">
                         ${item.reasons
                           .map((reason) => `<span>${escapeHtml(reason)}</span>`)
                           .join("")}
+                        </div>
                       </div>`
                     : ""
                 }

@@ -748,6 +748,39 @@ body.client-share-view .print-cover__meta-value {
   list-style-position: outside;
 }
 
+.client-report-summary__evidence-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.client-report-summary__evidence-item {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.client-report-summary__evidence-source {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-report-summary__evidence-body {
+  display: block;
+  margin-top: 4px;
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 750;
+}
+
 .client-report-summary__next-check {
   margin-top: 12px;
   padding: 11px 12px;
@@ -3115,6 +3148,7 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__brief-item,
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
+  .client-report-summary__evidence-item,
   .client-report-summary__next-check,
   .action-history__brief,
   .action-history__brief-item,
@@ -3135,6 +3169,7 @@ body.client-share-view .print-cover__meta-value {
 
   .client-report-summary__item,
   .client-report-summary__brief-item,
+  .client-report-summary__evidence-item,
   .action-history__item,
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
@@ -3154,6 +3189,7 @@ body.client-share-view .print-cover__meta-value {
   .action-history__title,
   .client-report-summary__title,
   .client-report-summary__body,
+  .client-report-summary__evidence-body,
   .client-report-summary__handoff-body,
   .client-report-summary__next-check-list,
   .action-history__body,

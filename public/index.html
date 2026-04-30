@@ -952,6 +952,7 @@ const COPY = {
     savedWorkQueueReviewDrop: "Review count changed",
     savedWorkQueueStatusWarning: "Profile needs attention",
     savedWorkQueueCollecting: "Still collecting history",
+    savedWorkQueueReadinessGap: "Report readiness {score}",
     savedWorkQueueStable: "Monitor",
     clientReportSummaryEyebrow: "Client-ready summary",
     clientReportSummaryTitle: "One-page update for client reporting",
@@ -1484,6 +1485,7 @@ const COPY = {
     savedWorkQueueReviewDrop: "レビュー数に変化",
     savedWorkQueueStatusWarning: "プロフィール要確認",
     savedWorkQueueCollecting: "履歴収集中",
+    savedWorkQueueReadinessGap: "提出準備 {score}",
     savedWorkQueueStable: "経過観察",
     clientReportSummaryEyebrow: "クライアント提出用サマリー",
     clientReportSummaryTitle: "定例報告に使える1ページ要約",
@@ -7082,15 +7084,12 @@ function buildSavedReadinessNextStep({
   return t("savedClientReadinessNextReady");
 }
 
-function buildSavedListingReadinessBlock(item) {
-  if (!item?.id) return null;
-
+function getSavedListingReadiness(item) {
   const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
   const actionReady = Boolean(item?.latestAction?.label || item?.latestAction?.body);
   const competitorReady = Boolean(item?.competitorPlaceId || item?.competitorName);
-  const shareReady = Boolean(savedReportShareUrl(item.id));
+  const shareReady = Boolean(item?.id && savedReportShareUrl(item.id));
   const readyCount = [weeklyReady, actionReady, competitorReady, shareReady].filter(Boolean).length;
-  const tone = readyCount >= 3 ? "ready" : "pending";
   const nextStep = buildSavedReadinessNextStep({
     weeklyReady,
     actionReady,
@@ -7098,41 +7097,59 @@ function buildSavedListingReadinessBlock(item) {
     shareReady,
   });
 
+  return {
+    weeklyReady,
+    actionReady,
+    competitorReady,
+    shareReady,
+    readyCount,
+    nextStep,
+    scoreLabel: `${readyCount}/4`,
+    complete: readyCount === 4,
+    tone: readyCount >= 3 ? "ready" : "pending",
+  };
+}
+
+function buildSavedListingReadinessBlock(item) {
+  if (!item?.id) return null;
+
+  const readiness = getSavedListingReadiness(item);
+
   const block = document.createElement("div");
-  block.className = `saved__readiness saved__readiness--${escapeAttr(tone)}`;
+  block.className = `saved__readiness saved__readiness--${escapeAttr(readiness.tone)}`;
   block.innerHTML = `
     <div class="saved__readiness-top">
       <div>
         <div class="saved__readiness-label">${escapeHtml(t("savedClientReadinessTitle"))}</div>
         <div class="saved__readiness-subtitle">${escapeHtml(t("savedClientReadinessSubtitle"))}</div>
       </div>
-      <strong class="saved__readiness-score">${escapeHtml(`${readyCount}/4`)}</strong>
+      <strong class="saved__readiness-score">${escapeHtml(readiness.scoreLabel)}</strong>
     </div>
     <div class="saved__readiness-grid">
       ${buildSavedReadinessItem(
         t("clientReportReadinessWeeklyDiff"),
-        weeklyReady ? t("clientReportReady") : t("clientReportCollecting"),
-        savedReadinessTone(weeklyReady)
+        readiness.weeklyReady ? t("clientReportReady") : t("clientReportCollecting"),
+        savedReadinessTone(readiness.weeklyReady)
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessActionHistory"),
-        actionReady ? actionHistoryStatusLabel(item.latestAction.status) : t("clientReportMissing"),
-        savedReadinessTone(actionReady)
+        readiness.actionReady ? actionHistoryStatusLabel(item.latestAction.status) : t("clientReportMissing"),
+        savedReadinessTone(readiness.actionReady)
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessCompetitor"),
-        competitorReady ? t("clientReportSelected") : t("clientReportMissing"),
-        savedReadinessTone(competitorReady)
+        readiness.competitorReady ? t("clientReportSelected") : t("clientReportMissing"),
+        savedReadinessTone(readiness.competitorReady)
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessShareLink"),
-        shareReady ? t("clientReportReady") : t("clientReportMissing"),
-        savedReadinessTone(shareReady)
+        readiness.shareReady ? t("clientReportReady") : t("clientReportMissing"),
+        savedReadinessTone(readiness.shareReady)
       )}
     </div>
     <div class="saved__readiness-next">
       <span>${escapeHtml(t("savedClientReadinessNextLabel"))}</span>
-      ${escapeHtml(nextStep)}
+      ${escapeHtml(readiness.nextStep)}
     </div>
   `;
   return block;
@@ -7149,6 +7166,7 @@ function buildSavedWorkQueueItem(item) {
 
   const reasons = [];
   let score = 0;
+  const readiness = getSavedListingReadiness(item);
 
   if (item?.latestAction?.status === "planned") {
     score += 34;
@@ -7179,7 +7197,17 @@ function buildSavedWorkQueueItem(item) {
     if (item.statusSummary.reason) reasons.push(item.statusSummary.reason);
   }
 
+  if (!readiness.complete) {
+    score += Math.max(6, (4 - readiness.readyCount) * 8);
+    reasons.push(
+      copyWithValues(t("savedWorkQueueReadinessGap"), {
+        score: readiness.scoreLabel,
+      })
+    );
+  }
+
   const nextAction =
+    (!readiness.complete ? readiness.nextStep : "") ||
     item?.weeklyDiffSummary?.nextAction ||
     (item?.latestAction?.status === "planned"
       ? [item.latestAction.label, item.latestAction.body].filter(Boolean).join(": ")

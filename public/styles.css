@@ -149,6 +149,7 @@ body.client-share-view #analysisControls,
 body.client-share-view #introText,
 body.client-share-view #heroProofChips,
 body.client-share-view #sampleReportPreview,
+body.client-share-view #operatorWorkflow,
 body.client-share-view #savedHub,
 body.client-share-view #msg,
 body.client-share-view #reportTitle,
@@ -469,6 +470,109 @@ body.client-share-view .print-cover__meta-value {
   color: var(--muted);
   font-size: var(--fs-1);
   line-height: 1.5;
+}
+
+.operator-workflow {
+  border-color: rgba(15, 23, 42, 0.1);
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.035), rgba(236, 253, 245, 0.62)),
+    #fff;
+}
+
+.operator-workflow__eyebrow {
+  color: #047857;
+  font-size: var(--fs-1);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operator-workflow__subtitle {
+  margin: 6px 0 0;
+}
+
+.operator-workflow__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.operator-workflow__item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.operator-workflow__step {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.operator-workflow__item strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.operator-workflow__item p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+
+.operator-workflow__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.operator-workflow__price-label,
+.operator-workflow__price {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.operator-workflow__price-label {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--fg);
+}
+
+.operator-workflow__price {
+  background: #047857;
+  color: #fff;
+}
+
+.operator-workflow__price-hint {
+  flex: 1 1 260px;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.45;
 }
 
 .print-cover {
@@ -2915,6 +3019,10 @@ body.client-share-view .print-cover__meta-value {
     grid-template-columns: 1fr;
   }
 
+  .operator-workflow__grid {
+    grid-template-columns: 1fr;
+  }
+
   .saved__item,
   .history__item {
     flex-direction: column;
@@ -3109,6 +3217,7 @@ body.client-share-view .print-cover__meta-value {
   #introText,
   #heroProofChips,
   #sampleReportPreview,
+  #operatorWorkflow,
   #urlInput,
   #btn,
   #pdfBtn,

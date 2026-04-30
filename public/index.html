@@ -1209,6 +1209,16 @@ const COPY = {
       "Approve this task before the next check: {task}",
     clientReportRecommendationApprovalFallback:
       "Confirm the next check cadence before sending the next update.",
+    clientReportImpactTitle: "Impact preview",
+    clientReportImpactSubtitle:
+      "Use this to show what the approved task should make easier to report next time.",
+    clientReportImpactExpected: "Expected visible change",
+    clientReportImpactMeasure: "Next check",
+    clientReportImpactReportBack: "Report-back angle",
+    clientReportImpactReportBackReady:
+      "Next report can connect the approved task, visible movement, and same-competitor gap.",
+    clientReportImpactReportBackBaseline:
+      "Next report can show whether this baseline moved after the task is completed.",
     clientReportDeliveryTitle: "Message starter",
     clientReportDeliverySubtitle:
       "Use this as the email or chat wrapper before the report details.",
@@ -1262,6 +1272,7 @@ const COPY = {
     clientReportCopyReportLink: "Report link",
     clientReportCopySummary: "Summary",
     clientReportCopyRecommendation: "Recommended task",
+    clientReportCopyImpact: "Impact preview",
     clientReportCopyChecklist: "Send checklist",
     clientReportCopyConfidence: "Confidence framing",
     clientReportCopyEvidence: "Evidence pack",
@@ -1939,6 +1950,16 @@ const COPY = {
       "次回チェックまでにこの実行案を進めてよいか確認します: {task}",
     clientReportRecommendationApprovalFallback:
       "次回チェックの運用を継続してよいか確認します。",
+    clientReportImpactTitle: "期待される変化",
+    clientReportImpactSubtitle:
+      "承認された実行案が、次回レポートで何を説明しやすくするかを示します。",
+    clientReportImpactExpected: "見える変化",
+    clientReportImpactMeasure: "次回見る指標",
+    clientReportImpactReportBack: "次回の報告軸",
+    clientReportImpactReportBackReady:
+      "次回レポートで、承認された実行案、見える変化、同じ競合との差分をつなげて説明できます。",
+    clientReportImpactReportBackBaseline:
+      "次回レポートで、この基準値が実行後に動いたかを説明できます。",
     clientReportDeliveryTitle: "送付文面のたたき台",
     clientReportDeliverySubtitle:
       "メールやチャットに貼る冒頭文として使えます。",
@@ -1992,6 +2013,7 @@ const COPY = {
     clientReportCopyReportLink: "レポートリンク",
     clientReportCopySummary: "要約",
     clientReportCopyRecommendation: "今週の推奨タスク",
+    clientReportCopyImpact: "期待される変化",
     clientReportCopyChecklist: "提出チェックリスト",
     clientReportCopyConfidence: "信頼度の伝え方",
     clientReportCopyEvidence: "根拠パック",
@@ -5723,6 +5745,34 @@ function buildClientReportDeliveryCopy({
   };
 }
 
+function buildClientReportImpactPreview(result, task, latestAction, weeklyReady) {
+  if (!task?.body) return null;
+
+  const actionBrief = buildActionExecutionBrief(result, task, latestAction);
+  const reportBack = weeklyReady
+    ? t("clientReportImpactReportBackReady")
+    : t("clientReportImpactReportBackBaseline");
+
+  return {
+    title: t("clientReportImpactTitle"),
+    subtitle: t("clientReportImpactSubtitle"),
+    items: [
+      {
+        label: t("clientReportImpactExpected"),
+        body: actionBrief.doneCriteria,
+      },
+      {
+        label: t("clientReportImpactMeasure"),
+        body: actionBrief.nextCheck,
+      },
+      {
+        label: t("clientReportImpactReportBack"),
+        body: reportBack,
+      },
+    ].filter((item) => item.body),
+  };
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -5796,6 +5846,7 @@ function buildClientReportSummary(firstView, result = null) {
   const evidencePack = buildClientReportEvidencePack(result);
   const confidenceFrame = buildClientReportConfidenceFrame(evidencePack, readinessVerdict);
   const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
+  const impactPreview = buildClientReportImpactPreview(result, task, latestAction, weeklyReady);
   const recommendationWhy = sentence(summaryLines[1] || evidencePack?.items?.[0] || weeklyMovement);
   const recommendationApproval = sentence(
     task?.body
@@ -5859,6 +5910,7 @@ function buildClientReportSummary(firstView, result = null) {
     ].filter((item) => item.body),
     handoff: sentence(handoffCopy),
     recommendation,
+    impactPreview,
     nextCheck: {
       title: t("clientReportNextCheckTitle"),
       subtitle: t("clientReportNextCheckSubtitle"),
@@ -5912,6 +5964,7 @@ function buildClientReportCopyText({
   handoff,
   reportLink,
   recommendationItems,
+  impactItems,
   sendChecklistItems,
   evidenceBasisItems,
   evidenceItems,
@@ -5964,6 +6017,12 @@ function buildClientReportCopyText({
     formatClientReportCopySection(
       t("clientReportCopyRecommendation"),
       (Array.isArray(recommendationItems) ? recommendationItems : [])
+        .filter((item) => item?.label && item?.body)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
+    ),
+    formatClientReportCopySection(
+      t("clientReportCopyImpact"),
+      (Array.isArray(impactItems) ? impactItems : [])
         .filter((item) => item?.label && item?.body)
         .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
     ),
@@ -6191,6 +6250,10 @@ function renderClientReportSummary(summary) {
   const recommendationItems = Array.isArray(recommendation.items)
     ? recommendation.items.filter((item) => item?.label && item?.body)
     : [];
+  const impactPreview = normalized.impactPreview || {};
+  const impactItems = Array.isArray(impactPreview.items)
+    ? impactPreview.items.filter((item) => item?.label && item?.body)
+    : [];
   const nextCheck = normalized.nextCheck || {};
   const nextCheckItems = Array.isArray(nextCheck.items)
     ? nextCheck.items.map((item) => sentence(item)).filter(Boolean)
@@ -6248,6 +6311,7 @@ function renderClientReportSummary(summary) {
     handoff,
     reportLink,
     recommendationItems,
+    impactItems,
     sendChecklistItems,
     evidenceBasisItems,
     evidenceItems,
@@ -6417,6 +6481,36 @@ function renderClientReportSummary(summary) {
                 .map(
                   (item) => `
                     <div class="client-report-summary__recommendation-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>`
+        : ""
+    }
+    ${
+      impactItems.length
+        ? `<div class="client-report-summary__impact">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                impactPreview.title || t("clientReportImpactTitle")
+              )}</div>
+              ${
+                impactPreview.subtitle
+                  ? `<div class="client-report-summary__support-subtitle">${escapeHtml(
+                      impactPreview.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <div class="client-report-summary__impact-grid">
+              ${impactItems
+                .map(
+                  (item) => `
+                    <div class="client-report-summary__impact-item">
                       <span>${escapeHtml(item.label)}</span>
                       <strong>${escapeHtml(item.body)}</strong>
                     </div>

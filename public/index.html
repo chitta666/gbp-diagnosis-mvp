@@ -1024,6 +1024,9 @@ const COPY = {
     clientReportReadinessWeeklyDiff: "Weekly diff",
     clientReportReadinessActionHistory: "Action history",
     clientReportReadinessCompetitor: "Competitor",
+    clientReportReadinessShareLink: "Share link",
+    savedClientReadinessTitle: "Client report readiness",
+    savedClientReadinessSubtitle: "Before sharing, confirm what is ready and what is still collecting.",
     clientReportReady: "Ready",
     clientReportCollecting: "Collecting",
     clientReportSaved: "Saved",
@@ -1547,6 +1550,9 @@ const COPY = {
     clientReportReadinessWeeklyDiff: "週次差分",
     clientReportReadinessActionHistory: "実行履歴",
     clientReportReadinessCompetitor: "競合",
+    clientReportReadinessShareLink: "共有リンク",
+    savedClientReadinessTitle: "提出準備",
+    savedClientReadinessSubtitle: "共有前に、準備済みの材料と収集中の材料を確認します。",
     clientReportReady: "準備済み",
     clientReportCollecting: "収集中",
     clientReportSaved: "保存済み",
@@ -7038,6 +7044,65 @@ function buildSavedListingActionBlock(action) {
   return block;
 }
 
+function savedReadinessTone(isReady, fallbackTone = "pending") {
+  return isReady ? "ready" : fallbackTone;
+}
+
+function buildSavedReadinessItem(label, value, tone) {
+  return `
+    <div class="saved__readiness-item saved__readiness-item--${escapeAttr(tone)}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `;
+}
+
+function buildSavedListingReadinessBlock(item) {
+  if (!item?.id) return null;
+
+  const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
+  const actionReady = Boolean(item?.latestAction?.label || item?.latestAction?.body);
+  const competitorReady = Boolean(item?.competitorPlaceId || item?.competitorName);
+  const shareReady = Boolean(savedReportShareUrl(item.id));
+  const readyCount = [weeklyReady, actionReady, competitorReady, shareReady].filter(Boolean).length;
+  const tone = readyCount >= 3 ? "ready" : "pending";
+
+  const block = document.createElement("div");
+  block.className = `saved__readiness saved__readiness--${escapeAttr(tone)}`;
+  block.innerHTML = `
+    <div class="saved__readiness-top">
+      <div>
+        <div class="saved__readiness-label">${escapeHtml(t("savedClientReadinessTitle"))}</div>
+        <div class="saved__readiness-subtitle">${escapeHtml(t("savedClientReadinessSubtitle"))}</div>
+      </div>
+      <strong class="saved__readiness-score">${escapeHtml(`${readyCount}/4`)}</strong>
+    </div>
+    <div class="saved__readiness-grid">
+      ${buildSavedReadinessItem(
+        t("clientReportReadinessWeeklyDiff"),
+        weeklyReady ? t("clientReportReady") : t("clientReportCollecting"),
+        savedReadinessTone(weeklyReady)
+      )}
+      ${buildSavedReadinessItem(
+        t("clientReportReadinessActionHistory"),
+        actionReady ? actionHistoryStatusLabel(item.latestAction.status) : t("clientReportMissing"),
+        savedReadinessTone(actionReady)
+      )}
+      ${buildSavedReadinessItem(
+        t("clientReportReadinessCompetitor"),
+        competitorReady ? t("clientReportSelected") : t("clientReportMissing"),
+        savedReadinessTone(competitorReady)
+      )}
+      ${buildSavedReadinessItem(
+        t("clientReportReadinessShareLink"),
+        shareReady ? t("clientReportReady") : t("clientReportMissing"),
+        savedReadinessTone(shareReady)
+      )}
+    </div>
+  `;
+  return block;
+}
+
 function savedWorkQueuePriorityLabel(score) {
   if (score >= 60) return t("savedWorkQueueHigh");
   if (score >= 30) return t("savedWorkQueueMedium");
@@ -7257,12 +7322,14 @@ function renderSavedListings(listings) {
 
     const weeklyDiffBlock = buildSavedListingWeeklyDiffBlock(item?.weeklyDiffSummary);
     const actionHistoryBlock = buildSavedListingActionBlock(item?.latestAction);
+    const readinessBlock = buildSavedListingReadinessBlock(item);
 
     content.appendChild(title);
     content.appendChild(meta);
     if (competitorBlock) content.appendChild(competitorBlock);
     if (weeklyDiffBlock) content.appendChild(weeklyDiffBlock);
     if (actionHistoryBlock) content.appendChild(actionHistoryBlock);
+    if (readinessBlock) content.appendChild(readinessBlock);
     if (statusBlock) content.appendChild(statusBlock);
     const revisitBlock = buildSavedListingRevisitBlock(item?.reviewDropSignal);
     if (revisitBlock) content.appendChild(revisitBlock);

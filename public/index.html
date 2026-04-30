@@ -117,6 +117,14 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
         </p>
       </div>
     </div>
+    <div class="sample-report-preview__actions">
+      <button id="sampleReportRunBtn" class="btn btn--primary" type="button">
+        Analyze sample listing
+      </button>
+      <span id="sampleReportDemoNote" class="sample-report-preview__note muted">
+        Uses Blue Bottle Coffee Shibuya Tokyo as a public sample.
+      </span>
+    </div>
   </div>
 
   <div id="operatorWorkflow" class="card operator-workflow">
@@ -591,6 +599,8 @@ const sampleReportSubtitleEl = document.getElementById("sampleReportSubtitle");
 const sampleReportCardLabelEls = Array.from(document.querySelectorAll("[data-sample-card-label]"));
 const sampleReportCardTitleEls = Array.from(document.querySelectorAll("[data-sample-card-title]"));
 const sampleReportCardBodyEls = Array.from(document.querySelectorAll("[data-sample-card-body]"));
+const sampleReportRunBtn = document.getElementById("sampleReportRunBtn");
+const sampleReportDemoNoteEl = document.getElementById("sampleReportDemoNote");
 const operatorWorkflowEyebrowEl = document.getElementById("operatorWorkflowEyebrow");
 const operatorWorkflowTitleEl = document.getElementById("operatorWorkflowTitle");
 const operatorWorkflowSubtitleEl = document.getElementById("operatorWorkflowSubtitle");
@@ -824,6 +834,9 @@ const COPY = {
     sampleReportTitle: "Preview the output before you analyze a listing",
     sampleReportSubtitle:
       "The paid value is the recurring reporting workflow: movement, proof, and a client-ready task in one place.",
+    sampleReportRunCta: "Analyze sample listing",
+    sampleReportDemoNote: "Uses Blue Bottle Coffee Shibuya Tokyo as a public sample.",
+    sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
     sampleReportCards: [
       {
         label: "Weekly diff",
@@ -1441,6 +1454,9 @@ const COPY = {
     sampleReportTitle: "分析前に、提出レポートの中身を確認できます",
     sampleReportSubtitle:
       "有料価値の中心は、継続レポート業務です。変化、根拠、クライアントに承認を取る実行案を1つの流れで出します。",
+    sampleReportRunCta: "サンプル店舗で分析する",
+    sampleReportDemoNote: "公開サンプルとして Blue Bottle Coffee Shibuya Tokyo を使います。",
+    sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
     sampleReportCards: [
       {
         label: "週次差分",
@@ -2238,6 +2254,8 @@ function renderStaticCopy() {
   if (sampleReportEyebrowEl) sampleReportEyebrowEl.textContent = t("sampleReportEyebrow");
   if (sampleReportTitleEl) sampleReportTitleEl.textContent = t("sampleReportTitle");
   if (sampleReportSubtitleEl) sampleReportSubtitleEl.textContent = t("sampleReportSubtitle");
+  if (sampleReportRunBtn) sampleReportRunBtn.textContent = t("sampleReportRunCta");
+  if (sampleReportDemoNoteEl) sampleReportDemoNoteEl.textContent = t("sampleReportDemoNote");
   const sampleCards = t("sampleReportCards");
   if (Array.isArray(sampleCards)) {
     sampleReportCardLabelEls.forEach((labelEl, index) => {
@@ -8786,7 +8804,7 @@ if (langToggleJa) {
   });
 }
 
-btn.addEventListener("click", async () => {
+async function analyzeCurrentInput() {
   resetUI();
 
   const q = input.value.trim();
@@ -8826,7 +8844,18 @@ btn.addEventListener("click", async () => {
   } finally {
     setLoading(false);
   }
-});
+}
+
+if (sampleReportRunBtn) {
+  sampleReportRunBtn.addEventListener("click", async () => {
+    if (input) {
+      input.value = t("sampleReportDemoQuery");
+    }
+    await analyzeCurrentInput();
+  });
+}
+
+btn.addEventListener("click", analyzeCurrentInput);
 
 // init
 renderLanguageToggle();

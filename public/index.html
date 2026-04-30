@@ -1183,6 +1183,22 @@ const COPY = {
       "Approve this task before the next check: {task}",
     clientReportRecommendationApprovalFallback:
       "Confirm the next check cadence before sending the next update.",
+    clientReportDeliveryTitle: "Message starter",
+    clientReportDeliverySubtitle:
+      "Use this as the email or chat wrapper before the report details.",
+    clientReportDeliverySubject: "Subject",
+    clientReportDeliveryOpening: "Opening",
+    clientReportDeliveryClosing: "Close",
+    clientReportSubjectReady: "GBP weekly update: {focus}",
+    clientReportSubjectBaseline: "GBP baseline report: {focus}",
+    clientReportOpeningReady:
+      "Here is this week's GBP update. Main point: {message}",
+    clientReportOpeningBaseline:
+      "Here is the first GBP baseline report. Main point: {message}",
+    clientReportClosingReady:
+      "If this direction looks right, we will run the listed task before the next check.",
+    clientReportClosingBaseline:
+      "We will use this as the baseline and report movement after the next check.",
     clientReportCopyButton: "Copy client update",
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
@@ -1826,6 +1842,22 @@ const COPY = {
       "次回チェックまでにこの実行案を進めてよいか確認します: {task}",
     clientReportRecommendationApprovalFallback:
       "次回チェックの運用を継続してよいか確認します。",
+    clientReportDeliveryTitle: "送付文面のたたき台",
+    clientReportDeliverySubtitle:
+      "メールやチャットに貼る冒頭文として使えます。",
+    clientReportDeliverySubject: "件名",
+    clientReportDeliveryOpening: "冒頭文",
+    clientReportDeliveryClosing: "締め文",
+    clientReportSubjectReady: "GBP週次レポート: {focus}",
+    clientReportSubjectBaseline: "GBP初回基準レポート: {focus}",
+    clientReportOpeningReady:
+      "今週のGBP確認結果です。要点は「{message}」です。",
+    clientReportOpeningBaseline:
+      "初回のGBP基準レポートです。要点は「{message}」です。",
+    clientReportClosingReady:
+      "この方向で問題なければ、次回チェックまでに記載の実行案を進めます。",
+    clientReportClosingBaseline:
+      "この内容を基準値として保存し、次回チェックで変化を報告します。",
     clientReportCopyButton: "報告文をコピー",
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
@@ -5350,6 +5382,41 @@ function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpeci
   };
 }
 
+function trimClientReportLine(text, maxLength = 72) {
+  const value = sentence(text);
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
+}
+
+function buildClientReportDeliveryCopy({
+  businessName,
+  firstView,
+  weeklyMovement,
+  taskBody,
+  readinessVerdict,
+}) {
+  const message = sentence(firstView?.headline || weeklyMovement || taskBody);
+  const focus = trimClientReportLine(
+    businessName ||
+      firstView?.title ||
+      firstView?.headline ||
+      langText("client listing", "対象店舗"),
+    currentLanguage === "ja" ? 42 : 64
+  );
+  const baseline = readinessVerdict?.tone === "baseline";
+  return {
+    subject: copyWithValues(
+      t(baseline ? "clientReportSubjectBaseline" : "clientReportSubjectReady"),
+      { focus }
+    ),
+    opening: copyWithValues(
+      t(baseline ? "clientReportOpeningBaseline" : "clientReportOpeningReady"),
+      { message: trimClientReportLine(message, currentLanguage === "ja" ? 86 : 132) }
+    ),
+    closing: t(baseline ? "clientReportClosingBaseline" : "clientReportClosingReady"),
+  };
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -5375,6 +5442,11 @@ function buildClientReportSummary(firstView, result = null) {
     result?.selectedCompetitor?.name ||
     result?.savedListing?.competitorName ||
     "";
+  const businessName =
+    result?.details?.name ||
+    result?.savedListing?.name ||
+    result?.savedListing?.query ||
+    "";
   const hasSpecificCompetitor =
     competitorName && !/selected competitor/i.test(competitorName);
   const latestActionCopy = latestAction
@@ -5398,6 +5470,13 @@ function buildClientReportSummary(firstView, result = null) {
     weeklyReady,
     latestAction,
     hasSpecificCompetitor,
+  });
+  const deliveryCopy = buildClientReportDeliveryCopy({
+    businessName,
+    firstView,
+    weeklyMovement,
+    taskBody,
+    readinessVerdict,
   });
   const handoffCopy = result
     ? buildActionHistoryClientHandoff(result, latestAction, currentTask)
@@ -5439,6 +5518,7 @@ function buildClientReportSummary(firstView, result = null) {
 
   return {
     readinessVerdict,
+    deliveryCopy,
     chips: [
       {
         label: t("clientReportReadinessWeeklyDiff"),
@@ -5529,6 +5609,7 @@ function buildClientReportCopyText({
   evidenceItems,
   nextCheckItems,
   readinessVerdict,
+  deliveryItems,
 }) {
   const summaryLines = (Array.isArray(safeItems) ? safeItems : [])
     .filter((item) => item?.label && item?.body)
@@ -5555,6 +5636,12 @@ function buildClientReportCopyText({
   return [
     sentence(t("clientReportSummaryTitle")),
     readinessCopy,
+    formatClientReportCopySection(
+      t("clientReportDeliveryTitle"),
+      (Array.isArray(deliveryItems) ? deliveryItems : [])
+        .filter((item) => item?.label && item?.body)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
+    ),
     handoff
       ? [sentence(t("clientReportCopyClientNote")), handoff].filter(Boolean).join("\n")
       : "",
@@ -5774,6 +5861,21 @@ function renderClientReportSummary(summary) {
   const readinessMissing = Array.isArray(readinessVerdict?.missing)
     ? readinessVerdict.missing.map((item) => sentence(item)).filter(Boolean)
     : [];
+  const deliveryCopy = normalized.deliveryCopy || {};
+  const deliveryItems = [
+    {
+      label: t("clientReportDeliverySubject"),
+      body: sentence(deliveryCopy.subject),
+    },
+    {
+      label: t("clientReportDeliveryOpening"),
+      body: sentence(deliveryCopy.opening),
+    },
+    {
+      label: t("clientReportDeliveryClosing"),
+      body: sentence(deliveryCopy.closing),
+    },
+  ].filter((item) => item.body);
   const reportLink = savedReportShareUrl(currentResult?.savedListing?.id);
 
   if (!safeItems.length) {
@@ -5794,6 +5896,7 @@ function renderClientReportSummary(summary) {
     evidenceItems,
     nextCheckItems,
     readinessVerdict,
+    deliveryItems,
   });
 
   clientReportSummaryEl.classList.remove("hidden");
@@ -5849,6 +5952,30 @@ function renderClientReportSummary(summary) {
                   </div>`
                 : ""
             }
+          </div>`
+        : ""
+    }
+    ${
+      deliveryItems.length
+        ? `<div class="client-report-summary__delivery">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(t("clientReportDeliveryTitle"))}</div>
+              <div class="client-report-summary__support-subtitle">${escapeHtml(
+                t("clientReportDeliverySubtitle")
+              )}</div>
+            </div>
+            <div class="client-report-summary__delivery-grid">
+              ${deliveryItems
+                .map(
+                  (item) => `
+                    <div class="client-report-summary__delivery-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
           </div>`
         : ""
     }

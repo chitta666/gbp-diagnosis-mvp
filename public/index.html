@@ -835,6 +835,9 @@ const COPY = {
     sampleReportSubtitle:
       "The paid value is the recurring reporting workflow: movement, proof, and a client-ready task in one place.",
     sampleReportRunCta: "Analyze sample listing",
+    sampleReportRunningCta: "Analyzing sample...",
+    sampleReportComplete:
+      "Sample report is ready. Review the client summary, evidence, and recommended task below.",
     sampleReportDemoNote: "Uses Blue Bottle Coffee Shibuya Tokyo as a public sample.",
     sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
     sampleReportCards: [
@@ -1455,6 +1458,9 @@ const COPY = {
     sampleReportSubtitle:
       "有料価値の中心は、継続レポート業務です。変化、根拠、クライアントに承認を取る実行案を1つの流れで出します。",
     sampleReportRunCta: "サンプル店舗で分析する",
+    sampleReportRunningCta: "サンプルを分析中...",
+    sampleReportComplete:
+      "サンプルレポートを表示しました。下のクライアント要約、根拠、推奨タスクを確認してください。",
     sampleReportDemoNote: "公開サンプルとして Blue Bottle Coffee Shibuya Tokyo を使います。",
     sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
     sampleReportCards: [
@@ -2065,6 +2071,7 @@ let currentClientReportCopyText = "";
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let actionHistoryBusy = false;
+let sampleReportRunBusy = false;
 let feedbackIntent = "";
 let competitorSearchInFlight = false;
 let competitorSearchState = {
@@ -2254,7 +2261,7 @@ function renderStaticCopy() {
   if (sampleReportEyebrowEl) sampleReportEyebrowEl.textContent = t("sampleReportEyebrow");
   if (sampleReportTitleEl) sampleReportTitleEl.textContent = t("sampleReportTitle");
   if (sampleReportSubtitleEl) sampleReportSubtitleEl.textContent = t("sampleReportSubtitle");
-  if (sampleReportRunBtn) sampleReportRunBtn.textContent = t("sampleReportRunCta");
+  updateSampleReportRunButton(btn?.disabled === true);
   if (sampleReportDemoNoteEl) sampleReportDemoNoteEl.textContent = t("sampleReportDemoNote");
   const sampleCards = t("sampleReportCards");
   if (Array.isArray(sampleCards)) {
@@ -3566,8 +3573,38 @@ function showCard() {
   card.classList.remove("hidden");
 }
 
+function updateSampleReportRunButton(isLoading = false) {
+  if (!sampleReportRunBtn) return;
+  sampleReportRunBtn.disabled = Boolean(isLoading) || sampleReportRunBusy;
+  sampleReportRunBtn.textContent = sampleReportRunBusy
+    ? t("sampleReportRunningCta")
+    : t("sampleReportRunCta");
+}
+
+function scrollReportIntoView({ afterPaint = false } = {}) {
+  if (!card || card.classList.contains("hidden")) return;
+
+  const prefersReducedMotion =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const scroll = () => {
+    card.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  };
+
+  if (afterPaint && typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(scroll);
+    return;
+  }
+
+  scroll();
+}
+
 function setLoading(isLoading) {
   btn.disabled = isLoading;
+  updateSampleReportRunButton(isLoading);
 
   if (isLoading) {
     msg.textContent = t("loadingListing");
@@ -8804,7 +8841,10 @@ if (langToggleJa) {
   });
 }
 
-async function analyzeCurrentInput() {
+async function analyzeCurrentInput(options = {}) {
+  const shouldFocusReport = options.focusReport === true;
+  const completeMessageKey = options.completeMessageKey || "analysisComplete";
+
   resetUI();
 
   const q = input.value.trim();
@@ -8815,6 +8855,7 @@ async function analyzeCurrentInput() {
   }
 
   setLoading(true);
+  if (shouldFocusReport) scrollReportIntoView({ afterPaint: true });
 
   try {
     const data = await fetchApiJson(`/api/diagnose?q=${encodeURIComponent(q)}`);
@@ -8838,7 +8879,8 @@ async function analyzeCurrentInput() {
       data: hydrated,
     });
     setUrlSavedParam(null);
-    msg.textContent = t("analysisComplete");
+    msg.textContent = t(completeMessageKey);
+    if (shouldFocusReport) scrollReportIntoView({ afterPaint: true });
   } catch (e) {
     showError(e?.message || String(e));
   } finally {
@@ -8848,10 +8890,23 @@ async function analyzeCurrentInput() {
 
 if (sampleReportRunBtn) {
   sampleReportRunBtn.addEventListener("click", async () => {
+    if (sampleReportRunBusy) return;
+    sampleReportRunBusy = true;
+    updateSampleReportRunButton(true);
+
     if (input) {
       input.value = t("sampleReportDemoQuery");
     }
-    await analyzeCurrentInput();
+
+    try {
+      await analyzeCurrentInput({
+        focusReport: true,
+        completeMessageKey: "sampleReportComplete",
+      });
+    } finally {
+      sampleReportRunBusy = false;
+      updateSampleReportRunButton(false);
+    }
   });
 }
 

@@ -726,6 +726,66 @@ body.client-share-view .print-cover__meta-value {
   background: rgba(255, 251, 235, 0.74);
 }
 
+.client-report-summary__evidence-basis {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.client-report-summary__evidence-basis-title {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.client-report-summary__evidence-basis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.client-report-summary__evidence-basis-item {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.84);
+}
+
+.client-report-summary__evidence-basis-item span {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-report-summary__evidence-basis-item strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.client-report-summary__evidence-basis-item--ready {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: rgba(240, 253, 244, 0.74);
+}
+
+.client-report-summary__evidence-basis-item--pending {
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(255, 251, 235, 0.74);
+}
+
 .client-report-summary__support-subtitle {
   margin-top: 4px;
   font-size: 12px;
@@ -2864,6 +2924,7 @@ body.client-share-view .print-cover__meta-value {
 
   .client-report-summary__support-list,
   .client-report-summary__next-check-list,
+  .client-report-summary__evidence-basis-grid,
   .saved-plan__value-list,
   .saved-plan__price-row,
   body.client-share-view .print-cover__package-grid,
@@ -3148,6 +3209,8 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__brief-item,
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
+  .client-report-summary__evidence-basis,
+  .client-report-summary__evidence-basis-item,
   .client-report-summary__evidence-item,
   .client-report-summary__next-check,
   .action-history__brief,
@@ -3161,6 +3224,7 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__brief-grid,
   .client-report-summary__support-list,
   .client-report-summary__next-check-list,
+  .client-report-summary__evidence-basis-grid,
   .action-history__brief-grid,
   .action-history__grid {
     grid-template-columns: 1fr;
@@ -3173,6 +3237,8 @@ body.client-share-view .print-cover__meta-value {
   .action-history__item,
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,
+  .client-report-summary__evidence-basis,
+  .client-report-summary__evidence-basis-item,
   .client-report-summary__handoff,
   .action-history__brief,
   .action-history__brief-item,
@@ -3189,6 +3255,7 @@ body.client-share-view .print-cover__meta-value {
   .action-history__title,
   .client-report-summary__title,
   .client-report-summary__body,
+  .client-report-summary__evidence-basis-item strong,
   .client-report-summary__evidence-body,
   .client-report-summary__handoff-body,
   .client-report-summary__next-check-list,

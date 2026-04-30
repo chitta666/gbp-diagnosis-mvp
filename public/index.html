@@ -1005,6 +1005,18 @@ const COPY = {
     clientReportEvidenceTitle: "Evidence pack",
     clientReportEvidenceSubtitle:
       "Use these proof points when the client asks why this action matters.",
+    clientReportEvidenceBasisTitle: "Evidence basis",
+    clientReportEvidenceBasisReviews: "Review text",
+    clientReportEvidenceBasisCompetitor: "Competitor",
+    clientReportEvidenceBasisGoogle: "Google signals",
+    clientReportEvidenceBasisDepth: "Signal depth",
+    clientReportEvidenceBasisSampleCount: "{count} visible",
+    clientReportEvidenceBasisCollecting: "Collecting",
+    clientReportEvidenceBasisSelected: "Selected",
+    clientReportEvidenceBasisIncluded: "Included",
+    clientReportEvidenceBasisMissing: "Missing",
+    clientReportEvidenceBasisEarly: "Early signal",
+    clientReportEvidenceBasisSteady: "Steady signal",
     clientReportEvidenceReviewSample: "Review sample: {count} recent visible reviews.",
     clientReportEvidenceReviewCollecting:
       "Review text signal: collecting enough recent review text for stronger evidence.",
@@ -1552,6 +1564,18 @@ const COPY = {
     clientReportEvidenceTitle: "根拠パック",
     clientReportEvidenceSubtitle:
       "なぜこの施策を提案するのか聞かれたときに、そのまま説明材料として使えます。",
+    clientReportEvidenceBasisTitle: "根拠の前提",
+    clientReportEvidenceBasisReviews: "レビュー本文",
+    clientReportEvidenceBasisCompetitor: "競合比較",
+    clientReportEvidenceBasisGoogle: "Googleシグナル",
+    clientReportEvidenceBasisDepth: "根拠の厚み",
+    clientReportEvidenceBasisSampleCount: "{count}件",
+    clientReportEvidenceBasisCollecting: "収集中",
+    clientReportEvidenceBasisSelected: "選択済み",
+    clientReportEvidenceBasisIncluded: "反映済み",
+    clientReportEvidenceBasisMissing: "不足",
+    clientReportEvidenceBasisEarly: "初期シグナル",
+    clientReportEvidenceBasisSteady: "安定シグナル",
     clientReportEvidenceReviewSample: "レビューサンプル: 直近で見えているレビュー {count} 件。",
     clientReportEvidenceReviewCollecting:
       "レビュー本文シグナル: より強い根拠を出すための直近レビュー本文を収集中です。",
@@ -4736,6 +4760,7 @@ function buildClientReportEvidencePack(result) {
     return {
       title: t("clientReportEvidenceTitle"),
       subtitle: t("clientReportEvidenceSubtitle"),
+      basisItems: [],
       items: [],
     };
   }
@@ -4743,12 +4768,62 @@ function buildClientReportEvidencePack(result) {
   const reviewClues = result?.reviewClues ?? {};
   const compare = result?.compare ?? {};
   const photo = result?.photoAnalysis ?? {};
+  const reviewSampleCount = Number.isFinite(reviewClues?.reviewCountInSample)
+    ? Number(reviewClues.reviewCountInSample)
+    : null;
+  const googleSignal = Array.isArray(reviewClues?.googleSignals)
+    ? sentence(reviewClues.googleSignals[0])
+    : "";
+  const hasCompetitor =
+    Boolean(result?.selectedCompetitor?.name) ||
+    Boolean(result?.savedListing?.competitorName) ||
+    Boolean(compare?.competitor?.todayTotal);
+  const hasGoogleSignal =
+    Boolean(googleSignal) ||
+    Number.isFinite(compare?.my?.todayTotal) ||
+    Number.isFinite(photo?.myPhotos);
+  const isSteadySignal =
+    reviewSampleCount >= 4 ||
+    reviewClues?.confidence === "medium" ||
+    compare?.status === "ready";
+  const basisItems = [
+    {
+      label: t("clientReportEvidenceBasisReviews"),
+      value: Number.isFinite(reviewSampleCount)
+        ? copyWithValues(t("clientReportEvidenceBasisSampleCount"), {
+            count: formatCompactCount(reviewSampleCount),
+          })
+        : t("clientReportEvidenceBasisCollecting"),
+      tone: Number.isFinite(reviewSampleCount) && reviewSampleCount > 0 ? "ready" : "pending",
+    },
+    {
+      label: t("clientReportEvidenceBasisCompetitor"),
+      value: hasCompetitor
+        ? t("clientReportEvidenceBasisSelected")
+        : t("clientReportEvidenceBasisMissing"),
+      tone: hasCompetitor ? "ready" : "pending",
+    },
+    {
+      label: t("clientReportEvidenceBasisGoogle"),
+      value: hasGoogleSignal
+        ? t("clientReportEvidenceBasisIncluded")
+        : t("clientReportEvidenceBasisCollecting"),
+      tone: hasGoogleSignal ? "ready" : "pending",
+    },
+    {
+      label: t("clientReportEvidenceBasisDepth"),
+      value: isSteadySignal
+        ? t("clientReportEvidenceBasisSteady")
+        : t("clientReportEvidenceBasisEarly"),
+      tone: isSteadySignal ? "ready" : "pending",
+    },
+  ];
   const items = [];
 
-  if (Number.isFinite(reviewClues?.reviewCountInSample)) {
+  if (Number.isFinite(reviewSampleCount)) {
     items.push(
       copyWithValues(t("clientReportEvidenceReviewSample"), {
-        count: formatCompactCount(reviewClues.reviewCountInSample),
+        count: formatCompactCount(reviewSampleCount),
       })
     );
   } else {
@@ -4773,9 +4848,6 @@ function buildClientReportEvidencePack(result) {
     );
   }
 
-  const googleSignal = Array.isArray(reviewClues?.googleSignals)
-    ? sentence(reviewClues.googleSignals[0])
-    : "";
   if (googleSignal) {
     items.push(copyWithValues(t("clientReportEvidenceGoogle"), { signal: googleSignal }));
   }
@@ -4830,6 +4902,7 @@ function buildClientReportEvidencePack(result) {
   return {
     title: t("clientReportEvidenceTitle"),
     subtitle: t("clientReportEvidenceSubtitle"),
+    basisItems,
     items: uniqueStrings(items.map(sentence)).slice(0, 5),
   };
 }
@@ -4997,6 +5070,7 @@ function buildClientReportCopyText({
   handoff,
   reportLink,
   sendChecklistItems,
+  evidenceBasisItems,
   evidenceItems,
   nextCheckItems,
 }) {
@@ -5022,6 +5096,12 @@ function buildClientReportCopyText({
       t("clientReportCopyChecklist"),
       sendChecklistItems,
       { ordered: true }
+    ),
+    formatClientReportCopySection(
+      t("clientReportEvidenceBasisTitle"),
+      (Array.isArray(evidenceBasisItems) ? evidenceBasisItems : [])
+        .filter((item) => item?.label && item?.value)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.value)}`)
     ),
     formatClientReportCopySection(t("clientReportCopyEvidence"), evidenceItems),
     formatClientReportCopySection(t("clientReportCopyNextCheck"), nextCheckItems),
@@ -5195,6 +5275,9 @@ function renderClientReportSummary(summary) {
     ? nextCheck.items.map((item) => sentence(item)).filter(Boolean)
     : [];
   const evidence = normalized.evidence || {};
+  const evidenceBasisItems = Array.isArray(evidence.basisItems)
+    ? evidence.basisItems.filter((item) => item?.label && item?.value)
+    : [];
   const evidenceItems = Array.isArray(evidence.items)
     ? evidence.items.map((item) => sentence(item)).filter(Boolean)
     : [];
@@ -5217,6 +5300,7 @@ function renderClientReportSummary(summary) {
     handoff,
     reportLink,
     sendChecklistItems,
+    evidenceBasisItems,
     evidenceItems,
     nextCheckItems,
   });
@@ -5316,6 +5400,29 @@ function renderClientReportSummary(summary) {
                   : ""
               }
             </div>
+            ${
+              evidenceBasisItems.length
+                ? `<div class="client-report-summary__evidence-basis">
+                    <div class="client-report-summary__evidence-basis-title">${escapeHtml(
+                      t("clientReportEvidenceBasisTitle")
+                    )}</div>
+                    <div class="client-report-summary__evidence-basis-grid">
+                      ${evidenceBasisItems
+                        .map(
+                          (item) => `
+                            <div class="client-report-summary__evidence-basis-item client-report-summary__evidence-basis-item--${escapeAttr(
+                              item.tone || "pending"
+                            )}">
+                              <span>${escapeHtml(item.label)}</span>
+                              <strong>${escapeHtml(item.value)}</strong>
+                            </div>
+                          `
+                        )
+                        .join("")}
+                    </div>
+                  </div>`
+                : ""
+            }
             <ul class="client-report-summary__support-list client-report-summary__evidence-list">
               ${evidenceItems.map(renderClientReportEvidenceListItem).join("")}
             </ul>

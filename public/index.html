@@ -968,6 +968,10 @@ const COPY = {
     clientReportSummaryTitle: "One-page update for client reporting",
     clientReportSummarySubtitle:
       "Copy this into a client update or export it with the PDF.",
+    clientReportBriefTitle: "Report at a glance",
+    clientReportBriefMessage: "Client message",
+    clientReportBriefProof: "Proof",
+    clientReportBriefDecision: "Next decision",
     clientReportCopyButton: "Copy client update",
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
@@ -1511,6 +1515,10 @@ const COPY = {
     clientReportSummaryTitle: "定例報告に使える1ページ要約",
     clientReportSummarySubtitle:
       "このままクライアント報告に転記するか、PDFに含めて共有できます。",
+    clientReportBriefTitle: "送付時の要点",
+    clientReportBriefMessage: "伝えること",
+    clientReportBriefProof: "根拠",
+    clientReportBriefDecision: "次に決めること",
     clientReportCopyButton: "報告文をコピー",
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
@@ -4922,6 +4930,20 @@ function buildClientReportSummary(firstView, result = null) {
         tone: hasSpecificCompetitor ? "ready" : "pending",
       },
     ],
+    briefItems: [
+      {
+        label: t("clientReportBriefMessage"),
+        body: sentence(firstView?.headline || summaryLines[0]),
+      },
+      {
+        label: t("clientReportBriefProof"),
+        body: proofBody || sentence(evidencePack?.items?.[0]),
+      },
+      {
+        label: t("clientReportBriefDecision"),
+        body: sentence(taskBody),
+      },
+    ].filter((item) => item.body),
     handoff: sentence(handoffCopy),
     nextCheck: {
       title: t("clientReportNextCheckTitle"),
@@ -4971,6 +4993,7 @@ function formatClientReportCopySection(title, items, options = {}) {
 
 function buildClientReportCopyText({
   safeItems,
+  briefItems,
   handoff,
   reportLink,
   sendChecklistItems,
@@ -4986,6 +5009,12 @@ function buildClientReportCopyText({
     handoff
       ? [sentence(t("clientReportCopyClientNote")), handoff].filter(Boolean).join("\n")
       : "",
+    formatClientReportCopySection(
+      t("clientReportBriefTitle"),
+      (Array.isArray(briefItems) ? briefItems : [])
+        .filter((item) => item?.label && item?.body)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
+    ),
     reportLink
       ? [sentence(t("clientReportCopyReportLink")), reportLink].filter(Boolean).join("\n")
       : "",
@@ -5124,6 +5153,9 @@ function renderClientReportSummary(summary) {
   const safeChips = Array.isArray(normalized.chips)
     ? normalized.chips.filter((chip) => chip?.label && chip?.value)
     : [];
+  const safeBriefItems = Array.isArray(normalized.briefItems)
+    ? normalized.briefItems.filter((item) => item?.label && item?.body)
+    : [];
   const handoff = sentence(normalized.handoff || "");
   const nextCheck = normalized.nextCheck || {};
   const nextCheckItems = Array.isArray(nextCheck.items)
@@ -5148,6 +5180,7 @@ function renderClientReportSummary(summary) {
 
   currentClientReportCopyText = buildClientReportCopyText({
     safeItems,
+    briefItems: safeBriefItems,
     handoff,
     reportLink,
     sendChecklistItems,
@@ -5187,6 +5220,25 @@ function renderClientReportSummary(summary) {
         </button>
       </div>
     </div>
+    ${
+      safeBriefItems.length
+        ? `<div class="client-report-summary__brief">
+            <div class="client-report-summary__label">${escapeHtml(t("clientReportBriefTitle"))}</div>
+            <div class="client-report-summary__brief-grid">
+              ${safeBriefItems
+                .map(
+                  (item) => `
+                    <div class="client-report-summary__brief-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>`
+        : ""
+    }
     ${
       handoff
         ? `<div class="client-report-summary__handoff">

@@ -1145,6 +1145,16 @@ const COPY = {
     savedListingSelectedCompetitor: "Selected competitor",
     savedListingChangeFallback: "We'll compare changes after your next check",
     savedWeeklyRollupTitle: "Weekly change summary",
+    savedWeeklyReminderTitle: "Weekly check reminder",
+    savedWeeklyReminderDue:
+      "{count} saved client(s) are ready for a weekly re-check. Open the queue before the next client update.",
+    savedWeeklyReminderSoon:
+      "{count} saved client(s) are coming due soon. Keep the same competitor selected so the next report shows movement.",
+    savedWeeklyReminderClear:
+      "No saved client is due yet. Keep using the queue when weekly movement appears.",
+    savedWeeklyReminderDueChip: "Due now {count}",
+    savedWeeklyReminderSoonChip: "Due soon {count}",
+    savedWeeklyReminderFreshChip: "On track {count}",
     savedWeeklyDiffLabel: "Weekly diff",
     savedWeeklyClientNoteLabel: "Client note",
     savedWeeklyNextActionLabel: "This week",
@@ -1170,6 +1180,11 @@ const COPY = {
     savedWorkQueueReadinessLabel: "Report readiness",
     savedWorkQueueReadyState: "Ready",
     savedWorkQueueNeedsWorkState: "Needs work",
+    savedWorkQueueCadenceLabel: "Check cadence",
+    savedWorkQueueDueNow: "Weekly check due",
+    savedWorkQueueDueSoon: "Due in {days}d",
+    savedWorkQueueFresh: "Next check {date}",
+    savedWorkQueueNoDate: "Set baseline today",
     clientReportSummaryEyebrow: "Client-ready summary",
     clientReportSummaryTitle: "One-page update for client reporting",
     clientReportSummarySubtitle:
@@ -1832,6 +1847,16 @@ const COPY = {
     savedListingSelectedCompetitor: "選択中の競合",
     savedListingChangeFallback: "次回の確認後に変化を比較します",
     savedWeeklyRollupTitle: "今週の変化サマリー",
+    savedWeeklyReminderTitle: "週次チェックリマインド",
+    savedWeeklyReminderDue:
+      "{count}件の保存済みクライアントが週次再チェックのタイミングです。次回報告前にキューを確認してください。",
+    savedWeeklyReminderSoon:
+      "{count}件の保存済みクライアントがもうすぐ確認タイミングです。同じ競合で見続けると次回レポートで変化を出せます。",
+    savedWeeklyReminderClear:
+      "今すぐ再チェックすべき保存済みクライアントはありません。週次変化が出たらキューで確認できます。",
+    savedWeeklyReminderDueChip: "今日確認 {count}",
+    savedWeeklyReminderSoonChip: "まもなく {count}",
+    savedWeeklyReminderFreshChip: "順調 {count}",
     savedWeeklyDiffLabel: "今週の変化",
     savedWeeklyClientNoteLabel: "定例で伝えること",
     savedWeeklyNextActionLabel: "今週やること",
@@ -1857,6 +1882,11 @@ const COPY = {
     savedWorkQueueReadinessLabel: "レポート準備",
     savedWorkQueueReadyState: "準備済み",
     savedWorkQueueNeedsWorkState: "要対応",
+    savedWorkQueueCadenceLabel: "確認タイミング",
+    savedWorkQueueDueNow: "週次チェック時期",
+    savedWorkQueueDueSoon: "あと{days}日",
+    savedWorkQueueFresh: "次回 {date}",
+    savedWorkQueueNoDate: "今日を基準にする",
     clientReportSummaryEyebrow: "クライアント提出用サマリー",
     clientReportSummaryTitle: "定例報告に使える1ページ要約",
     clientReportSummarySubtitle:
@@ -2687,6 +2717,33 @@ function formatDateTime(value) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEKLY_CHECK_INTERVAL_DAYS = 7;
+const WEEKLY_CHECK_SOON_DAYS = 2;
+
+function parseDateMs(value) {
+  if (!value) return null;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? null : time;
+}
+
+function formatShortDate(value) {
+  const time = parseDateMs(value);
+  if (!time) return "";
+
+  const locale = currentLanguage === "ja" ? "ja-JP" : "en-US";
+  return new Date(time).toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function addDaysIso(value, days) {
+  const time = parseDateMs(value);
+  if (!time) return "";
+  return new Date(time + days * DAY_MS).toISOString();
 }
 
 function formatReportDate(value) {
@@ -8066,6 +8123,67 @@ function formatWeeklyMetricValue(metric) {
   return t("notAvailableYet");
 }
 
+function savedListingCheckTimestamp(item) {
+  return (
+    item?.lastCheckedAt ||
+    item?.lastDailyRunAt ||
+    item?.updatedAt ||
+    item?.createdAt ||
+    ""
+  );
+}
+
+function buildSavedWeeklyCadence(item) {
+  const checkedAt = savedListingCheckTimestamp(item);
+  const checkedTime = parseDateMs(checkedAt);
+  if (!checkedTime) {
+    return {
+      status: "due",
+      score: 18,
+      dueInDays: 0,
+      label: t("savedWorkQueueNoDate"),
+      checkedAt: "",
+      nextCheckAt: "",
+    };
+  }
+
+  const daysSince = Math.max(0, Math.floor((Date.now() - checkedTime) / DAY_MS));
+  const dueInDays = Math.max(0, WEEKLY_CHECK_INTERVAL_DAYS - daysSince);
+  const nextCheckAt = addDaysIso(checkedAt, WEEKLY_CHECK_INTERVAL_DAYS);
+  const nextCheckDate = formatShortDate(nextCheckAt);
+
+  if (daysSince >= WEEKLY_CHECK_INTERVAL_DAYS) {
+    return {
+      status: "due",
+      score: 22,
+      dueInDays: 0,
+      label: t("savedWorkQueueDueNow"),
+      checkedAt,
+      nextCheckAt,
+    };
+  }
+
+  if (dueInDays <= WEEKLY_CHECK_SOON_DAYS) {
+    return {
+      status: "soon",
+      score: 10,
+      dueInDays,
+      label: copyWithValues(t("savedWorkQueueDueSoon"), { days: dueInDays }),
+      checkedAt,
+      nextCheckAt,
+    };
+  }
+
+  return {
+    status: "fresh",
+    score: 0,
+    dueInDays,
+    label: copyWithValues(t("savedWorkQueueFresh"), { date: nextCheckDate || "-" }),
+    checkedAt,
+    nextCheckAt,
+  };
+}
+
 function renderSavedWeeklyRollup(listings) {
   if (!savedWeeklyRollupEl) return;
 
@@ -8085,15 +8203,30 @@ function renderSavedWeeklyRollup(listings) {
     (summary) => summary.tone === "collecting" || summary.status !== "ready"
   ).length;
   const stableCount = Math.max(0, summaries.length - warningCount - positiveCount - collectingCount);
+  const cadenceItems = (Array.isArray(listings) ? listings : [])
+    .map(buildSavedWeeklyCadence)
+    .filter(Boolean);
+  const dueCount = cadenceItems.filter((item) => item.status === "due").length;
+  const soonCount = cadenceItems.filter((item) => item.status === "soon").length;
+  const freshCount = Math.max(0, cadenceItems.length - dueCount - soonCount);
   const mainCopy =
     currentLanguage === "ja"
       ? `${warningCount}件が要確認、${positiveCount}件が改善、${stableCount}件が安定、${collectingCount}件が収集中です。`
       : `${warningCount} need attention, ${positiveCount} improved, ${stableCount} are stable, and ${collectingCount} are collecting history.`;
+  const reminderCopy = dueCount
+    ? copyWithValues(t("savedWeeklyReminderDue"), { count: dueCount })
+    : soonCount
+      ? copyWithValues(t("savedWeeklyReminderSoon"), { count: soonCount })
+      : t("savedWeeklyReminderClear");
 
   savedWeeklyRollupEl.classList.remove("hidden");
   savedWeeklyRollupEl.innerHTML = `
     <div class="saved-weekly-rollup__label">${escapeHtml(t("savedWeeklyRollupTitle"))}</div>
     <div class="saved-weekly-rollup__main">${escapeHtml(mainCopy)}</div>
+    <div class="saved-weekly-rollup__reminder">
+      <div class="saved-weekly-rollup__reminder-label">${escapeHtml(t("savedWeeklyReminderTitle"))}</div>
+      <div class="saved-weekly-rollup__reminder-body">${escapeHtml(reminderCopy)}</div>
+    </div>
     <div class="saved-weekly-rollup__chips">
       <span class="saved__badge saved__badge--warning">${escapeHtml(
         currentLanguage === "ja" ? `要確認 ${warningCount}` : `Attention ${warningCount}`
@@ -8103,6 +8236,15 @@ function renderSavedWeeklyRollup(listings) {
       )}</span>
       <span class="saved__badge saved__badge--quiet">${escapeHtml(
         currentLanguage === "ja" ? `収集中 ${collectingCount}` : `Collecting ${collectingCount}`
+      )}</span>
+      <span class="saved__badge saved__badge--warning">${escapeHtml(
+        copyWithValues(t("savedWeeklyReminderDueChip"), { count: dueCount })
+      )}</span>
+      <span class="saved__badge saved__badge--accent">${escapeHtml(
+        copyWithValues(t("savedWeeklyReminderSoonChip"), { count: soonCount })
+      )}</span>
+      <span class="saved__badge saved__badge--quiet">${escapeHtml(
+        copyWithValues(t("savedWeeklyReminderFreshChip"), { count: freshCount })
       )}</span>
     </div>
   `;
@@ -8344,6 +8486,7 @@ function buildSavedWorkQueueItem(item) {
   let score = 0;
   const readiness = getSavedListingReadiness(item);
   const outcome = buildSavedWorkQueueOutcome(item);
+  const cadence = buildSavedWeeklyCadence(item);
 
   if (item?.latestAction?.status === "planned") {
     score += 34;
@@ -8351,6 +8494,14 @@ function buildSavedWorkQueueItem(item) {
   } else if (outcome) {
     score += outcome.score;
     reasons.push(outcome.reason);
+  }
+
+  if (cadence.status === "due") {
+    score += cadence.score;
+    reasons.push(cadence.label);
+  } else if (cadence.status === "soon") {
+    score += cadence.score;
+    reasons.push(cadence.label);
   }
 
   if (item?.reviewDropSignal?.visible === true) {
@@ -8407,6 +8558,7 @@ function buildSavedWorkQueueItem(item) {
     readinessLabel: `${readiness.scoreLabel} · ${t(
       readiness.complete ? "savedWorkQueueReadyState" : "savedWorkQueueNeedsWorkState"
     )}`,
+    cadenceLabel: cadence.label,
     outcomeLabel: outcome ? actionHistoryStatusLabel(item.latestAction.status) : "",
     reasons: uniqueStrings(reasons.map(sentence)).filter(Boolean).slice(0, 3),
     nextAction: sentence(nextAction),
@@ -8459,12 +8611,16 @@ function renderSavedWorkQueue(listings) {
                     <span>${escapeHtml(t("savedWorkQueueNextLabel"))}</span>
                     <strong>${escapeHtml(item.nextAction)}</strong>
                   </div>
-                  <div class="saved-work-queue__brief-item">
-                    <span>${escapeHtml(t("savedWorkQueueReadinessLabel"))}</span>
-                    <strong>${escapeHtml(item.readinessLabel)}</strong>
-                  </div>
-                  ${
-                    item.outcomeLabel
+	                  <div class="saved-work-queue__brief-item">
+	                    <span>${escapeHtml(t("savedWorkQueueReadinessLabel"))}</span>
+	                    <strong>${escapeHtml(item.readinessLabel)}</strong>
+	                  </div>
+	                  <div class="saved-work-queue__brief-item">
+	                    <span>${escapeHtml(t("savedWorkQueueCadenceLabel"))}</span>
+	                    <strong>${escapeHtml(item.cadenceLabel)}</strong>
+	                  </div>
+	                  ${
+	                    item.outcomeLabel
                       ? `<div class="saved-work-queue__brief-item">
                           <span>${escapeHtml(t("actionOutcomeTitle"))}</span>
                           <strong>${escapeHtml(item.outcomeLabel)}</strong>

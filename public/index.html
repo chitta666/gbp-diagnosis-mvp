@@ -1202,9 +1202,20 @@ const COPY = {
     clientReportCopyChecklist: "Send checklist",
     clientReportCopyEvidence: "Evidence pack",
     clientReportCopyNextCheck: "Next check",
+    clientReportCopyVerdict: "Send readiness",
     clientReportWeeklyMovement: "Weekly movement",
     clientReportProof: "Proof to attach",
     clientReportHandoffLabel: "Ready-to-send note",
+    clientReportVerdictReadyTitle: "Ready to send",
+    clientReportVerdictReadyBody:
+      "The report has a selected competitor, a task, and weekly movement context. Review the copy, then send or export.",
+    clientReportVerdictPartialTitle: "Sendable with a note",
+    clientReportVerdictPartialBody:
+      "This is usable for the client update. Mention which material is still collecting before presenting it as a trend.",
+    clientReportVerdictBaselineTitle: "Baseline report",
+    clientReportVerdictBaselineBody:
+      "Use this as the first baseline report, then save and reopen it next week to prove movement.",
+    clientReportVerdictMissingLabel: "Still needs",
     clientReportWeeklyCollecting:
       "Weekly movement will become stronger after this saved listing is checked again.",
     clientReportProofCompetitor: "Competitor benchmark: {competitor}",
@@ -1834,9 +1845,20 @@ const COPY = {
     clientReportCopyChecklist: "提出チェックリスト",
     clientReportCopyEvidence: "根拠パック",
     clientReportCopyNextCheck: "次回チェック",
+    clientReportCopyVerdict: "送付準備",
     clientReportWeeklyMovement: "今週の変化",
     clientReportProof: "添付する根拠",
     clientReportHandoffLabel: "そのまま送れる報告文",
+    clientReportVerdictReadyTitle: "送付準備済み",
+    clientReportVerdictReadyBody:
+      "競合、実行タスク、週次変化の文脈が揃っています。コピー内容を確認して、そのまま送付またはPDF共有できます。",
+    clientReportVerdictPartialTitle: "補足つきで送付可能",
+    clientReportVerdictPartialBody:
+      "クライアント報告には使えます。まだ収集中の材料は、傾向ではなく補足として伝えてください。",
+    clientReportVerdictBaselineTitle: "初回基準レポート",
+    clientReportVerdictBaselineBody:
+      "まず初回の基準レポートとして使い、保存して次週もう一度開くと変化を証明できます。",
+    clientReportVerdictMissingLabel: "未完了",
     clientReportWeeklyCollecting:
       "この保存済み店舗を次回もう一度確認すると、週次変化がより強い報告材料になります。",
     clientReportProofCompetitor: "比較対象: {competitor}",
@@ -5295,6 +5317,39 @@ function buildClientReportSendChecklist(task, evidencePack) {
   };
 }
 
+function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpecificCompetitor }) {
+  const missing = [];
+  if (!weeklyReady) missing.push(t("clientReportReadinessWeeklyDiff"));
+  if (!latestAction) missing.push(t("clientReportReadinessActionHistory"));
+  if (!hasSpecificCompetitor) missing.push(t("clientReportReadinessCompetitor"));
+
+  const readyCount = 3 - missing.length;
+  if (readyCount === 3) {
+    return {
+      tone: "ready",
+      title: t("clientReportVerdictReadyTitle"),
+      body: t("clientReportVerdictReadyBody"),
+      missing: [],
+    };
+  }
+
+  if (readyCount >= 2) {
+    return {
+      tone: "partial",
+      title: t("clientReportVerdictPartialTitle"),
+      body: t("clientReportVerdictPartialBody"),
+      missing,
+    };
+  }
+
+  return {
+    tone: "baseline",
+    title: t("clientReportVerdictBaselineTitle"),
+    body: t("clientReportVerdictBaselineBody"),
+    missing,
+  };
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -5339,6 +5394,11 @@ function buildClientReportSummary(firstView, result = null) {
   ];
   const proofBody = sentence(uniqueStrings(proofItems).join(" / "));
   const weeklyReady = weeklySummary?.status === "ready";
+  const readinessVerdict = buildClientReportReadinessVerdict({
+    weeklyReady,
+    latestAction,
+    hasSpecificCompetitor,
+  });
   const handoffCopy = result
     ? buildActionHistoryClientHandoff(result, latestAction, currentTask)
     : "";
@@ -5378,6 +5438,7 @@ function buildClientReportSummary(firstView, result = null) {
   };
 
   return {
+    readinessVerdict,
     chips: [
       {
         label: t("clientReportReadinessWeeklyDiff"),
@@ -5467,13 +5528,33 @@ function buildClientReportCopyText({
   evidenceBasisItems,
   evidenceItems,
   nextCheckItems,
+  readinessVerdict,
 }) {
   const summaryLines = (Array.isArray(safeItems) ? safeItems : [])
     .filter((item) => item?.label && item?.body)
     .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`);
+  const readinessMissing = Array.isArray(readinessVerdict?.missing)
+    ? readinessVerdict.missing.map((item) => sentence(item)).filter(Boolean)
+    : [];
+  const readinessCopy =
+    readinessVerdict?.title || readinessVerdict?.body
+      ? [
+          sentence(t("clientReportCopyVerdict")),
+          [readinessVerdict.title, readinessVerdict.body]
+            .map((item) => sentence(item))
+            .filter(Boolean)
+            .join(" "),
+          readinessMissing.length
+            ? `${sentence(t("clientReportVerdictMissingLabel"))}: ${readinessMissing.join(", ")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "";
 
   return [
     sentence(t("clientReportSummaryTitle")),
+    readinessCopy,
     handoff
       ? [sentence(t("clientReportCopyClientNote")), handoff].filter(Boolean).join("\n")
       : "",
@@ -5689,6 +5770,10 @@ function renderClientReportSummary(summary) {
   const sendChecklistItems = Array.isArray(sendChecklist.items)
     ? sendChecklist.items.map((item) => sentence(item)).filter(Boolean)
     : [];
+  const readinessVerdict = normalized.readinessVerdict || null;
+  const readinessMissing = Array.isArray(readinessVerdict?.missing)
+    ? readinessVerdict.missing.map((item) => sentence(item)).filter(Boolean)
+    : [];
   const reportLink = savedReportShareUrl(currentResult?.savedListing?.id);
 
   if (!safeItems.length) {
@@ -5708,6 +5793,7 @@ function renderClientReportSummary(summary) {
     evidenceBasisItems,
     evidenceItems,
     nextCheckItems,
+    readinessVerdict,
   });
 
   clientReportSummaryEl.classList.remove("hidden");
@@ -5742,6 +5828,30 @@ function renderClientReportSummary(summary) {
         </button>
       </div>
     </div>
+    ${
+      readinessVerdict?.title || readinessVerdict?.body
+        ? `<div class="client-report-summary__verdict client-report-summary__verdict--${escapeAttr(
+            readinessVerdict.tone || "baseline"
+          )}">
+            <div>
+              <div class="client-report-summary__verdict-title">${escapeHtml(
+                readinessVerdict.title || ""
+              )}</div>
+              <div class="client-report-summary__verdict-body">${escapeHtml(
+                readinessVerdict.body || ""
+              )}</div>
+            </div>
+            ${
+              readinessMissing.length
+                ? `<div class="client-report-summary__verdict-missing">
+                    <span>${escapeHtml(t("clientReportVerdictMissingLabel"))}</span>
+                    <strong>${escapeHtml(readinessMissing.join(", "))}</strong>
+                  </div>`
+                : ""
+            }
+          </div>`
+        : ""
+    }
     ${
       safeBriefItems.length
         ? `<div class="client-report-summary__brief">

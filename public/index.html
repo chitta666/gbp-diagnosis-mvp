@@ -3,13 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GBP Competitor Reports for Local SEO Consultants and GBP Operators</title>
+  <title>Flowmetric | Client-ready GBP weekly reports for Local SEO consultants</title>
+  <meta
+    name="description"
+    content="Flowmetric helps Local SEO consultants turn GBP competitor checks into weekly client reports with competitor gaps, evidence packs, and approval-ready tasks."
+  />
+  <link rel="canonical" href="https://gbp-diagnosis-mvp.pages.dev/" />
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="container">
   <div class="shell-header">
-    <h1 id="appTitle" class="h1">GBP Competitor Reports for Local SEO Consultants and GBP Operators</h1>
+    <h1 id="appTitle" class="h1">Client-ready GBP weekly reports with competitor gaps, evidence, and tasks</h1>
     <div class="language-toggle" role="group" aria-label="Language">
       <button id="langToggleEn" class="language-toggle__btn" data-lang-option="en" type="button">EN</button>
       <button id="langToggleJa" class="language-toggle__btn" data-lang-option="ja" type="button">JP</button>
@@ -21,6 +26,9 @@
   <div id="analysisControls" class="row">
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
     <button id="btn" class="btn btn--primary" type="button">Analyze Listing</button>
+    <a id="sampleReportLink" class="btn secondary sample-report-link" href="#sampleReportPreview">
+      View sample report
+    </a>
   </div>
 
 <div id="introText" class="muted">
@@ -35,6 +43,39 @@ Turn a Google Maps competitor check into a client-ready weekly update. See revie
   </div>
 
   <div id="msg" class="muted"></div>
+
+  <div id="sampleReportPreview" class="card sample-report-preview">
+    <div class="sample-report-preview__eyebrow" id="sampleReportEyebrow">
+      Sample output
+    </div>
+    <h2 id="sampleReportTitle" class="section__title">What the client-ready report includes</h2>
+    <p id="sampleReportSubtitle" class="sample-report-preview__subtitle muted">
+      Before you analyze a listing, preview the three outputs designed for recurring client reporting.
+    </p>
+    <div class="sample-report-preview__grid">
+      <div class="sample-report-preview__item">
+        <span class="sample-report-preview__label" data-sample-card-label="0">Weekly diff</span>
+        <strong data-sample-card-title="0">What changed against the same competitor</strong>
+        <p data-sample-card-body="0">
+          Review totals, momentum, photos, and visible Google profile signals are framed as report-ready movement.
+        </p>
+      </div>
+      <div class="sample-report-preview__item">
+        <span class="sample-report-preview__label" data-sample-card-label="1">Evidence pack</span>
+        <strong data-sample-card-title="1">Why this recommendation is credible</strong>
+        <p data-sample-card-body="1">
+          Review text depth, competitor choice, Google-side proof, and signal strength are separated from the recommendation.
+        </p>
+      </div>
+      <div class="sample-report-preview__item">
+        <span class="sample-report-preview__label" data-sample-card-label="2">Recommended task</span>
+        <strong data-sample-card-title="2">What to ask the client to approve</strong>
+        <p data-sample-card-body="2">
+          The report ends with the task, why it matters now, and the approval request for the next check.
+        </p>
+      </div>
+    </div>
+  </div>
 
   <div id="savedHub" class="card">
     <h2 id="savedListingsTitle" class="section__title">Saved Listings</h2>
@@ -465,6 +506,13 @@ const input = document.getElementById("urlInput");
 const appTitleEl = document.getElementById("appTitle");
 const introTextEl = document.getElementById("introText");
 const heroProofChipEls = Array.from(document.querySelectorAll("[data-proof-chip]"));
+const sampleReportLinkEl = document.getElementById("sampleReportLink");
+const sampleReportEyebrowEl = document.getElementById("sampleReportEyebrow");
+const sampleReportTitleEl = document.getElementById("sampleReportTitle");
+const sampleReportSubtitleEl = document.getElementById("sampleReportSubtitle");
+const sampleReportCardLabelEls = Array.from(document.querySelectorAll("[data-sample-card-label]"));
+const sampleReportCardTitleEls = Array.from(document.querySelectorAll("[data-sample-card-title]"));
+const sampleReportCardBodyEls = Array.from(document.querySelectorAll("[data-sample-card-body]"));
 const clientViewNoticeEl = document.getElementById("clientViewNotice");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
@@ -672,17 +720,39 @@ const PRO_MONTHLY_PRICE_JPY = 2980;
 
 const COPY = {
   en: {
-    documentTitle: "GBP Competitor Reports for Local SEO Consultants and GBP Operators",
-    appTitle: "GBP Competitor Reports for Local SEO Consultants and GBP Operators",
+    documentTitle: "Flowmetric | Client-ready GBP weekly reports for Local SEO consultants",
+    appTitle: "Client-ready GBP weekly reports with competitor gaps, evidence, and tasks",
     analyzePlaceholder: "Enter business name and address",
     analyzeButton: "Analyze Listing",
+    sampleReportCta: "View sample report",
     introText:
-      "Turn a Google Maps competitor check into a client-ready weekly update. See review-based win / lose axes, visible proof gaps, and the next task to run.",
+      "Flowmetric turns a Google Maps competitor check into a weekly client update for Local SEO and GBP operators. Use it to show what changed, why it matters, and what to do next.",
     heroProofChips: [
+      "Weekly report, not one-off diagnosis",
       "Review-based win / lose",
-      "Client-ready summary",
-      "Weekly change tracking",
-      "This week's task",
+      "Evidence pack",
+      "Approval-ready task",
+    ],
+    sampleReportEyebrow: "Sample report",
+    sampleReportTitle: "Preview the output before you analyze a listing",
+    sampleReportSubtitle:
+      "The paid value is the recurring reporting workflow: movement, proof, and a client-ready task in one place.",
+    sampleReportCards: [
+      {
+        label: "Weekly diff",
+        title: "What changed against the same competitor",
+        body: "Review totals, momentum, photos, and visible Google profile signals are framed as report-ready movement.",
+      },
+      {
+        label: "Evidence pack",
+        title: "Why this recommendation is credible",
+        body: "Review text depth, competitor choice, Google-side proof, and signal strength are separated from the recommendation.",
+      },
+      {
+        label: "Recommended task",
+        title: "What to ask the client to approve",
+        body: "The report ends with the task, why it matters now, and the approval request for the next check.",
+      },
     ],
     clientViewNotice:
       "Shared client report. Review the summary, evidence, and this week's recommended task below.",
@@ -1242,17 +1312,39 @@ const COPY = {
     analysisFailed: "Analysis failed.",
   },
   ja: {
-    documentTitle: "Local SEOコンサル / GBP運用者向け 競合レポート",
-    appTitle: "Local SEOコンサル / GBP運用者向け 競合レポート",
+    documentTitle: "Flowmetric | MEO運用者向け 競合差分つき週次レポート",
+    appTitle: "MEO運用者の週次報告を、競合差分・根拠・実行タスクつきで作る",
     analyzePlaceholder: "店舗名と住所を入力",
     analyzeButton: "店舗を分析",
+    sampleReportCta: "サンプルレポートを見る",
     introText:
-      "Googleマップの競合チェックを、クライアントに出せる週次更新に変えます。レビューにもとづく勝ち負け、見える根拠の差分、今週の実行タスクを確認できます。",
+      "Flowmetricは、Googleマップの競合チェックをクライアントに出せる週次更新に変えるツールです。何が変わったか、なぜ重要か、次に何を進めるかを1ページで整理します。",
     heroProofChips: [
+      "単発診断ではなく週次報告",
       "レビューにもとづく勝ち負け",
-      "提出用サマリー",
-      "週次変化の追跡",
-      "今週の実行タスク",
+      "根拠パック",
+      "承認を取りやすい実行案",
+    ],
+    sampleReportEyebrow: "サンプル出力",
+    sampleReportTitle: "分析前に、提出レポートの中身を確認できます",
+    sampleReportSubtitle:
+      "有料価値の中心は、継続レポート業務です。変化、根拠、クライアントに承認を取る実行案を1つの流れで出します。",
+    sampleReportCards: [
+      {
+        label: "週次差分",
+        title: "同じ競合に対して何が変わったか",
+        body: "レビュー総数、増加ペース、写真、Googleプロフィール上の見える根拠を、報告しやすい変化として整理します。",
+      },
+      {
+        label: "根拠パック",
+        title: "なぜその提案をするのか",
+        body: "レビュー本文の厚み、競合選定、Google側の見える根拠、シグナルの強さを提案から切り分けて見せます。",
+      },
+      {
+        label: "今週の推奨タスク",
+        title: "クライアントに何を承認してもらうか",
+        body: "実行案、今やる理由、次回チェックまでに進める承認事項をまとめます。",
+      },
     ],
     clientViewNotice:
       "共有レポートです。要約、根拠、今週の推奨タスクをこのページで確認できます。",
@@ -1995,6 +2087,7 @@ function renderStaticCopy() {
   if (appTitleEl) appTitleEl.textContent = t("appTitle");
   if (input) input.placeholder = t("analyzePlaceholder");
   if (btn) btn.textContent = t("analyzeButton");
+  if (sampleReportLinkEl) sampleReportLinkEl.textContent = t("sampleReportCta");
   if (introTextEl) introTextEl.textContent = t("introText");
   if (clientViewNoticeEl && !clientViewNoticeEl.classList.contains("hidden")) {
     clientViewNoticeEl.textContent = t("clientViewNotice");
@@ -2003,6 +2096,21 @@ function renderStaticCopy() {
   if (Array.isArray(proofChips)) {
     heroProofChipEls.forEach((chipEl, index) => {
       chipEl.textContent = proofChips[index] || chipEl.textContent;
+    });
+  }
+  if (sampleReportEyebrowEl) sampleReportEyebrowEl.textContent = t("sampleReportEyebrow");
+  if (sampleReportTitleEl) sampleReportTitleEl.textContent = t("sampleReportTitle");
+  if (sampleReportSubtitleEl) sampleReportSubtitleEl.textContent = t("sampleReportSubtitle");
+  const sampleCards = t("sampleReportCards");
+  if (Array.isArray(sampleCards)) {
+    sampleReportCardLabelEls.forEach((labelEl, index) => {
+      labelEl.textContent = sampleCards[index]?.label || labelEl.textContent;
+    });
+    sampleReportCardTitleEls.forEach((titleEl, index) => {
+      titleEl.textContent = sampleCards[index]?.title || titleEl.textContent;
+    });
+    sampleReportCardBodyEls.forEach((bodyEl, index) => {
+      bodyEl.textContent = sampleCards[index]?.body || bodyEl.textContent;
     });
   }
   if (savedListingsTitleEl) savedListingsTitleEl.textContent = t("savedListingsTitle");

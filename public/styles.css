@@ -148,6 +148,7 @@ button {
 body.client-share-view #analysisControls,
 body.client-share-view #introText,
 body.client-share-view #heroProofChips,
+body.client-share-view #sampleReportPreview,
 body.client-share-view #savedHub,
 body.client-share-view #msg,
 body.client-share-view #reportTitle,
@@ -364,6 +365,9 @@ body.client-share-view .print-cover__meta-value {
   border: 1px solid var(--border);
   background: #fff;
   cursor: pointer;
+  color: var(--fg);
+  text-align: center;
+  text-decoration: none;
 }
 
 .btn:disabled {
@@ -375,6 +379,15 @@ body.client-share-view .print-cover__meta-value {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
+}
+
+.btn.secondary {
+  background: var(--surface);
+}
+
+.sample-report-link {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .section {
@@ -396,6 +409,66 @@ body.client-share-view .print-cover__meta-value {
   box-shadow: var(--shadow);
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.sample-report-preview {
+  border-color: rgba(37, 99, 235, 0.13);
+  background:
+    linear-gradient(135deg, rgba(239, 246, 255, 0.78), rgba(255, 251, 235, 0.48)),
+    #fff;
+}
+
+.sample-report-preview__eyebrow {
+  color: var(--primary);
+  font-size: var(--fs-1);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sample-report-preview__subtitle {
+  margin: 6px 0 0;
+}
+
+.sample-report-preview__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sample-report-preview__item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.sample-report-preview__label {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.sample-report-preview__item strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.sample-report-preview__item p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
 }
 
 .print-cover {
@@ -2838,6 +2911,10 @@ body.client-share-view .print-cover__meta-value {
     width: 100%;
   }
 
+  .sample-report-preview__grid {
+    grid-template-columns: 1fr;
+  }
+
   .saved__item,
   .history__item {
     flex-direction: column;
@@ -3031,6 +3108,7 @@ body.client-share-view .print-cover__meta-value {
   button,
   #introText,
   #heroProofChips,
+  #sampleReportPreview,
   #urlInput,
   #btn,
   #pdfBtn,

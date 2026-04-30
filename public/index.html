@@ -903,6 +903,12 @@ const COPY = {
       "Keep this report saved and re-check the same competitor next week.",
     printCoverPromise:
       "Use this report to explain what changed, why the recommendation matters, and what to do before the next client check-in.",
+    printCoverReadinessLabel: "Send readiness",
+    printCoverExecutiveLabel: "Client-facing summary",
+    printCoverClientMessage: "Message",
+    printCoverEvidenceBasis: "Why now",
+    printCoverDecision: "Decision needed",
+    printCoverNextCheckLabel: "Next check",
     printCoverPackageLabel: "Report package",
     printCoverPackageClientNote: "Client note",
     printCoverPackageEvidence: "Evidence",
@@ -1225,10 +1231,14 @@ const COPY = {
       "Could not copy. Select the summary text manually.",
     savedReportShareTitle: "Share saved report",
     savedReportShareSubtitle:
-      "Copy a stable link that reopens the latest report for this saved listing.",
+      "Copy a client-ready link, then use the client view or PDF export before sending.",
     savedReportShareLinkLabel: "Report link",
     savedReportShareButton: "Copy report link",
     savedReportPreviewButton: "Open client view",
+    savedReportSharePackageLabel: "Share package",
+    savedReportShareClientViewReady: "Client view ready",
+    savedReportSharePdfReady: "PDF export ready",
+    savedReportShareCopyReady: "Client update copy ready",
     savedReportShareCopied: "Report link copied.",
     savedReportShareFailed: "Could not copy the report link.",
     clientReportCopyClientNote: "Client note",
@@ -1605,6 +1615,12 @@ const COPY = {
       "このレポートを保存し、次週も同じ競合で再チェックしてください。",
     printCoverPromise:
       "このレポートは、何が変わったか、なぜその提案が必要か、次回定例までに何を進めるかを説明するための提出用サマリーです。",
+    printCoverReadinessLabel: "送付準備",
+    printCoverExecutiveLabel: "提出用サマリー",
+    printCoverClientMessage: "伝えること",
+    printCoverEvidenceBasis: "今やる理由",
+    printCoverDecision: "承認してもらうこと",
+    printCoverNextCheckLabel: "次回チェック",
     printCoverPackageLabel: "提出パッケージ",
     printCoverPackageClientNote: "報告文",
     printCoverPackageEvidence: "根拠",
@@ -1927,10 +1943,14 @@ const COPY = {
       "コピーできませんでした。要約テキストを手動で選択してください。",
     savedReportShareTitle: "保存済みレポートを共有",
     savedReportShareSubtitle:
-      "この保存済み店舗の最新レポートを開き直せる安定リンクをコピーできます。",
+      "クライアント提出用リンクをコピーし、送付前にクライアント表示またはPDFで確認できます。",
     savedReportShareLinkLabel: "共有リンク",
     savedReportShareButton: "共有リンクをコピー",
     savedReportPreviewButton: "クライアント表示を開く",
+    savedReportSharePackageLabel: "共有パッケージ",
+    savedReportShareClientViewReady: "クライアント表示 準備済み",
+    savedReportSharePdfReady: "PDF書き出し 準備済み",
+    savedReportShareCopyReady: "報告文コピー 準備済み",
     savedReportShareCopied: "共有リンクをコピーしました。",
     savedReportShareFailed: "共有リンクをコピーできませんでした。",
     clientReportCopyClientNote: "クライアント報告文",
@@ -2816,6 +2836,39 @@ function buildPrintCoverPackageItems(result, task) {
   ];
 }
 
+function buildPrintCoverSummaryItems(clientReportSummary, fallbackTask) {
+  const briefItems = Array.isArray(clientReportSummary?.briefItems)
+    ? clientReportSummary.briefItems
+    : [];
+  const recommendationItems = Array.isArray(clientReportSummary?.recommendation?.items)
+    ? clientReportSummary.recommendation.items
+    : [];
+  const nextCheckItems = Array.isArray(clientReportSummary?.nextCheck?.items)
+    ? clientReportSummary.nextCheck.items
+    : [];
+  const pickBody = (items, index) => sentence(items[index]?.body || items[index] || "");
+  const decision = recommendationItems[2]?.body || recommendationItems[0]?.body || fallbackTask;
+
+  return [
+    {
+      label: t("printCoverClientMessage"),
+      body: pickBody(briefItems, 0),
+    },
+    {
+      label: t("printCoverEvidenceBasis"),
+      body: pickBody(briefItems, 1),
+    },
+    {
+      label: t("printCoverDecision"),
+      body: sentence(decision),
+    },
+    {
+      label: t("printCoverNextCheckLabel"),
+      body: sentence(nextCheckItems[1] || nextCheckItems[0] || ""),
+    },
+  ].filter((item) => item.body);
+}
+
 function renderPrintCover(result, firstView = null) {
   if (!printCoverEl) return;
   if (!result) {
@@ -2833,6 +2886,9 @@ function renderPrintCover(result, firstView = null) {
   const taskCopy = task?.body
     ? `${task.label}: ${task.body}`
     : t("printCoverNoTask");
+  const clientReportSummary = buildClientReportSummary(view, result);
+  const readinessVerdict = clientReportSummary?.readinessVerdict || null;
+  const summaryItems = buildPrintCoverSummaryItems(clientReportSummary, taskCopy);
   const packageItems = buildPrintCoverPackageItems(result, task);
   const metaItems = [
     {
@@ -2852,11 +2908,40 @@ function renderPrintCover(result, firstView = null) {
     </div>
     <div class="print-cover__title">${escapeHtml(t("printCoverTitle"))}</div>
     ${
+      readinessVerdict?.title
+        ? `<div class="print-cover__readiness print-cover__readiness--${escapeAttr(
+            readinessVerdict.tone || "baseline"
+          )}">
+            <span>${escapeHtml(t("printCoverReadinessLabel"))}</span>
+            <strong>${escapeHtml(readinessVerdict.title)}</strong>
+          </div>`
+        : ""
+    }
+    ${
       view?.headline
         ? `<div class="print-cover__headline">${escapeHtml(view.headline)}</div>`
         : ""
     }
     <div class="print-cover__promise">${escapeHtml(t("printCoverPromise"))}</div>
+    ${
+      summaryItems.length
+        ? `<div class="print-cover__executive" aria-label="${escapeAttr(t("printCoverExecutiveLabel"))}">
+            <div class="print-cover__executive-label">${escapeHtml(t("printCoverExecutiveLabel"))}</div>
+            <div class="print-cover__summary-grid">
+              ${summaryItems
+                .map(
+                  (item) => `
+                    <div class="print-cover__summary-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>`
+        : ""
+    }
     <div class="print-cover__package" aria-label="${escapeAttr(t("printCoverPackageLabel"))}">
       <div class="print-cover__package-label">${escapeHtml(t("printCoverPackageLabel"))}</div>
       <div class="print-cover__package-grid">
@@ -5921,6 +6006,16 @@ function renderReportSharePanel(result = currentResult) {
     return;
   }
 
+  const view = buildDiagnosisFirstView(result);
+  const clientReportSummary = buildClientReportSummary(view, result);
+  const readinessTitle = sentence(clientReportSummary?.readinessVerdict?.title || "");
+  const sharePackageItems = [
+    readinessTitle,
+    t("savedReportShareClientViewReady"),
+    t("savedReportSharePdfReady"),
+    t("savedReportShareCopyReady"),
+  ].filter(Boolean);
+
   reportSharePanelEl.classList.remove("hidden");
   reportSharePanelEl.innerHTML = `
     <div class="report-share__body">
@@ -5928,6 +6023,12 @@ function renderReportSharePanel(result = currentResult) {
       <div class="report-share__subtitle">${escapeHtml(t("savedReportShareSubtitle"))}</div>
       <div class="report-share__link" aria-label="${escapeAttr(t("savedReportShareLinkLabel"))}">
         ${escapeHtml(shareUrl)}
+      </div>
+      <div class="report-share__package" aria-label="${escapeAttr(t("savedReportSharePackageLabel"))}">
+        <span>${escapeHtml(t("savedReportSharePackageLabel"))}</span>
+        <div class="report-share__package-list">
+          ${sharePackageItems.map((item) => `<strong>${escapeHtml(item)}</strong>`).join("")}
+        </div>
       </div>
     </div>
     <div class="report-share__actions">

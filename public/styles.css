@@ -845,6 +845,68 @@ body.client-share-view .print-cover__meta-value {
   background: rgba(254, 243, 199, 0.62);
 }
 
+.client-report-summary__verdict {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.client-report-summary__verdict--ready {
+  border-color: rgba(22, 163, 74, 0.22);
+  background: rgba(240, 253, 244, 0.74);
+}
+
+.client-report-summary__verdict--partial {
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(239, 246, 255, 0.78);
+}
+
+.client-report-summary__verdict--baseline {
+  border-color: rgba(245, 158, 11, 0.22);
+  background: rgba(255, 251, 235, 0.78);
+}
+
+.client-report-summary__verdict-title {
+  color: var(--fg);
+  font-weight: 900;
+}
+
+.client-report-summary__verdict-body {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: var(--fs-2);
+  line-height: 1.45;
+}
+
+.client-report-summary__verdict-missing {
+  min-width: 140px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.client-report-summary__verdict-missing span {
+  display: block;
+  font-weight: 850;
+}
+
+.client-report-summary__verdict-missing strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--fg);
+  font-weight: 850;
+}
+
 .client-report-summary__brief {
   margin-top: 12px;
   padding: 12px;
@@ -3147,6 +3209,10 @@ body.client-share-view .print-cover__meta-value {
     width: 100%;
   }
 
+  .client-report-summary__verdict {
+    grid-template-columns: 1fr;
+  }
+
   .report-share {
     flex-direction: column;
   }
@@ -3451,6 +3517,8 @@ body.client-share-view .print-cover__meta-value {
   }
 
   .client-report-summary__chip,
+  .client-report-summary__verdict,
+  .client-report-summary__verdict-missing,
   .client-report-summary__brief,
   .client-report-summary__brief-item,
   .client-report-summary__recommendation,
@@ -3471,6 +3539,7 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__grid,
   .client-report-summary__brief-grid,
   .client-report-summary__recommendation-grid,
+  .client-report-summary__verdict,
   .client-report-summary__support-list,
   .client-report-summary__next-check-list,
   .client-report-summary__evidence-basis-grid,
@@ -3485,6 +3554,8 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__recommendation,
   .client-report-summary__recommendation-item,
   .client-report-summary__evidence-item,
+  .client-report-summary__verdict,
+  .client-report-summary__verdict-missing,
   .action-history__item,
   .client-report-summary__send-checklist,
   .client-report-summary__evidence,

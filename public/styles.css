@@ -1967,7 +1967,12 @@ body.client-share-view .print-cover__meta-value {
 }
 
 .saved__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: auto;
+  color: var(--fg);
+  text-decoration: none;
 }
 
 .compare__meta {

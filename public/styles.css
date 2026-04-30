@@ -1869,6 +1869,24 @@ body.client-share-view .print-cover__meta-value {
   background: rgba(240, 253, 244, 0.64);
 }
 
+.saved__readiness-next {
+  margin-top: 9px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px dashed rgba(15, 23, 42, 0.13);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+.saved__readiness-next span {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-weight: 850;
+}
+
 .saved__revisit {
   margin-top: 10px;
   padding: 10px 12px;

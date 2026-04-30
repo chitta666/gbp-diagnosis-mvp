@@ -1027,6 +1027,12 @@ const COPY = {
     clientReportReadinessShareLink: "Share link",
     savedClientReadinessTitle: "Client report readiness",
     savedClientReadinessSubtitle: "Before sharing, confirm what is ready and what is still collecting.",
+    savedClientReadinessNextLabel: "Next step",
+    savedClientReadinessNextReady: "Open the client view and confirm the report before sending.",
+    savedClientReadinessNextCompetitor: "Open the report and choose the competitor you want to keep comparing.",
+    savedClientReadinessNextAction: "Open the report and save this week's task before sharing.",
+    savedClientReadinessNextWeekly: "Check this saved listing again next week to turn collecting history into weekly movement.",
+    savedClientReadinessNextShare: "Open the report once to generate a stable client share link.",
     clientReportReady: "Ready",
     clientReportCollecting: "Collecting",
     clientReportSaved: "Saved",
@@ -1553,6 +1559,12 @@ const COPY = {
     clientReportReadinessShareLink: "共有リンク",
     savedClientReadinessTitle: "提出準備",
     savedClientReadinessSubtitle: "共有前に、準備済みの材料と収集中の材料を確認します。",
+    savedClientReadinessNextLabel: "次にやること",
+    savedClientReadinessNextReady: "送付前にクライアント表示を開いて、レポート内容を確認してください。",
+    savedClientReadinessNextCompetitor: "レポートを開き、継続比較したい競合を選んでください。",
+    savedClientReadinessNextAction: "共有前にレポートを開き、今週の実行タスクを保存してください。",
+    savedClientReadinessNextWeekly: "次週もう一度この保存済み店舗を確認し、収集中の履歴を週次変化に変えてください。",
+    savedClientReadinessNextShare: "レポートを一度開き、安定したクライアント共有リンクを生成してください。",
     clientReportReady: "準備済み",
     clientReportCollecting: "収集中",
     clientReportSaved: "保存済み",
@@ -7057,6 +7069,19 @@ function buildSavedReadinessItem(label, value, tone) {
   `;
 }
 
+function buildSavedReadinessNextStep({
+  weeklyReady,
+  actionReady,
+  competitorReady,
+  shareReady,
+}) {
+  if (!competitorReady) return t("savedClientReadinessNextCompetitor");
+  if (!actionReady) return t("savedClientReadinessNextAction");
+  if (!weeklyReady) return t("savedClientReadinessNextWeekly");
+  if (!shareReady) return t("savedClientReadinessNextShare");
+  return t("savedClientReadinessNextReady");
+}
+
 function buildSavedListingReadinessBlock(item) {
   if (!item?.id) return null;
 
@@ -7066,6 +7091,12 @@ function buildSavedListingReadinessBlock(item) {
   const shareReady = Boolean(savedReportShareUrl(item.id));
   const readyCount = [weeklyReady, actionReady, competitorReady, shareReady].filter(Boolean).length;
   const tone = readyCount >= 3 ? "ready" : "pending";
+  const nextStep = buildSavedReadinessNextStep({
+    weeklyReady,
+    actionReady,
+    competitorReady,
+    shareReady,
+  });
 
   const block = document.createElement("div");
   block.className = `saved__readiness saved__readiness--${escapeAttr(tone)}`;
@@ -7098,6 +7129,10 @@ function buildSavedListingReadinessBlock(item) {
         shareReady ? t("clientReportReady") : t("clientReportMissing"),
         savedReadinessTone(shareReady)
       )}
+    </div>
+    <div class="saved__readiness-next">
+      <span>${escapeHtml(t("savedClientReadinessNextLabel"))}</span>
+      ${escapeHtml(nextStep)}
     </div>
   `;
   return block;

@@ -705,6 +705,15 @@ const COPY = {
       "Keep this report saved and re-check the same competitor next week.",
     printCoverPromise:
       "Use this report to explain what changed, why the recommendation matters, and what to do before the next client check-in.",
+    printCoverPackageLabel: "Report package",
+    printCoverPackageClientNote: "Client note",
+    printCoverPackageEvidence: "Evidence",
+    printCoverPackageTask: "This week's task",
+    printCoverPackageNextCheck: "Next check",
+    printCoverPackageReady: "Ready",
+    printCoverPackageIncluded: "Included",
+    printCoverPackageTracked: "Tracked",
+    printCoverPackageNeedsSave: "Save first",
     reportWeeklyDiffTitle: "This week's change",
     reportWeeklyMomentumBehind: "Competitor gained review momentum this week",
     reportWeeklyMomentumAhead: "This listing gained review momentum this week",
@@ -1239,6 +1248,15 @@ const COPY = {
       "このレポートを保存し、次週も同じ競合で再チェックしてください。",
     printCoverPromise:
       "このレポートは、何が変わったか、なぜその提案が必要か、次回定例までに何を進めるかを説明するための提出用サマリーです。",
+    printCoverPackageLabel: "提出パッケージ",
+    printCoverPackageClientNote: "報告文",
+    printCoverPackageEvidence: "根拠",
+    printCoverPackageTask: "今週タスク",
+    printCoverPackageNextCheck: "次回チェック",
+    printCoverPackageReady: "準備済み",
+    printCoverPackageIncluded: "含む",
+    printCoverPackageTracked: "追跡中",
+    printCoverPackageNeedsSave: "保存前",
     reportWeeklyDiffTitle: "今週の変化",
     reportWeeklyMomentumBehind: "今週は競合のレビュー増加ペースが強めです",
     reportWeeklyMomentumAhead: "今週は自店舗のレビュー増加ペースが上回っています",
@@ -2231,6 +2249,38 @@ function reportCompetitorName(result) {
   );
 }
 
+function buildPrintCoverPackageItems(result, task) {
+  const hasSavedListing = Boolean(result?.savedListing?.id);
+  const hasEvidence =
+    Boolean(result?.reviewClues?.summary) ||
+    Boolean(result?.compare?.competitor) ||
+    Boolean(result?.selectedCompetitor?.name) ||
+    Boolean(result?.details?.user_ratings_total);
+
+  return [
+    {
+      label: t("printCoverPackageClientNote"),
+      value: t("printCoverPackageReady"),
+      tone: "ready",
+    },
+    {
+      label: t("printCoverPackageEvidence"),
+      value: t(hasEvidence ? "printCoverPackageIncluded" : "clientReportCollecting"),
+      tone: hasEvidence ? "ready" : "pending",
+    },
+    {
+      label: t("printCoverPackageTask"),
+      value: t(task?.body ? "printCoverPackageReady" : "clientReportCollecting"),
+      tone: task?.body ? "ready" : "pending",
+    },
+    {
+      label: t("printCoverPackageNextCheck"),
+      value: t(hasSavedListing ? "printCoverPackageTracked" : "printCoverPackageNeedsSave"),
+      tone: hasSavedListing ? "ready" : "pending",
+    },
+  ];
+}
+
 function renderPrintCover(result, firstView = null) {
   if (!printCoverEl) return;
   if (!result) {
@@ -2248,6 +2298,7 @@ function renderPrintCover(result, firstView = null) {
   const taskCopy = task?.body
     ? `${task.label}: ${task.body}`
     : t("printCoverNoTask");
+  const packageItems = buildPrintCoverPackageItems(result, task);
   const metaItems = [
     {
       label: t("printCoverListing"),
@@ -2271,6 +2322,23 @@ function renderPrintCover(result, firstView = null) {
         : ""
     }
     <div class="print-cover__promise">${escapeHtml(t("printCoverPromise"))}</div>
+    <div class="print-cover__package" aria-label="${escapeAttr(t("printCoverPackageLabel"))}">
+      <div class="print-cover__package-label">${escapeHtml(t("printCoverPackageLabel"))}</div>
+      <div class="print-cover__package-grid">
+        ${packageItems
+          .map(
+            (item) => `
+              <div class="print-cover__package-item print-cover__package-item--${escapeAttr(
+                item.tone || "pending"
+              )}">
+                <span>${escapeHtml(item.label)}</span>
+                <strong>${escapeHtml(item.value)}</strong>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    </div>
     <div class="print-cover__meta">
       ${metaItems
         .filter((item) => item.value)

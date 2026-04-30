@@ -223,6 +223,68 @@ body.client-share-view .print-cover__promise {
   line-height: 1.5;
 }
 
+body.client-share-view .print-cover__package {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+body.client-share-view .print-cover__package-label {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+body.client-share-view .print-cover__package-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+body.client-share-view .print-cover__package-item {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 11px;
+  background: rgba(248, 250, 252, 0.82);
+}
+
+body.client-share-view .print-cover__package-item span {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.client-share-view .print-cover__package-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+body.client-share-view .print-cover__package-item--ready {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: rgba(240, 253, 244, 0.78);
+}
+
+body.client-share-view .print-cover__package-item--pending {
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(255, 251, 235, 0.78);
+}
+
 body.client-share-view .print-cover__meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2727,6 +2789,7 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__next-check-list,
   .saved-plan__value-list,
   .saved-plan__price-row,
+  body.client-share-view .print-cover__package-grid,
   body.client-share-view .print-cover__meta {
     grid-template-columns: 1fr;
   }
@@ -2853,6 +2916,58 @@ body.client-share-view .print-cover__meta-value {
     color: #333;
     font-size: 12px;
     line-height: 1.45;
+  }
+
+  .print-cover__package {
+    margin-top: 10px;
+    padding: 9px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    break-inside: avoid;
+  }
+
+  .print-cover__package-label {
+    color: #555;
+    font-size: 9px;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .print-cover__package-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .print-cover__package-item {
+    padding: 6px 7px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    background: #fff;
+  }
+
+  .print-cover__package-item span {
+    display: block;
+    overflow: hidden;
+    color: #555;
+    font-size: 9px;
+    line-height: 1.2;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .print-cover__package-item strong {
+    display: block;
+    margin-top: 3px;
+    color: #111;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 900;
   }
 
   .print-cover__meta {

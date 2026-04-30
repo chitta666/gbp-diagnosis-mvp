@@ -1209,6 +1209,27 @@ const COPY = {
       "Approve this task before the next check: {task}",
     clientReportRecommendationApprovalFallback:
       "Confirm the next check cadence before sending the next update.",
+    clientReportDecisionTitle: "Decision request",
+    clientReportDecisionSubtitle:
+      "Use this to make the client reply path clear before the next check.",
+    clientReportDecisionApprove: "Approve",
+    clientReportDecisionApproveTask:
+      "Reply OK if we should run this before the next check: {task}",
+    clientReportDecisionApproveBaseline:
+      "Reply OK if we should use this as the baseline and re-check the same competitor next time.",
+    clientReportDecisionRevise: "Revise",
+    clientReportDecisionReviseCopy:
+      "If the priority feels off, reply with the concern and we will adjust the task before execution.",
+    clientReportDecisionDefer: "Defer",
+    clientReportDecisionDeferReady:
+      "If you want to wait, we will keep tracking the same competitor and report movement next time.",
+    clientReportDecisionDeferBaseline:
+      "If you want to wait, we will keep this baseline and report only confirmed movement after the next check.",
+    clientReportDecisionDefault: "If no decision yet",
+    clientReportDecisionDefaultTask:
+      "Keep this task in the next report with updated proof before asking again.",
+    clientReportDecisionDefaultBaseline:
+      "Save this baseline and ask again after one more same-competitor check.",
     clientReportImpactTitle: "Impact preview",
     clientReportImpactSubtitle:
       "Use this to show what the approved task should make easier to report next time.",
@@ -1272,6 +1293,7 @@ const COPY = {
     clientReportCopyReportLink: "Report link",
     clientReportCopySummary: "Summary",
     clientReportCopyRecommendation: "Recommended task",
+    clientReportCopyDecision: "Decision request",
     clientReportCopyImpact: "Impact preview",
     clientReportCopyChecklist: "Send checklist",
     clientReportCopyConfidence: "Confidence framing",
@@ -1950,6 +1972,27 @@ const COPY = {
       "次回チェックまでにこの実行案を進めてよいか確認します: {task}",
     clientReportRecommendationApprovalFallback:
       "次回チェックの運用を継続してよいか確認します。",
+    clientReportDecisionTitle: "クライアント確認依頼",
+    clientReportDecisionSubtitle:
+      "次回チェック前に、クライアントが返信しやすい確認事項に整理します。",
+    clientReportDecisionApprove: "承認",
+    clientReportDecisionApproveTask:
+      "次回チェック前に進めてよければ OK と返信してもらいます: {task}",
+    clientReportDecisionApproveBaseline:
+      "この内容を基準値として保存し、次回も同じ競合で再チェックしてよければ OK と返信してもらいます。",
+    clientReportDecisionRevise: "修正",
+    clientReportDecisionReviseCopy:
+      "優先順位が違う場合は、気になる点を返信してもらい、実行前にタスクを調整します。",
+    clientReportDecisionDefer: "保留",
+    clientReportDecisionDeferReady:
+      "今回は待つ場合も、同じ競合を追跡し、次回レポートで変化を報告します。",
+    clientReportDecisionDeferBaseline:
+      "今回は待つ場合も、この基準値を保存し、次回チェック後に確認できた変化だけを報告します。",
+    clientReportDecisionDefault: "未決の場合",
+    clientReportDecisionDefaultTask:
+      "次回レポートで根拠を更新し、同じタスクを改めて確認します。",
+    clientReportDecisionDefaultBaseline:
+      "この基準値を保存し、同じ競合で再チェックした後に改めて確認します。",
     clientReportImpactTitle: "期待される変化",
     clientReportImpactSubtitle:
       "承認された実行案が、次回レポートで何を説明しやすくするかを示します。",
@@ -2013,6 +2056,7 @@ const COPY = {
     clientReportCopyReportLink: "レポートリンク",
     clientReportCopySummary: "要約",
     clientReportCopyRecommendation: "今週の推奨タスク",
+    clientReportCopyDecision: "確認依頼",
     clientReportCopyImpact: "期待される変化",
     clientReportCopyChecklist: "提出チェックリスト",
     clientReportCopyConfidence: "信頼度の伝え方",
@@ -5773,6 +5817,43 @@ function buildClientReportImpactPreview(result, task, latestAction, weeklyReady)
   };
 }
 
+function buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady) {
+  const taskCopy = task?.body ? [task.label, task.body].filter(Boolean).join(": ") : "";
+  const hasTask = Boolean(taskCopy);
+  const baseline = readinessVerdict?.tone === "baseline";
+
+  return {
+    title: t("clientReportDecisionTitle"),
+    subtitle: t("clientReportDecisionSubtitle"),
+    items: [
+      {
+        label: t("clientReportDecisionApprove"),
+        body: hasTask
+          ? copyWithValues(t("clientReportDecisionApproveTask"), {
+              task: reportClause(taskCopy),
+            })
+          : t("clientReportDecisionApproveBaseline"),
+      },
+      {
+        label: t("clientReportDecisionRevise"),
+        body: t("clientReportDecisionReviseCopy"),
+      },
+      {
+        label: t("clientReportDecisionDefer"),
+        body: t(
+          weeklyReady && !baseline
+            ? "clientReportDecisionDeferReady"
+            : "clientReportDecisionDeferBaseline"
+        ),
+      },
+      {
+        label: t("clientReportDecisionDefault"),
+        body: t(hasTask ? "clientReportDecisionDefaultTask" : "clientReportDecisionDefaultBaseline"),
+      },
+    ].filter((item) => item.body),
+  };
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -5846,6 +5927,7 @@ function buildClientReportSummary(firstView, result = null) {
   const evidencePack = buildClientReportEvidencePack(result);
   const confidenceFrame = buildClientReportConfidenceFrame(evidencePack, readinessVerdict);
   const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
+  const decisionRequest = buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady);
   const impactPreview = buildClientReportImpactPreview(result, task, latestAction, weeklyReady);
   const recommendationWhy = sentence(summaryLines[1] || evidencePack?.items?.[0] || weeklyMovement);
   const recommendationApproval = sentence(
@@ -5910,6 +5992,7 @@ function buildClientReportSummary(firstView, result = null) {
     ].filter((item) => item.body),
     handoff: sentence(handoffCopy),
     recommendation,
+    decisionRequest,
     impactPreview,
     nextCheck: {
       title: t("clientReportNextCheckTitle"),
@@ -5964,6 +6047,7 @@ function buildClientReportCopyText({
   handoff,
   reportLink,
   recommendationItems,
+  decisionItems,
   impactItems,
   sendChecklistItems,
   evidenceBasisItems,
@@ -6017,6 +6101,12 @@ function buildClientReportCopyText({
     formatClientReportCopySection(
       t("clientReportCopyRecommendation"),
       (Array.isArray(recommendationItems) ? recommendationItems : [])
+        .filter((item) => item?.label && item?.body)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
+    ),
+    formatClientReportCopySection(
+      t("clientReportCopyDecision"),
+      (Array.isArray(decisionItems) ? decisionItems : [])
         .filter((item) => item?.label && item?.body)
         .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
     ),
@@ -6250,6 +6340,10 @@ function renderClientReportSummary(summary) {
   const recommendationItems = Array.isArray(recommendation.items)
     ? recommendation.items.filter((item) => item?.label && item?.body)
     : [];
+  const decisionRequest = normalized.decisionRequest || {};
+  const decisionItems = Array.isArray(decisionRequest.items)
+    ? decisionRequest.items.filter((item) => item?.label && item?.body)
+    : [];
   const impactPreview = normalized.impactPreview || {};
   const impactItems = Array.isArray(impactPreview.items)
     ? impactPreview.items.filter((item) => item?.label && item?.body)
@@ -6311,6 +6405,7 @@ function renderClientReportSummary(summary) {
     handoff,
     reportLink,
     recommendationItems,
+    decisionItems,
     impactItems,
     sendChecklistItems,
     evidenceBasisItems,
@@ -6481,6 +6576,36 @@ function renderClientReportSummary(summary) {
                 .map(
                   (item) => `
                     <div class="client-report-summary__recommendation-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>`
+        : ""
+    }
+    ${
+      decisionItems.length
+        ? `<div class="client-report-summary__decision">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                decisionRequest.title || t("clientReportDecisionTitle")
+              )}</div>
+              ${
+                decisionRequest.subtitle
+                  ? `<div class="client-report-summary__support-subtitle">${escapeHtml(
+                      decisionRequest.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <div class="client-report-summary__decision-grid">
+              ${decisionItems
+                .map(
+                  (item) => `
+                    <div class="client-report-summary__decision-item">
                       <span>${escapeHtml(item.label)}</span>
                       <strong>${escapeHtml(item.body)}</strong>
                     </div>

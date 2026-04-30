@@ -1176,6 +1176,48 @@ body.client-share-view .print-cover__meta-value {
   font-weight: 850;
 }
 
+.client-report-summary__decision {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(14, 116, 144, 0.18);
+  background:
+    linear-gradient(135deg, rgba(236, 254, 255, 0.88), rgba(255, 251, 235, 0.7)),
+    rgba(255, 255, 255, 0.84);
+}
+
+.client-report-summary__decision-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.client-report-summary__decision-item {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.client-report-summary__decision-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.client-report-summary__decision-item strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.45;
+  font-weight: 850;
+}
+
 .client-report-summary__impact {
   margin-top: 12px;
   padding: 12px;
@@ -3702,6 +3744,7 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__confidence-grid,
   .client-report-summary__delivery-grid,
   .client-report-summary__recommendation-grid,
+  .client-report-summary__decision-grid,
   .client-report-summary__impact-grid,
   .client-report-summary__next-check-list,
   .client-report-summary__evidence-basis-grid,
@@ -4066,6 +4109,8 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__brief-item,
   .client-report-summary__recommendation,
   .client-report-summary__recommendation-item,
+  .client-report-summary__decision,
+  .client-report-summary__decision-item,
   .client-report-summary__impact,
   .client-report-summary__impact-item,
   .client-report-summary__send-checklist,
@@ -4088,6 +4133,7 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__grid,
   .client-report-summary__brief-grid,
   .client-report-summary__recommendation-grid,
+  .client-report-summary__decision-grid,
   .client-report-summary__impact-grid,
   .client-report-summary__verdict,
   .client-report-summary__confidence-grid,
@@ -4107,6 +4153,8 @@ body.client-share-view .print-cover__meta-value {
   .client-report-summary__brief-item,
   .client-report-summary__recommendation,
   .client-report-summary__recommendation-item,
+  .client-report-summary__decision,
+  .client-report-summary__decision-item,
   .client-report-summary__impact,
   .client-report-summary__impact-item,
   .client-report-summary__confidence,

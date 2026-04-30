@@ -98,15 +98,19 @@ function defaultCollectingSummary({ record, lang, status = "collecting_history" 
           )
         : text(
             lang,
-            "Save another check so this listing can show what changed since the previous review.",
-            "次回の保存確認後に、前回からの変化を比較できるようになります。"
+            "Today's baseline is still usable: competitor choice, visible proof gaps, and the first recommended task are ready for the client update.",
+            "今日の基準値も、競合選定・見える根拠差・最初の推奨タスクとしてクライアント報告に使えます。"
           ),
     ],
     metrics: [],
     notableChange: null,
     nextAction: noCompetitor
       ? text(lang, "Select the competitor this client actually cares about.", "このクライアントにとって本当に比較したい競合を選んでください。")
-      : text(lang, "Keep this listing saved and check it again next week.", "この店舗を保存したまま、次週もう一度確認してください。"),
+      : text(
+          lang,
+          "Reopen this saved listing next week to turn today's baseline into actual movement.",
+          "保存済み店舗を次週もう一度開いて、今日の基準値を実際の変化に変えてください。"
+        ),
     confidence: "low",
   };
 }

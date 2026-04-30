@@ -972,6 +972,16 @@ const COPY = {
     clientReportBriefMessage: "Client message",
     clientReportBriefProof: "Proof",
     clientReportBriefDecision: "Next decision",
+    clientReportRecommendationTitle: "Recommended task",
+    clientReportRecommendationSubtitle:
+      "Use this to turn the report into one approval request.",
+    clientReportRecommendationTask: "Task",
+    clientReportRecommendationWhy: "Why now",
+    clientReportRecommendationApproval: "Approval to request",
+    clientReportRecommendationApprovalTask:
+      "Approve this task before the next check: {task}",
+    clientReportRecommendationApprovalFallback:
+      "Confirm the next check cadence before sending the next update.",
     clientReportCopyButton: "Copy client update",
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
@@ -987,6 +997,7 @@ const COPY = {
     clientReportCopyClientNote: "Client note",
     clientReportCopyReportLink: "Report link",
     clientReportCopySummary: "Summary",
+    clientReportCopyRecommendation: "Recommended task",
     clientReportCopyChecklist: "Send checklist",
     clientReportCopyEvidence: "Evidence pack",
     clientReportCopyNextCheck: "Next check",
@@ -1531,6 +1542,16 @@ const COPY = {
     clientReportBriefMessage: "伝えること",
     clientReportBriefProof: "根拠",
     clientReportBriefDecision: "次に決めること",
+    clientReportRecommendationTitle: "今週の推奨タスク",
+    clientReportRecommendationSubtitle:
+      "報告だけで終わらせず、承認を取る実行案に変えます。",
+    clientReportRecommendationTask: "実行案",
+    clientReportRecommendationWhy: "今やる理由",
+    clientReportRecommendationApproval: "承認してもらうこと",
+    clientReportRecommendationApprovalTask:
+      "次回チェックまでにこの実行案を進めてよいか確認します: {task}",
+    clientReportRecommendationApprovalFallback:
+      "次回チェックの運用を継続してよいか確認します。",
     clientReportCopyButton: "報告文をコピー",
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
@@ -1546,6 +1567,7 @@ const COPY = {
     clientReportCopyClientNote: "クライアント報告文",
     clientReportCopyReportLink: "レポートリンク",
     clientReportCopySummary: "要約",
+    clientReportCopyRecommendation: "今週の推奨タスク",
     clientReportCopyChecklist: "提出チェックリスト",
     clientReportCopyEvidence: "根拠パック",
     clientReportCopyNextCheck: "次回チェック",
@@ -4984,6 +5006,32 @@ function buildClientReportSummary(firstView, result = null) {
   ]);
   const evidencePack = buildClientReportEvidencePack(result);
   const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
+  const recommendationWhy = sentence(summaryLines[1] || evidencePack?.items?.[0] || weeklyMovement);
+  const recommendationApproval = sentence(
+    task?.body
+      ? copyWithValues(t("clientReportRecommendationApprovalTask"), {
+          task: reportClause(taskBody),
+        })
+      : t("clientReportRecommendationApprovalFallback")
+  );
+  const recommendation = {
+    title: t("clientReportRecommendationTitle"),
+    subtitle: t("clientReportRecommendationSubtitle"),
+    items: [
+      {
+        label: t("clientReportRecommendationTask"),
+        body: sentence(taskBody),
+      },
+      {
+        label: t("clientReportRecommendationWhy"),
+        body: recommendationWhy,
+      },
+      {
+        label: t("clientReportRecommendationApproval"),
+        body: recommendationApproval,
+      },
+    ].filter((item) => item.body),
+  };
 
   return {
     chips: [
@@ -5018,6 +5066,7 @@ function buildClientReportSummary(firstView, result = null) {
       },
     ].filter((item) => item.body),
     handoff: sentence(handoffCopy),
+    recommendation,
     nextCheck: {
       title: t("clientReportNextCheckTitle"),
       subtitle: t("clientReportNextCheckSubtitle"),
@@ -5069,6 +5118,7 @@ function buildClientReportCopyText({
   briefItems,
   handoff,
   reportLink,
+  recommendationItems,
   sendChecklistItems,
   evidenceBasisItems,
   evidenceItems,
@@ -5086,6 +5136,12 @@ function buildClientReportCopyText({
     formatClientReportCopySection(
       t("clientReportBriefTitle"),
       (Array.isArray(briefItems) ? briefItems : [])
+        .filter((item) => item?.label && item?.body)
+        .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
+    ),
+    formatClientReportCopySection(
+      t("clientReportCopyRecommendation"),
+      (Array.isArray(recommendationItems) ? recommendationItems : [])
         .filter((item) => item?.label && item?.body)
         .map((item) => `${sentence(item.label)}: ${sentence(item.body)}`)
     ),
@@ -5270,6 +5326,10 @@ function renderClientReportSummary(summary) {
     ? normalized.briefItems.filter((item) => item?.label && item?.body)
     : [];
   const handoff = sentence(normalized.handoff || "");
+  const recommendation = normalized.recommendation || {};
+  const recommendationItems = Array.isArray(recommendation.items)
+    ? recommendation.items.filter((item) => item?.label && item?.body)
+    : [];
   const nextCheck = normalized.nextCheck || {};
   const nextCheckItems = Array.isArray(nextCheck.items)
     ? nextCheck.items.map((item) => sentence(item)).filter(Boolean)
@@ -5299,6 +5359,7 @@ function renderClientReportSummary(summary) {
     briefItems: safeBriefItems,
     handoff,
     reportLink,
+    recommendationItems,
     sendChecklistItems,
     evidenceBasisItems,
     evidenceItems,
@@ -5361,6 +5422,36 @@ function renderClientReportSummary(summary) {
         ? `<div class="client-report-summary__handoff">
             <div class="client-report-summary__label">${escapeHtml(t("clientReportHandoffLabel"))}</div>
             <div class="client-report-summary__handoff-body">${escapeHtml(handoff)}</div>
+          </div>`
+        : ""
+    }
+    ${
+      recommendationItems.length
+        ? `<div class="client-report-summary__recommendation">
+            <div>
+              <div class="client-report-summary__label">${escapeHtml(
+                recommendation.title || t("clientReportRecommendationTitle")
+              )}</div>
+              ${
+                recommendation.subtitle
+                  ? `<div class="client-report-summary__support-subtitle">${escapeHtml(
+                      recommendation.subtitle
+                    )}</div>`
+                  : ""
+              }
+            </div>
+            <div class="client-report-summary__recommendation-grid">
+              ${recommendationItems
+                .map(
+                  (item) => `
+                    <div class="client-report-summary__recommendation-item">
+                      <span>${escapeHtml(item.label)}</span>
+                      <strong>${escapeHtml(item.body)}</strong>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
           </div>`
         : ""
     }

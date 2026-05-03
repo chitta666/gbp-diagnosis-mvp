@@ -7918,6 +7918,9 @@ function renderReportWeeklyDiffSummary(result) {
 
   const tone = savedWeeklyToneClass(summary.tone);
   const metrics = Array.isArray(summary.metrics) ? summary.metrics.slice(0, 4) : [];
+  const movementItems = savedMonitoringMovementItems(
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring
+  );
   const clientSummary = Array.isArray(summary.clientSummary)
     ? summary.clientSummary.filter(Boolean).slice(0, 2)
     : [];
@@ -7942,6 +7945,24 @@ function renderReportWeeklyDiffSummary(result) {
                   )}">
                     <div class="report-weekly-diff__metric-label">${escapeHtml(metric?.label || "")}</div>
                     <div class="report-weekly-diff__metric-value">${escapeHtml(formatWeeklyMetricValue(metric))}</div>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>`
+        : ""
+    }
+    ${
+      movementItems.length
+        ? `<div class="report-weekly-diff__movement">
+            ${movementItems
+              .map(
+                (item) => `
+                  <div class="report-weekly-diff__movement-item report-weekly-diff__movement-item--${escapeAttr(
+                    item.tone
+                  )}">
+                    <span>${escapeHtml(item.label)}</span>
+                    <strong>${escapeHtml(item.value)}</strong>
                   </div>
                 `
               )

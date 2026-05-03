@@ -1176,6 +1176,8 @@ const COPY = {
     savedWorkQueueWatch: "Watch",
     savedWorkQueuePlannedAction: "Planned task waiting",
     savedWorkQueueWarningDiff: "Weekly diff needs attention",
+    savedWorkQueueThemeWarning: "Review-theme movement needs attention",
+    savedWorkQueueThemePositive: "Review-theme movement improved",
     savedWorkQueueReviewDrop: "Review count changed",
     savedWorkQueueStatusWarning: "Profile needs attention",
     savedWorkQueueCollecting: "Still collecting history",
@@ -1960,6 +1962,8 @@ const COPY = {
     savedWorkQueueWatch: "確認",
     savedWorkQueuePlannedAction: "未完了タスクあり",
     savedWorkQueueWarningDiff: "週次差分が要確認",
+    savedWorkQueueThemeWarning: "レビュー傾向が要確認",
+    savedWorkQueueThemePositive: "レビュー傾向が改善",
     savedWorkQueueReviewDrop: "レビュー数に変化",
     savedWorkQueueStatusWarning: "プロフィール要確認",
     savedWorkQueueCollecting: "履歴収集中",
@@ -9368,6 +9372,43 @@ function buildSavedWorkQueueOutcome(item) {
   };
 }
 
+function buildSavedWorkQueueReviewThemeSignal(item) {
+  const monitoring = item?.reviewThemeMonitoring || null;
+  if (!monitoring || monitoring.status !== "ready") return null;
+
+  const trend = String(monitoring?.trend || "");
+  const gapDirection = String(monitoring?.gapDirection || "");
+  const movementCopy = sentence(buildReviewThemeMovementCopy(monitoring));
+  const nextAction = sentence(monitoring?.nextAction || "");
+  const movementItems = savedMonitoringMovementItems(monitoring);
+  const hasWarning =
+    trend === "worsening" ||
+    gapDirection === "widening" ||
+    movementItems.some((item) => item?.tone === "warning");
+  const hasPositive =
+    trend === "improving" ||
+    gapDirection === "narrowing" ||
+    movementItems.some((item) => item?.tone === "accent");
+
+  if (hasWarning) {
+    return {
+      tone: "warning",
+      reason: movementCopy || t("savedWorkQueueThemeWarning"),
+      nextAction: nextAction || movementCopy || t("savedWorkQueueThemeWarning"),
+    };
+  }
+
+  if (hasPositive) {
+    return {
+      tone: "positive",
+      reason: movementCopy || t("savedWorkQueueThemePositive"),
+      nextAction: movementCopy || nextAction || t("savedWorkQueueThemePositive"),
+    };
+  }
+
+  return null;
+}
+
 function buildSavedWorkQueueItem(item) {
   if (!item?.id) return null;
 
@@ -9376,6 +9417,7 @@ function buildSavedWorkQueueItem(item) {
   const readiness = getSavedListingReadiness(item);
   const outcome = buildSavedWorkQueueOutcome(item);
   const cadence = buildSavedWeeklyCadence(item);
+  const reviewThemeSignal = buildSavedWorkQueueReviewThemeSignal(item);
 
   if (item?.latestAction?.status === "planned") {
     score += 34;
@@ -9409,6 +9451,18 @@ function buildSavedWorkQueueItem(item) {
     reasons.push(t("savedWorkQueueCollecting"));
   }
 
+  if (reviewThemeSignal) {
+    const weeklyAlreadySignalsMovement = ["warning", "positive"].includes(
+      item?.weeklyDiffSummary?.tone
+    );
+    if (reviewThemeSignal.tone === "warning") {
+      score += weeklyAlreadySignalsMovement ? 8 : 34;
+    } else {
+      score += weeklyAlreadySignalsMovement ? 4 : 14;
+    }
+    reasons.push(reviewThemeSignal.reason);
+  }
+
   if (item?.statusSummary?.tone === "warning") {
     score += 28;
     reasons.push(item.statusSummary.reason || t("savedWorkQueueStatusWarning"));
@@ -9428,6 +9482,7 @@ function buildSavedWorkQueueItem(item) {
 
   const nextAction =
     outcome?.nextAction ||
+    reviewThemeSignal?.nextAction ||
     (!readiness.complete ? readiness.nextStep : "") ||
     item?.weeklyDiffSummary?.nextAction ||
     (item?.latestAction?.status === "planned"

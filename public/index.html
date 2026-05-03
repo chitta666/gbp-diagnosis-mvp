@@ -1586,6 +1586,9 @@ const COPY = {
     reviewMonitoringBasisSavedChecks: "{count} saved checks",
     reviewMonitoringBasisVisibleReviews: "{count} recent visible reviews",
     reviewMonitoringBasisCompetitorChecks: "{count} competitor checks",
+    reviewMonitoringConfidenceLow: "low confidence",
+    reviewMonitoringConfidenceMedium: "medium confidence",
+    reviewMonitoringVisibleSampleOnly: "visible review sample only",
     savedListingFallbackName: "Saved Listing",
     analysisFailed: "Analysis failed.",
   },
@@ -2359,6 +2362,9 @@ const COPY = {
     reviewMonitoringBasisSavedChecks: "保存チェック {count} 回",
     reviewMonitoringBasisVisibleReviews: "直近表示レビュー {count} 件",
     reviewMonitoringBasisCompetitorChecks: "競合チェック {count} 回",
+    reviewMonitoringConfidenceLow: "信頼度: 低",
+    reviewMonitoringConfidenceMedium: "信頼度: 中",
+    reviewMonitoringVisibleSampleOnly: "表示レビューサンプルベース",
     savedListingFallbackName: "保存した店舗",
     analysisFailed: "分析に失敗しました。",
   },
@@ -8579,6 +8585,7 @@ function buildReviewMonitoringBasisCopy(monitoring) {
   if (!monitoring || monitoring.status !== "ready") return "";
 
   const parts = [];
+  const confidence = String(monitoring?.confidence || "").toLowerCase();
   const ownSnapshotCount = Number.isFinite(monitoring?.ownSnapshotCount)
     ? Number(monitoring.ownSnapshotCount)
     : null;
@@ -8621,6 +8628,13 @@ function buildReviewMonitoringBasisCopy(monitoring) {
 
   if (previousDate && latestDate) {
     parts.push(`${previousDate} -> ${latestDate}`);
+  }
+
+  if (confidence === "medium") {
+    parts.push(t("reviewMonitoringConfidenceMedium"));
+  } else if (confidence === "low") {
+    parts.push(t("reviewMonitoringConfidenceLow"));
+    parts.push(t("reviewMonitoringVisibleSampleOnly"));
   }
 
   return parts.length ? `${t("reviewMonitoringBasisLabel")}: ${parts.join(" / ")}` : "";

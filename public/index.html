@@ -5832,14 +5832,20 @@ function buildClientReportConfidenceFrame(evidencePack, readinessVerdict) {
   };
 }
 
-function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpecificCompetitor }) {
+function buildClientReportReadinessVerdict({
+  weeklyReady,
+  latestAction,
+  hasSpecificCompetitor,
+  reviewTrendReady,
+}) {
   const missing = [];
   if (!weeklyReady) missing.push(t("clientReportReadinessWeeklyDiff"));
   if (!latestAction) missing.push(t("clientReportReadinessActionHistory"));
   if (!hasSpecificCompetitor) missing.push(t("clientReportReadinessCompetitor"));
+  if (!reviewTrendReady) missing.push(t("clientReportReadinessReviewTrend"));
 
-  const readyCount = 3 - missing.length;
-  if (readyCount === 3) {
+  const readyCount = 4 - missing.length;
+  if (readyCount === 4) {
     return {
       tone: "ready",
       title: t("clientReportVerdictReadyTitle"),
@@ -5848,7 +5854,7 @@ function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpeci
     };
   }
 
-  if (readyCount >= 2) {
+  if (readyCount >= 3) {
     return {
       tone: "partial",
       title: t("clientReportVerdictPartialTitle"),
@@ -6014,10 +6020,15 @@ function buildClientReportSummary(firstView, result = null) {
   ];
   const proofBody = sentence(uniqueStrings(proofItems).join(" / "));
   const weeklyReady = weeklySummary?.status === "ready";
+  const reviewTrendReadiness = getSavedReviewTrendReadiness({
+    reviewThemeMonitoring:
+      savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null,
+  });
   const readinessVerdict = buildClientReportReadinessVerdict({
     weeklyReady,
     latestAction,
     hasSpecificCompetitor,
+    reviewTrendReady: reviewTrendReadiness.ready,
   });
   const deliveryCopy = buildClientReportDeliveryCopy({
     businessName,
@@ -6085,6 +6096,11 @@ function buildClientReportSummary(firstView, result = null) {
         label: t("clientReportReadinessCompetitor"),
         value: hasSpecificCompetitor ? t("clientReportSelected") : t("clientReportMissing"),
         tone: hasSpecificCompetitor ? "ready" : "pending",
+      },
+      {
+        label: t("clientReportReadinessReviewTrend"),
+        value: reviewTrendReadiness.value,
+        tone: reviewTrendReadiness.tone,
       },
     ],
     briefItems: [
@@ -9512,7 +9528,7 @@ function buildSavedWorkQueueItem(item) {
   }
 
   if (!readiness.complete) {
-    score += Math.max(6, (4 - readiness.readyCount) * 8);
+    score += Math.max(6, (5 - readiness.readyCount) * 8);
     reasons.push(
       copyWithValues(t("savedWorkQueueReadinessGap"), {
         score: readiness.scoreLabel,

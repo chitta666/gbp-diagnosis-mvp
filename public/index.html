@@ -1238,8 +1238,12 @@ const COPY = {
     clientReportImpactExpected: "Expected visible change",
     clientReportImpactMeasure: "Next check",
     clientReportImpactReportBack: "Report-back angle",
+    clientReportImpactReportBackTrendReady:
+      "Next report can connect the approved task, visible movement, review-theme movement, and the same-competitor gap.",
     clientReportImpactReportBackReady:
       "Next report can connect the approved task, visible movement, and same-competitor gap.",
+    clientReportImpactReportBackTrendCollecting:
+      "Next report can show whether the task starts changing review themes after another same-competitor check.",
     clientReportImpactReportBackBaseline:
       "Next report can show whether this baseline moved after the task is completed.",
     clientReportDeliveryTitle: "Message starter",
@@ -2026,8 +2030,12 @@ const COPY = {
     clientReportImpactExpected: "見える変化",
     clientReportImpactMeasure: "次回見る指標",
     clientReportImpactReportBack: "次回の報告軸",
+    clientReportImpactReportBackTrendReady:
+      "次回レポートで、承認された実行案、見える変化、レビュー傾向の動き、同じ競合との差分をつなげて説明できます。",
     clientReportImpactReportBackReady:
       "次回レポートで、承認された実行案、見える変化、同じ競合との差分をつなげて説明できます。",
+    clientReportImpactReportBackTrendCollecting:
+      "次回レポートで、同じ競合で再チェックした後にレビュー傾向が動き始めたかを説明できます。",
     clientReportImpactReportBackBaseline:
       "次回レポートで、この基準値が実行後に動いたかを説明できます。",
     clientReportDeliveryTitle: "送付文面のたたき台",
@@ -5906,13 +5914,24 @@ function buildClientReportDeliveryCopy({
   };
 }
 
-function buildClientReportImpactPreview(result, task, latestAction, weeklyReady) {
+function buildClientReportImpactPreview(
+  result,
+  task,
+  latestAction,
+  weeklyReady,
+  reviewTrendReady = false
+) {
   if (!task?.body) return null;
 
   const actionBrief = buildActionExecutionBrief(result, task, latestAction);
-  const reportBack = weeklyReady
-    ? t("clientReportImpactReportBackReady")
-    : t("clientReportImpactReportBackBaseline");
+  const reportBack =
+    weeklyReady && reviewTrendReady
+      ? t("clientReportImpactReportBackTrendReady")
+      : weeklyReady
+        ? t("clientReportImpactReportBackReady")
+        : reviewTrendReady
+          ? t("clientReportImpactReportBackTrendCollecting")
+          : t("clientReportImpactReportBackBaseline");
 
   return {
     title: t("clientReportImpactTitle"),
@@ -6050,7 +6069,13 @@ function buildClientReportSummary(firstView, result = null) {
   const confidenceFrame = buildClientReportConfidenceFrame(evidencePack, readinessVerdict);
   const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
   const decisionRequest = buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady);
-  const impactPreview = buildClientReportImpactPreview(result, task, latestAction, weeklyReady);
+  const impactPreview = buildClientReportImpactPreview(
+    result,
+    task,
+    latestAction,
+    weeklyReady,
+    reviewTrendReadiness.ready
+  );
   const recommendationWhy = sentence(summaryLines[1] || evidencePack?.items?.[0] || weeklyMovement);
   const recommendationApproval = sentence(
     task?.body

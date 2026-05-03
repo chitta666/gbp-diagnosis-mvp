@@ -5,6 +5,7 @@ import {
   ensureSavedListingMetrics,
   getSavedListing,
   publicSavedListing,
+  refreshSavedListingReviewThemeHistory,
 } from "../_lib/savedListings.js";
 
 function t(lang, en, ja) {
@@ -61,6 +62,17 @@ export async function onRequest({ request, env }) {
       key,
       listing: saved,
     })) || saved;
+
+  try {
+    saved =
+      (await refreshSavedListingReviewThemeHistory({
+        KV,
+        key,
+        listing: saved,
+      })) || saved;
+  } catch {
+    // Saved reports should still open even if monitoring history cannot refresh.
+  }
 
   if (saved?.competitorPlaceId) {
     await KV.put(

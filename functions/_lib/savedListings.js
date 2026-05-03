@@ -675,25 +675,25 @@ function buildNotableShift({
   if (movement?.recurringFrictions?.[0]) {
     return isJapanese(lang)
       ? `${movement.recurringFrictions[0]}が直近の保存チェックで繰り返し出ています。`
-      : `${movement.recurringFrictions[0]} is repeating across recent saved checks.`;
+      : `Recent saved checks keep showing ${movement.recurringFrictions[0]}.`;
   }
 
   if (movement?.emergingFrictions?.[0]) {
     return isJapanese(lang)
       ? `${movement.emergingFrictions[0]}が最新のレビュー傾向スナップショットではよりはっきり見えるようになっています。`
-      : `${movement.emergingFrictions[0]} is appearing more clearly in the latest review snapshot.`;
+      : `The latest review snapshot shows ${movement.emergingFrictions[0]} more clearly.`;
   }
 
   if (movement?.recurringVerificationGaps?.[0]) {
     return isJapanese(lang)
       ? `${movement.recurringVerificationGaps[0]}が複数回の保存チェックで残っています。`
-      : `${movement.recurringVerificationGaps[0]} is still present across saved checks.`;
+      : `Recent saved checks still show ${movement.recurringVerificationGaps[0]}.`;
   }
 
   if (movement?.softenedFrictions?.[0]) {
     return isJapanese(lang)
       ? `${movement.softenedFrictions[0]}は前回の保存チェックほど中心ではなくなっています。`
-      : `${movement.softenedFrictions[0]} looks less central than in the previous saved check.`;
+      : `Recent saved checks show less ${movement.softenedFrictions[0]} than before.`;
   }
 
   if (movement?.softenedVerificationGaps?.[0]) {
@@ -770,13 +770,28 @@ function buildTrendAwareNextAction(
 
 export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) {
   const history = normalizedReviewThemeHistory(record?.reviewThemeHistory);
-  const ownHistory = latestStoredSnapshots(history.own, 4).map((item) =>
+  const comparisonPlaceId = String(record?.competitorPlaceId || "").trim();
+  const ownPlaceId = String(record?.placeId || "").trim();
+  const ownHistory = latestStoredSnapshots(
+    comparisonPlaceId
+      ? history.own.filter(
+          (item) =>
+            String(item?.comparedAgainstPlaceId || "").trim() === comparisonPlaceId
+        )
+      : [],
+    4
+  ).map((item) =>
     localizeStoredSnapshot(item, lang)
   );
   const competitorHistory = latestStoredSnapshots(
-    history.competitor.filter(
-      (item) => String(item?.placeId || "") === String(record?.competitorPlaceId || "")
-    ),
+    comparisonPlaceId
+      ? history.competitor.filter(
+          (item) =>
+            String(item?.placeId || "").trim() === comparisonPlaceId &&
+            (!ownPlaceId ||
+              String(item?.comparedAgainstPlaceId || "").trim() === ownPlaceId)
+        )
+      : [],
     4
   )
     .map((item) => localizeStoredSnapshot(item, lang));

@@ -1576,6 +1576,12 @@ const COPY = {
     themeTrendLabel: "Theme trend",
     competitorGapLabel: "Competitor gap",
     notEnoughCompetitorHistory: "Not enough competitor history yet",
+    reviewMonitoringNewFriction: "Newly visible",
+    reviewMonitoringSoftenedFriction: "Softened",
+    reviewMonitoringRecurringFriction: "Still repeating",
+    reviewMonitoringRecurringVerification: "Proof gap persists",
+    reviewMonitoringThemePressure: "Friction pressure",
+    reviewMonitoringCompetitorGapMovement: "Competitor gap movement",
     savedListingFallbackName: "Saved Listing",
     analysisFailed: "Analysis failed.",
   },
@@ -2339,6 +2345,12 @@ const COPY = {
     themeTrendLabel: "テーマ傾向",
     competitorGapLabel: "競合ギャップ",
     notEnoughCompetitorHistory: "競合履歴がまだ足りません",
+    reviewMonitoringNewFriction: "新しく見えた不満",
+    reviewMonitoringSoftenedFriction: "弱まった不満",
+    reviewMonitoringRecurringFriction: "継続している不満",
+    reviewMonitoringRecurringVerification: "残っている根拠不足",
+    reviewMonitoringThemePressure: "不安要素の圧力",
+    reviewMonitoringCompetitorGapMovement: "競合差の動き",
     savedListingFallbackName: "保存した店舗",
     analysisFailed: "分析に失敗しました。",
   },
@@ -8438,6 +8450,101 @@ function savedMonitoringLabel(value, fallback = t("notAvailableYet")) {
   return labels[String(value)] || String(value).replace(/_/g, " ");
 }
 
+function savedMonitoringMovementItems(monitoring) {
+  const items = [];
+  const emerging = Array.isArray(monitoring?.emergingFrictions)
+    ? monitoring.emergingFrictions
+    : [];
+  const softened = Array.isArray(monitoring?.softenedFrictions)
+    ? monitoring.softenedFrictions
+    : [];
+  const recurring = Array.isArray(monitoring?.recurringFrictions)
+    ? monitoring.recurringFrictions
+    : [];
+  const recurringVerification = Array.isArray(monitoring?.recurringVerificationGaps)
+    ? monitoring.recurringVerificationGaps
+    : [];
+
+  if (emerging.length) {
+    items.push({
+      tone: "warning",
+      label: t("reviewMonitoringNewFriction"),
+      value: humanJoin(emerging),
+    });
+  }
+
+  if (softened.length) {
+    items.push({
+      tone: "accent",
+      label: t("reviewMonitoringSoftenedFriction"),
+      value: humanJoin(softened),
+    });
+  }
+
+  if (recurring.length && !emerging.length) {
+    items.push({
+      tone: "warning",
+      label: t("reviewMonitoringRecurringFriction"),
+      value: humanJoin(recurring),
+    });
+  }
+
+  if (recurringVerification.length) {
+    items.push({
+      tone: "warning",
+      label: t("reviewMonitoringRecurringVerification"),
+      value: humanJoin(recurringVerification),
+    });
+  }
+
+  if (
+    Number.isFinite(monitoring?.themePressureDelta) &&
+    Number(monitoring.themePressureDelta) !== 0
+  ) {
+    items.push({
+      tone: Number(monitoring.themePressureDelta) < 0 ? "accent" : "warning",
+      label: t("reviewMonitoringThemePressure"),
+      value: formatWeeklyDelta(Number(monitoring.themePressureDelta)),
+    });
+  }
+
+  if (
+    monitoring?.hasCompetitorThemeHistory &&
+    Number.isFinite(monitoring?.competitorGapDelta) &&
+    Number(monitoring.competitorGapDelta) !== 0
+  ) {
+    items.push({
+      tone: Number(monitoring.competitorGapDelta) < 0 ? "accent" : "warning",
+      label: t("reviewMonitoringCompetitorGapMovement"),
+      value: formatWeeklyDelta(Number(monitoring.competitorGapDelta)),
+    });
+  }
+
+  return items.filter((item) => item.value).slice(0, 3);
+}
+
+function buildSavedMonitoringMovementBlock(monitoring) {
+  const items = savedMonitoringMovementItems(monitoring);
+  if (!items.length) return null;
+
+  const movement = document.createElement("div");
+  movement.className = "saved__monitoring-movement";
+
+  items.forEach((item) => {
+    const node = document.createElement("div");
+    node.className = `saved__monitoring-movement-item saved__monitoring-movement-item--${escapeAttr(
+      item.tone
+    )}`;
+    node.innerHTML = `
+      <span>${escapeHtml(item.label)}</span>
+      <strong>${escapeHtml(item.value)}</strong>
+    `;
+    movement.appendChild(node);
+  });
+
+  return movement;
+}
+
 function buildSavedListingMonitoringBlock(monitoring) {
   if (!monitoring?.status) return null;
 
@@ -8509,6 +8616,9 @@ function buildSavedListingMonitoringBlock(monitoring) {
   grid.appendChild(trendItem);
   grid.appendChild(gapItem);
   block.appendChild(grid);
+
+  const movementBlock = buildSavedMonitoringMovementBlock(monitoring);
+  if (movementBlock) block.appendChild(movementBlock);
 
   if (monitoring?.notableShift) {
     const shift = document.createElement("div");

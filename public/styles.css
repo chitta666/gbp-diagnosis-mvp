@@ -3024,6 +3024,51 @@ body.client-share-view .print-cover__meta-value {
   margin-top: 4px;
 }
 
+.saved__monitoring-movement {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.saved__monitoring-movement-item {
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 11px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.saved__monitoring-movement-item--accent {
+  border-color: rgba(22, 163, 74, 0.22);
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.saved__monitoring-movement-item--warning {
+  border-color: rgba(217, 119, 6, 0.22);
+  background: rgba(245, 158, 11, 0.09);
+}
+
+.saved__monitoring-movement-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.saved__monitoring-movement-item strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .saved__monitoring-support {
   margin-top: 8px;
   font-size: 12px;
@@ -3692,6 +3737,14 @@ body.client-share-view .print-cover__meta-value {
 
   .saved__monitoring-grid {
     grid-template-columns: 1fr;
+  }
+
+  .saved__monitoring-movement {
+    grid-template-columns: 1fr;
+  }
+
+  .saved__monitoring-movement-item strong {
+    white-space: normal;
   }
 
   .saved__weekly-metrics {

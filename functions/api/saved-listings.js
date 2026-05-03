@@ -8,6 +8,7 @@ import {
   listSavedListingsByEmail,
   publicSavedListing,
   refreshSavedListingMetrics,
+  refreshSavedListingReviewThemeHistory,
   upsertSavedListing,
 } from "../_lib/savedListings.js";
 
@@ -188,6 +189,17 @@ export async function onRequest({ request, env }) {
           })) || listing;
       } catch {
         // Keep the save flow resilient even if change tracking fails.
+      }
+
+      try {
+        listing =
+          (await refreshSavedListingReviewThemeHistory({
+            KV,
+            key: env.GOOGLE_MAPS_API_KEY,
+            listing,
+          })) || listing;
+      } catch {
+        // Saving should not fail if the monitoring snapshot cannot be built yet.
       }
     }
 

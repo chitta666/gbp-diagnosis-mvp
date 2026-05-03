@@ -1352,6 +1352,10 @@ const COPY = {
     clientReportEvidenceReviewCollecting:
       "Review text signal: collecting enough recent review text for stronger evidence.",
     clientReportEvidenceAxis: "Review axis: {axis} is {status}. {evidence}",
+    clientReportEvidenceThemeMovement: "Review-theme movement: {movement}",
+    clientReportEvidenceThemeBeforeAfter: "Theme focus: {previous} -> {latest}",
+    clientReportEvidenceThemeBasis: "Monitoring basis: {basis}",
+    clientReportEvidenceSavedContext: "Saved action context: {context}",
     clientReportEvidenceGoogle: "Google-side proof: {signal}",
     clientReportEvidenceReviewTotals:
       "Review totals: this listing {my}, competitor {competitor}; gap {gap}.",
@@ -2131,6 +2135,10 @@ const COPY = {
     clientReportEvidenceReviewCollecting:
       "レビュー本文シグナル: より強い根拠を出すための直近レビュー本文を収集中です。",
     clientReportEvidenceAxis: "レビュー軸: {axis} は「{status}」。{evidence}",
+    clientReportEvidenceThemeMovement: "レビュー傾向の変化: {movement}",
+    clientReportEvidenceThemeBeforeAfter: "レビュー焦点: {previous} -> {latest}",
+    clientReportEvidenceThemeBasis: "モニタリング根拠: {basis}",
+    clientReportEvidenceSavedContext: "保存時のアクション根拠: {context}",
     clientReportEvidenceGoogle: "Google側の見える根拠: {signal}",
     clientReportEvidenceReviewTotals:
       "レビュー総数: 自店舗 {my}、競合 {competitor}、差分 {gap}。",
@@ -5630,6 +5638,48 @@ function buildClientReportEvidencePack(result) {
     );
   }
 
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const reviewThemeMovement = buildReviewThemeMovementCopy(reviewThemeMonitoring);
+  const reviewThemeBeforeAfter = reviewMonitoringBeforeAfterItems(reviewThemeMonitoring);
+  const reviewThemeBasis = buildReviewMonitoringBasisCopy(reviewThemeMonitoring);
+  const savedListing = result?.savedListing || null;
+  const history = Array.isArray(savedListing?.actionHistory) ? savedListing.actionHistory : [];
+  const savedReviewContext = actionSnapshotReviewContext(savedListing?.latestAction || history[0] || null);
+
+  if (reviewThemeMovement) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceThemeMovement"), {
+        movement: reviewThemeMovement,
+      })
+    );
+  }
+
+  if (reviewThemeBeforeAfter.length >= 2) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceThemeBeforeAfter"), {
+        previous: reviewThemeBeforeAfter[0]?.value || "-",
+        latest: reviewThemeBeforeAfter[1]?.value || "-",
+      })
+    );
+  }
+
+  if (reviewThemeBasis) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceThemeBasis"), {
+        basis: reviewThemeBasis,
+      })
+    );
+  }
+
+  if (savedReviewContext?.headline) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceSavedContext"), {
+        context: savedReviewContext.headline,
+      })
+    );
+  }
+
   if (googleSignal) {
     items.push(copyWithValues(t("clientReportEvidenceGoogle"), { signal: googleSignal }));
   }
@@ -5686,7 +5736,7 @@ function buildClientReportEvidencePack(result) {
     subtitle: t("clientReportEvidenceSubtitle"),
     verdict,
     basisItems,
-    items: uniqueStrings(items.map(sentence)).slice(0, 5),
+    items: uniqueStrings(items.map(sentence)).slice(0, 7),
   };
 }
 

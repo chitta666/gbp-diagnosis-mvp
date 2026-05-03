@@ -107,8 +107,15 @@ function buildCheckResult({
 async function runSiteCheck({ origin, fetchImpl }) {
   const url = `${origin}/`;
   const result = await fetchTarget(fetchImpl, url);
-  const expectedMarker = "Analyze your Google Maps listing";
-  const containsExpectedMarker = result.text.includes(expectedMarker);
+  const expectedMarkers = [
+    "Flowmetric",
+    "Client-ready GBP weekly reports",
+    "saved client locations",
+  ];
+  const matchedMarkers = expectedMarkers.filter((marker) =>
+    result.text.includes(marker)
+  );
+  const containsExpectedMarker = matchedMarkers.length >= 2;
 
   if (!result.ok) {
     return buildCheckResult({
@@ -134,6 +141,7 @@ async function runSiteCheck({ origin, fetchImpl }) {
           : "Landing page did not include the expected product marker text.",
       observed: {
         containsExpectedMarker,
+        matchedMarkers,
       },
     });
   }
@@ -145,6 +153,7 @@ async function runSiteCheck({ origin, fetchImpl }) {
     httpStatus: result.httpStatus,
     observed: {
       containsExpectedMarker,
+      matchedMarkers,
     },
   });
 }
@@ -351,4 +360,3 @@ export function summarizeHealthResult(result) {
 export function shouldAlertFromHealthResult(result) {
   return summarizeHealthResult(result).alertableChecks.length > 0;
 }
-

@@ -768,6 +768,84 @@ function buildTrendAwareNextAction(
   );
 }
 
+function primarySnapshotFocus(snapshot, lang = "en") {
+  const friction = themeList(snapshot, "frictions")[0];
+  if (friction) {
+    return isJapanese(lang) ? `不満: ${friction}` : `Friction: ${friction}`;
+  }
+
+  const verificationGap = themeList(snapshot, "verificationGaps")[0];
+  if (verificationGap) {
+    return isJapanese(lang) ? `根拠不足: ${verificationGap}` : `Proof gap: ${verificationGap}`;
+  }
+
+  const competitorEdge = themeList(snapshot, "competitorChoiceEdges")[0];
+  if (competitorEdge) {
+    return isJapanese(lang)
+      ? `競合優位: ${competitorEdge}`
+      : `Competitor edge: ${competitorEdge}`;
+  }
+
+  const strength = themeList(snapshot, "strengths")[0];
+  if (strength) {
+    return isJapanese(lang) ? `強み: ${strength}` : `Strength: ${strength}`;
+  }
+
+  return compactText(localizedString(snapshot?.summary, lang), 120);
+}
+
+function latestThemeFocus({ latest, movement, gapDirection }, lang = "en") {
+  if (movement?.emergingFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `新しく見えた不満: ${movement.emergingFrictions[0]}`
+      : `Newly visible friction: ${movement.emergingFrictions[0]}`;
+  }
+
+  if (movement?.recurringFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `継続している不満: ${movement.recurringFrictions[0]}`
+      : `Still repeating: ${movement.recurringFrictions[0]}`;
+  }
+
+  if (movement?.softenedFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `弱まった不満: ${movement.softenedFrictions[0]}`
+      : `Softened friction: ${movement.softenedFrictions[0]}`;
+  }
+
+  if (movement?.recurringVerificationGaps?.[0]) {
+    return isJapanese(lang)
+      ? `残っている根拠不足: ${movement.recurringVerificationGaps[0]}`
+      : `Proof gap persists: ${movement.recurringVerificationGaps[0]}`;
+  }
+
+  if (gapDirection === "narrowing") {
+    return isJapanese(lang)
+      ? "競合優位は前回より弱まって見えます"
+      : "The competitor edge looks softer than before";
+  }
+
+  if (gapDirection === "widening") {
+    return isJapanese(lang)
+      ? "競合優位は前回より強く残っています"
+      : "The competitor edge looks more persistent than before";
+  }
+
+  return primarySnapshotFocus(latest, lang);
+}
+
+function buildReviewThemeBeforeAfter({ latest, previous, movement, gapDirection }, lang = "en") {
+  const previousFocus = primarySnapshotFocus(previous, lang);
+  const latestFocus = latestThemeFocus({ latest, movement, gapDirection }, lang);
+
+  if (!previousFocus && !latestFocus) return null;
+
+  return {
+    previous: previousFocus || (isJapanese(lang) ? "前回の主要論点なし" : "No clear previous theme"),
+    latest: latestFocus || (isJapanese(lang) ? "最新の主要論点なし" : "No clear latest theme"),
+  };
+}
+
 export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) {
   const history = normalizedReviewThemeHistory(record?.reviewThemeHistory);
   const comparisonPlaceId = String(record?.competitorPlaceId || "").trim();
@@ -820,6 +898,12 @@ export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) 
     trend,
     gapDirection,
   }, lang);
+  const beforeAfter = buildReviewThemeBeforeAfter({
+    latest,
+    previous,
+    movement,
+    gapDirection,
+  }, lang);
   const sampleTotal = ownHistory.reduce(
     (sum, item) => sum + (Number.isFinite(item?.sampleReviewCount) ? Number(item.sampleReviewCount) : 0),
     0
@@ -834,6 +918,7 @@ export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) 
     softenedFrictions: movement.softenedFrictions,
     recurringVerificationGaps: movement.recurringVerificationGaps,
     notableShift,
+    beforeAfter,
     nextAction: buildTrendAwareNextAction({
       latest,
       movement,

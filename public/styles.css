@@ -813,6 +813,38 @@ body.client-share-view .print-cover__meta-value {
   color: var(--fg);
 }
 
+.report-weekly-diff__before-after {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.report-weekly-diff__before-after-item {
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.report-weekly-diff__before-after-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.report-weekly-diff__before-after-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 850;
+}
+
 .report-weekly-diff__movement {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3076,6 +3108,38 @@ body.client-share-view .print-cover__meta-value {
   margin-top: 4px;
 }
 
+.saved__monitoring-before-after {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.saved__monitoring-before-after-item {
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 11px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.saved__monitoring-before-after-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.saved__monitoring-before-after-item strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 850;
+}
+
 .saved__monitoring-movement {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3798,6 +3862,10 @@ body.client-share-view .print-cover__meta-value {
     grid-template-columns: 1fr;
   }
 
+  .saved__monitoring-before-after {
+    grid-template-columns: 1fr;
+  }
+
   .saved__monitoring-movement {
     grid-template-columns: 1fr;
   }
@@ -3812,6 +3880,10 @@ body.client-share-view .print-cover__meta-value {
 
   .report-weekly-diff__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-weekly-diff__before-after {
+    grid-template-columns: 1fr;
   }
 
   .report-weekly-diff__movement {

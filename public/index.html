@@ -1589,6 +1589,8 @@ const COPY = {
     reviewMonitoringConfidenceLow: "low confidence",
     reviewMonitoringConfidenceMedium: "medium confidence",
     reviewMonitoringVisibleSampleOnly: "visible review sample only",
+    reviewMonitoringPreviousCheck: "Previous check",
+    reviewMonitoringLatestCheck: "Latest check",
     savedListingFallbackName: "Saved Listing",
     analysisFailed: "Analysis failed.",
   },
@@ -2365,6 +2367,8 @@ const COPY = {
     reviewMonitoringConfidenceLow: "信頼度: 低",
     reviewMonitoringConfidenceMedium: "信頼度: 中",
     reviewMonitoringVisibleSampleOnly: "表示レビューサンプルベース",
+    reviewMonitoringPreviousCheck: "前回チェック",
+    reviewMonitoringLatestCheck: "最新チェック",
     savedListingFallbackName: "保存した店舗",
     analysisFailed: "分析に失敗しました。",
   },
@@ -7942,6 +7946,7 @@ function renderReportWeeklyDiffSummary(result) {
   const movementItems = savedMonitoringMovementItems(
     reviewThemeMonitoring
   );
+  const beforeAfterItems = reviewMonitoringBeforeAfterItems(reviewThemeMonitoring);
   const basisCopy = buildReviewMonitoringBasisCopy(reviewThemeMonitoring);
   const clientSummary = Array.isArray(summary.clientSummary)
     ? summary.clientSummary.filter(Boolean).slice(0, 2)
@@ -7967,6 +7972,22 @@ function renderReportWeeklyDiffSummary(result) {
                   )}">
                     <div class="report-weekly-diff__metric-label">${escapeHtml(metric?.label || "")}</div>
                     <div class="report-weekly-diff__metric-value">${escapeHtml(formatWeeklyMetricValue(metric))}</div>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>`
+        : ""
+    }
+    ${
+      beforeAfterItems.length >= 2
+        ? `<div class="report-weekly-diff__before-after">
+            ${beforeAfterItems
+              .map(
+                (item) => `
+                  <div class="report-weekly-diff__before-after-item">
+                    <span>${escapeHtml(item.label)}</span>
+                    <strong>${escapeHtml(item.value)}</strong>
                   </div>
                 `
               )
@@ -8581,6 +8602,23 @@ function buildReviewThemeMovementCopy(monitoring) {
   return `${movementItem.label}: ${movementItem.value}`;
 }
 
+function reviewMonitoringBeforeAfterItems(monitoring) {
+  if (!monitoring || monitoring.status !== "ready" || !monitoring?.beforeAfter) {
+    return [];
+  }
+
+  return [
+    {
+      label: t("reviewMonitoringPreviousCheck"),
+      value: sentence(monitoring.beforeAfter.previous),
+    },
+    {
+      label: t("reviewMonitoringLatestCheck"),
+      value: sentence(monitoring.beforeAfter.latest),
+    },
+  ].filter((item) => item.value);
+}
+
 function buildReviewMonitoringBasisCopy(monitoring) {
   if (!monitoring || monitoring.status !== "ready") return "";
 
@@ -8638,6 +8676,26 @@ function buildReviewMonitoringBasisCopy(monitoring) {
   }
 
   return parts.length ? `${t("reviewMonitoringBasisLabel")}: ${parts.join(" / ")}` : "";
+}
+
+function buildSavedReviewMonitoringBeforeAfterBlock(monitoring) {
+  const items = reviewMonitoringBeforeAfterItems(monitoring);
+  if (items.length < 2) return null;
+
+  const block = document.createElement("div");
+  block.className = "saved__monitoring-before-after";
+
+  items.forEach((item) => {
+    const node = document.createElement("div");
+    node.className = "saved__monitoring-before-after-item";
+    node.innerHTML = `
+      <span>${escapeHtml(item.label)}</span>
+      <strong>${escapeHtml(item.value)}</strong>
+    `;
+    block.appendChild(node);
+  });
+
+  return block;
 }
 
 function buildSavedMonitoringMovementBlock(monitoring) {
@@ -8733,6 +8791,9 @@ function buildSavedListingMonitoringBlock(monitoring) {
   grid.appendChild(trendItem);
   grid.appendChild(gapItem);
   block.appendChild(grid);
+
+  const beforeAfterBlock = buildSavedReviewMonitoringBeforeAfterBlock(monitoring);
+  if (beforeAfterBlock) block.appendChild(beforeAfterBlock);
 
   const movementBlock = buildSavedMonitoringMovementBlock(monitoring);
   if (movementBlock) block.appendChild(movementBlock);

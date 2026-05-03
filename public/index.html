@@ -1330,6 +1330,7 @@ const COPY = {
     clientReportEvidenceBasisCompetitor: "Competitor",
     clientReportEvidenceBasisGoogle: "Google signals",
     clientReportEvidenceBasisDepth: "Signal depth",
+    clientReportEvidenceBasisReviewTrend: "Review trend",
     clientReportEvidenceBasisSampleCount: "{count} visible",
     clientReportEvidenceBasisCollecting: "Collecting",
     clientReportEvidenceBasisSelected: "Selected",
@@ -2113,6 +2114,7 @@ const COPY = {
     clientReportEvidenceBasisCompetitor: "競合比較",
     clientReportEvidenceBasisGoogle: "Googleシグナル",
     clientReportEvidenceBasisDepth: "根拠の厚み",
+    clientReportEvidenceBasisReviewTrend: "レビュー傾向",
     clientReportEvidenceBasisSampleCount: "{count}件",
     clientReportEvidenceBasisCollecting: "収集中",
     clientReportEvidenceBasisSelected: "選択済み",
@@ -5535,6 +5537,14 @@ function buildClientReportEvidencePack(result) {
   const googleSignal = Array.isArray(reviewClues?.googleSignals)
     ? sentence(reviewClues.googleSignals[0])
     : "";
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const reviewThemeOwnSnapshotCount = Number.isFinite(Number(reviewThemeMonitoring?.ownSnapshotCount))
+    ? Number(reviewThemeMonitoring.ownSnapshotCount)
+    : 0;
+  const reviewThemeStatus = String(reviewThemeMonitoring?.status || "");
+  const reviewThemeReady = reviewThemeStatus === "ready";
+  const hasReviewThemeHistory = reviewThemeOwnSnapshotCount > 0;
   const hasCompetitor =
     Boolean(result?.selectedCompetitor?.name) ||
     Boolean(result?.savedListing?.competitorName) ||
@@ -5546,7 +5556,9 @@ function buildClientReportEvidencePack(result) {
   const isSteadySignal =
     reviewSampleCount >= 4 ||
     reviewClues?.confidence === "medium" ||
-    compare?.status === "ready";
+    compare?.status === "ready" ||
+    reviewThemeReady ||
+    (hasReviewThemeHistory && reviewThemeMonitoring?.confidence === "medium");
   const basisItems = [
     {
       label: t("clientReportEvidenceBasisReviews"),
@@ -5578,6 +5590,15 @@ function buildClientReportEvidencePack(result) {
         : t("clientReportEvidenceBasisEarly"),
       tone: isSteadySignal ? "ready" : "pending",
     },
+    {
+      label: t("clientReportEvidenceBasisReviewTrend"),
+      value: reviewThemeReady
+        ? t("clientReportEvidenceBasisIncluded")
+        : hasReviewThemeHistory
+          ? t("clientReportEvidenceBasisCollecting")
+          : t("clientReportEvidenceBasisMissing"),
+      tone: reviewThemeReady ? "ready" : "pending",
+    },
   ];
   const missing = [];
   if (!Number.isFinite(reviewSampleCount) || reviewSampleCount <= 0) {
@@ -5586,9 +5607,11 @@ function buildClientReportEvidencePack(result) {
   if (!hasCompetitor) missing.push(t("clientReportEvidenceBasisCompetitor"));
   if (!hasGoogleSignal) missing.push(t("clientReportEvidenceBasisGoogle"));
   if (!isSteadySignal) missing.push(t("clientReportEvidenceBasisDepth"));
+  if (!reviewThemeReady) missing.push(t("clientReportEvidenceBasisReviewTrend"));
   const readyCount = basisItems.filter((item) => item.tone === "ready").length;
+  const readyThreshold = basisItems.length >= 5 ? 4 : 3;
   const verdict =
-    readyCount >= 3
+    readyCount >= readyThreshold
       ? {
           tone: "ready",
           title: t("clientReportEvidenceVerdictReadyTitle"),
@@ -5638,8 +5661,6 @@ function buildClientReportEvidencePack(result) {
     );
   }
 
-  const reviewThemeMonitoring =
-    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
   const reviewThemeMovement = buildReviewThemeMovementCopy(reviewThemeMonitoring);
   const reviewThemeBeforeAfter = reviewMonitoringBeforeAfterItems(reviewThemeMonitoring);
   const reviewThemeBasis = buildReviewMonitoringBasisCopy(reviewThemeMonitoring);

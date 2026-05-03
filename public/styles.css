@@ -1837,6 +1837,33 @@ body.client-share-view .print-cover__meta-value {
   color: var(--muted);
 }
 
+.action-history__snapshot-context {
+  margin-top: 7px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
+  background: rgba(248, 250, 252, 0.82);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.action-history__snapshot-context span,
+.saved__action-context span {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.action-history__snapshot-context strong,
+.saved__action-context strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--fg);
+  font-weight: 850;
+}
+
 .action-history__brief {
   margin-top: 10px;
   padding: 11px 12px;
@@ -2856,6 +2883,17 @@ body.client-share-view .print-cover__meta-value {
   margin-top: 5px;
   font-size: 11px;
   line-height: 1.35;
+  color: var(--muted);
+}
+
+.saved__action-context {
+  margin-top: 7px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px dashed rgba(37, 99, 235, 0.18);
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--muted);
 }
 

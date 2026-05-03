@@ -1405,6 +1405,7 @@ const COPY = {
     actionHistoryCurrentChange: "What changed",
     actionHistoryNextTask: "Next task",
     actionHistoryClientHandoff: "Client handoff",
+    actionHistorySavedContext: "Saved context",
     actionOutcomeTitle: "Outcome check",
     actionOutcomeActionLabel: "Action status",
     actionOutcomeMovementLabel: "Visible movement",
@@ -2183,6 +2184,7 @@ const COPY = {
     actionHistoryCurrentChange: "今回の変化",
     actionHistoryNextTask: "次のタスク",
     actionHistoryClientHandoff: "クライアント報告文",
+    actionHistorySavedContext: "保存時の根拠",
     actionOutcomeTitle: "成果確認",
     actionOutcomeActionLabel: "アクション状態",
     actionOutcomeMovementLabel: "見えている変化",
@@ -6834,6 +6836,23 @@ function actionHistoryLanguageMeta(action) {
   });
 }
 
+function actionSnapshotReviewContext(action) {
+  const snapshot = action?.snapshotContext || {};
+  const headline = sentence(snapshot.reviewThemeHeadline || "");
+  const previous = sentence(snapshot.reviewThemePrevious || "");
+  const latest = sentence(snapshot.reviewThemeLatest || "");
+  const basis = sentence(snapshot.reviewThemeBasis || "");
+
+  if (!headline && !previous && !latest && !basis) return null;
+
+  return {
+    headline,
+    previous,
+    latest,
+    basis,
+  };
+}
+
 function buildCurrentActionTask(result, firstView = null) {
   const view = firstView || buildDiagnosisFirstView(result);
   const actions = Array.isArray(view?.actions) ? uniqueStrings(view.actions) : [];
@@ -6842,6 +6861,9 @@ function buildCurrentActionTask(result, firstView = null) {
 
   const task = splitActionTask(rawTask, 0);
   const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const reviewThemeBeforeAfter = reviewThemeMonitoring?.beforeAfter || null;
   const normalizedTask = {
     label: task?.label || t("actionHistoryNextTask"),
     body: task?.body || rawTask,
@@ -6870,6 +6892,10 @@ function buildCurrentActionTask(result, firstView = null) {
         result?.weeklyReport?.insight ||
         "",
       weeklyStatus: weeklySummary?.status || "",
+      reviewThemeHeadline: buildReviewThemeMovementCopy(reviewThemeMonitoring),
+      reviewThemePrevious: reviewThemeBeforeAfter?.previous || "",
+      reviewThemeLatest: reviewThemeBeforeAfter?.latest || "",
+      reviewThemeBasis: buildReviewMonitoringBasisCopy(reviewThemeMonitoring),
       executionWhy: actionBrief.why,
       doneCriteria: actionBrief.doneCriteria,
       nextCheck: actionBrief.nextCheck,
@@ -7050,6 +7076,7 @@ function renderActionHistoryPanel(result, firstView = null) {
         .filter(Boolean)
         .join(" • ")
     : "";
+  const savedReviewContext = actionSnapshotReviewContext(latestAction);
 
   actionHistoryPanelEl.classList.remove("hidden");
   actionHistoryPanelEl.innerHTML = `
@@ -7092,6 +7119,32 @@ function renderActionHistoryPanel(result, firstView = null) {
         ${
           latestActionMeta
             ? `<div class="action-history__meta">${escapeHtml(latestActionMeta)}</div>`
+            : ""
+        }
+        ${
+          savedReviewContext
+            ? `<div class="action-history__snapshot-context">
+                <span>${escapeHtml(t("actionHistorySavedContext"))}</span>
+                ${
+                  savedReviewContext.headline
+                    ? `<strong>${escapeHtml(savedReviewContext.headline)}</strong>`
+                    : ""
+                }
+                ${
+                  savedReviewContext.previous || savedReviewContext.latest
+                    ? `<div>${escapeHtml(
+                        [savedReviewContext.previous, savedReviewContext.latest]
+                          .filter(Boolean)
+                          .join(" -> ")
+                      )}</div>`
+                    : ""
+                }
+                ${
+                  savedReviewContext.basis
+                    ? `<div>${escapeHtml(savedReviewContext.basis)}</div>`
+                    : ""
+                }
+              </div>`
             : ""
         }
       </div>
@@ -9062,6 +9115,7 @@ function buildSavedListingActionBlock(action, item = null) {
 
   const status = action?.status || "planned";
   const languageMeta = actionHistoryLanguageMeta(action);
+  const savedReviewContext = actionSnapshotReviewContext(action);
   const outcome = item ? buildSavedWorkQueueOutcome(item) : null;
   const block = document.createElement("div");
   block.className = "saved__action-history";
@@ -9078,6 +9132,27 @@ function buildSavedListingActionBlock(action, item = null) {
       }
     </div>
     ${languageMeta ? `<div class="saved__action-meta">${escapeHtml(languageMeta)}</div>` : ""}
+    ${
+      savedReviewContext
+        ? `<div class="saved__action-context">
+            <span>${escapeHtml(t("actionHistorySavedContext"))}</span>
+            ${
+              savedReviewContext.headline
+                ? `<strong>${escapeHtml(savedReviewContext.headline)}</strong>`
+                : ""
+            }
+            ${
+              savedReviewContext.previous || savedReviewContext.latest
+                ? `<div>${escapeHtml(
+                    [savedReviewContext.previous, savedReviewContext.latest]
+                      .filter(Boolean)
+                      .join(" -> ")
+                  )}</div>`
+                : ""
+            }
+          </div>`
+        : ""
+    }
     ${
       outcome
         ? `<div class="saved__action-outcome">

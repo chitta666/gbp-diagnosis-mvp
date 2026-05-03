@@ -6860,6 +6860,11 @@ function buildCurrentActionTask(result, firstView = null) {
 }
 
 function buildActionHistoryChangeCopy(result) {
+  const reviewThemeMovement = buildReviewThemeMovementCopy(
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring
+  );
+  if (reviewThemeMovement) return reviewThemeMovement;
+
   const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
   return (
     weeklySummary?.headline ||
@@ -8544,6 +8549,16 @@ function savedMonitoringMovementItems(monitoring) {
   return items.filter((item) => item.value).slice(0, 3);
 }
 
+function buildReviewThemeMovementCopy(monitoring) {
+  if (!monitoring || monitoring.status !== "ready") return "";
+  const notableShift = sentence(monitoring?.notableShift || "");
+  if (notableShift) return notableShift;
+
+  const movementItem = savedMonitoringMovementItems(monitoring)[0];
+  if (!movementItem?.value) return "";
+  return `${movementItem.label}: ${movementItem.value}`;
+}
+
 function buildSavedMonitoringMovementBlock(monitoring) {
   const items = savedMonitoringMovementItems(monitoring);
   if (!items.length) return null;
@@ -9033,7 +9048,11 @@ function buildSavedWorkQueueOutcome(item) {
   if (!["done", "skipped"].includes(status)) return null;
 
   const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
-  const headline = sentence(item?.weeklyDiffSummary?.headline || "");
+  const headline = sentence(
+    buildReviewThemeMovementCopy(item?.reviewThemeMonitoring) ||
+      item?.weeklyDiffSummary?.headline ||
+      ""
+  );
 
   if (status === "done") {
     return {

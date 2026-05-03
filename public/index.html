@@ -7907,7 +7907,7 @@ function renderReportWeeklyDiffSummary(result) {
   const tone = savedWeeklyToneClass(summary.tone);
   const metrics = Array.isArray(summary.metrics) ? summary.metrics.slice(0, 4) : [];
   const clientSummary = Array.isArray(summary.clientSummary)
-    ? summary.clientSummary.filter(Boolean).slice(0, 1)
+    ? summary.clientSummary.filter(Boolean).slice(0, 2)
     : [];
 
   reportWeeklyDiffSummaryEl.className = `report-weekly-diff report-weekly-diff--${escapeAttr(tone)}`;

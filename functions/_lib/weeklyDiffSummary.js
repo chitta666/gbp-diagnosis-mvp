@@ -6,6 +6,16 @@ function text(lang, en, ja) {
   return isJapanese(lang) ? ja : en;
 }
 
+function uniqueStrings(values) {
+  return Array.from(
+    new Set(
+      (Array.isArray(values) ? values : [])
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  );
+}
+
 function numberOrNull(value) {
   return Number.isFinite(value) ? Number(value) : null;
 }
@@ -169,6 +179,9 @@ export function buildWeeklyDiffSummary(
   const themeWorsening =
     reviewThemeMonitoring?.trend === "worsening" ||
     reviewThemeMonitoring?.gapDirection === "widening";
+  const themeImproving =
+    reviewThemeMonitoring?.trend === "improving" ||
+    reviewThemeMonitoring?.gapDirection === "narrowing";
   const materialReviewDrop =
     reviewDropSignal?.visible === true ||
     (Number.isFinite(reviewDelta) && reviewDelta <= -2);
@@ -266,6 +279,15 @@ export function buildWeeklyDiffSummary(
     headline = text(lang, "Review themes need attention", "レビュー傾向に注意が必要です");
     notableChange = reviewThemeMonitoring?.notableShift || notableChange;
     nextAction = reviewThemeMonitoring?.nextAction || nextAction;
+  } else if (themeImproving) {
+    tone = "positive";
+    headline = text(lang, "Review themes moved in the right direction", "レビュー傾向が良い方向に動いています");
+    notableChange = reviewThemeMonitoring?.notableShift || notableChange;
+    nextAction = reviewThemeMonitoring?.nextAction || text(
+      lang,
+      "Use this as proof of progress in the next client update.",
+      "次回定例で、見える改善の根拠として共有してください。"
+    );
   } else if (positiveMovement) {
     tone = "positive";
     headline = text(lang, "Visible proof improved this week", "今週は見える根拠が改善しています");
@@ -273,7 +295,7 @@ export function buildWeeklyDiffSummary(
     nextAction = text(lang, "Mention the visible progress in the next client update and keep the same action cadence.", "次回定例で見える進捗として共有し、同じ改善ペースを続けてください。");
   }
 
-  const clientSummary = [
+  const clientSummary = uniqueStrings([
     notableChange,
     Number.isFinite(weeklyMomentumGap)
       ? weeklyMomentumGap < 0
@@ -285,7 +307,7 @@ export function buildWeeklyDiffSummary(
     reviewThemeMonitoring?.status === "ready" && reviewThemeMonitoring?.notableShift
       ? reviewThemeMonitoring.notableShift
       : reviewThemeMonitoringNote(reviewThemeMonitoring),
-  ].filter(Boolean).slice(0, 3);
+  ]).slice(0, 3);
 
   return {
     status: stale ? "stale" : "ready",

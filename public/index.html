@@ -1582,6 +1582,10 @@ const COPY = {
     reviewMonitoringRecurringVerification: "Proof gap persists",
     reviewMonitoringThemePressure: "Friction pressure",
     reviewMonitoringCompetitorGapMovement: "Competitor gap movement",
+    reviewMonitoringBasisLabel: "Basis",
+    reviewMonitoringBasisSavedChecks: "{count} saved checks",
+    reviewMonitoringBasisVisibleReviews: "{count} recent visible reviews",
+    reviewMonitoringBasisCompetitorChecks: "{count} competitor checks",
     savedListingFallbackName: "Saved Listing",
     analysisFailed: "Analysis failed.",
   },
@@ -2351,6 +2355,10 @@ const COPY = {
     reviewMonitoringRecurringVerification: "残っている根拠不足",
     reviewMonitoringThemePressure: "不安要素の圧力",
     reviewMonitoringCompetitorGapMovement: "競合差の動き",
+    reviewMonitoringBasisLabel: "根拠",
+    reviewMonitoringBasisSavedChecks: "保存チェック {count} 回",
+    reviewMonitoringBasisVisibleReviews: "直近表示レビュー {count} 件",
+    reviewMonitoringBasisCompetitorChecks: "競合チェック {count} 回",
     savedListingFallbackName: "保存した店舗",
     analysisFailed: "分析に失敗しました。",
   },
@@ -7923,9 +7931,12 @@ function renderReportWeeklyDiffSummary(result) {
 
   const tone = savedWeeklyToneClass(summary.tone);
   const metrics = Array.isArray(summary.metrics) ? summary.metrics.slice(0, 4) : [];
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring;
   const movementItems = savedMonitoringMovementItems(
-    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring
+    reviewThemeMonitoring
   );
+  const basisCopy = buildReviewMonitoringBasisCopy(reviewThemeMonitoring);
   const clientSummary = Array.isArray(summary.clientSummary)
     ? summary.clientSummary.filter(Boolean).slice(0, 2)
     : [];
@@ -7973,6 +7984,11 @@ function renderReportWeeklyDiffSummary(result) {
               )
               .join("")}
           </div>`
+        : ""
+    }
+    ${
+      basisCopy
+        ? `<div class="report-weekly-diff__basis">${escapeHtml(basisCopy)}</div>`
         : ""
     }
     ${
@@ -8559,6 +8575,57 @@ function buildReviewThemeMovementCopy(monitoring) {
   return `${movementItem.label}: ${movementItem.value}`;
 }
 
+function buildReviewMonitoringBasisCopy(monitoring) {
+  if (!monitoring || monitoring.status !== "ready") return "";
+
+  const parts = [];
+  const ownSnapshotCount = Number.isFinite(monitoring?.ownSnapshotCount)
+    ? Number(monitoring.ownSnapshotCount)
+    : null;
+  const competitorSnapshotCount = Number.isFinite(monitoring?.competitorSnapshotCount)
+    ? Number(monitoring.competitorSnapshotCount)
+    : null;
+  const latestSampleReviewCount = Number.isFinite(monitoring?.latestSampleReviewCount)
+    ? Number(monitoring.latestSampleReviewCount)
+    : 0;
+  const previousSampleReviewCount = Number.isFinite(monitoring?.previousSampleReviewCount)
+    ? Number(monitoring.previousSampleReviewCount)
+    : 0;
+  const totalSampleReviewCount = latestSampleReviewCount + previousSampleReviewCount;
+  const previousDate = formatShortDate(monitoring?.previousCapturedAt);
+  const latestDate = formatShortDate(monitoring?.latestCapturedAt);
+
+  if (Number.isFinite(ownSnapshotCount) && ownSnapshotCount > 0) {
+    parts.push(
+      copyWithValues(t("reviewMonitoringBasisSavedChecks"), {
+        count: ownSnapshotCount,
+      })
+    );
+  }
+
+  if (totalSampleReviewCount > 0) {
+    parts.push(
+      copyWithValues(t("reviewMonitoringBasisVisibleReviews"), {
+        count: totalSampleReviewCount,
+      })
+    );
+  }
+
+  if (monitoring?.hasCompetitorThemeHistory && Number.isFinite(competitorSnapshotCount)) {
+    parts.push(
+      copyWithValues(t("reviewMonitoringBasisCompetitorChecks"), {
+        count: competitorSnapshotCount,
+      })
+    );
+  }
+
+  if (previousDate && latestDate) {
+    parts.push(`${previousDate} -> ${latestDate}`);
+  }
+
+  return parts.length ? `${t("reviewMonitoringBasisLabel")}: ${parts.join(" / ")}` : "";
+}
+
 function buildSavedMonitoringMovementBlock(monitoring) {
   const items = savedMonitoringMovementItems(monitoring);
   if (!items.length) return null;
@@ -8655,6 +8722,14 @@ function buildSavedListingMonitoringBlock(monitoring) {
 
   const movementBlock = buildSavedMonitoringMovementBlock(monitoring);
   if (movementBlock) block.appendChild(movementBlock);
+
+  const basisCopy = buildReviewMonitoringBasisCopy(monitoring);
+  if (basisCopy) {
+    const basis = document.createElement("div");
+    basis.className = "saved__monitoring-basis";
+    basis.textContent = basisCopy;
+    block.appendChild(basis);
+  }
 
   if (monitoring?.notableShift) {
     const shift = document.createElement("div");

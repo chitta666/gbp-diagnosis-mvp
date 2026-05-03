@@ -858,6 +858,13 @@ body.client-share-view .print-cover__meta-value {
   white-space: nowrap;
 }
 
+.report-weekly-diff__basis {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .report-weekly-diff__note,
 .report-weekly-diff__action {
   margin-top: 10px;
@@ -3125,6 +3132,13 @@ body.client-share-view .print-cover__meta-value {
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.45;
+  color: var(--muted);
+}
+
+.saved__monitoring-basis {
+  margin-top: 7px;
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--muted);
 }
 

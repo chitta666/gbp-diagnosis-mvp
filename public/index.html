@@ -1388,6 +1388,12 @@ const COPY = {
       "Re-check the same competitor to see whether the gap widened or narrowed.",
     clientReportNextCheckSignals:
       "Review count, review momentum, photos, and visible profile proof are compared again.",
+    clientReportNextCheckReviewTrendReady:
+      "Review themes to compare next: {focus}",
+    clientReportNextCheckReviewTrendCollecting:
+      "One more same-competitor check can turn review-theme history into trend evidence.",
+    clientReportNextCheckReviewTrendBaseline:
+      "Save and re-check this listing to start review-theme trend history.",
     clientReportNextCheckAction:
       "The previous task, what changed, and the next task stay connected.",
     clientReportReadinessWeeklyDiff: "Weekly diff",
@@ -2180,6 +2186,12 @@ const COPY = {
       "同じ競合で再チェックし、差が広がったか縮まったかを確認します。",
     clientReportNextCheckSignals:
       "レビュー数、レビュー増加ペース、写真、見えるプロフィール根拠を再比較します。",
+    clientReportNextCheckReviewTrendReady:
+      "次回比較するレビュー傾向: {focus}",
+    clientReportNextCheckReviewTrendCollecting:
+      "同じ競合でもう一度確認すると、レビュー傾向履歴をトレンド根拠にできます。",
+    clientReportNextCheckReviewTrendBaseline:
+      "この店舗を保存して再チェックし、レビュー傾向の履歴を作り始めます。",
     clientReportNextCheckAction:
       "前回タスク、今回の変化、次のタスクをつなげて報告できます。",
     clientReportReadinessWeeklyDiff: "週次差分",
@@ -5990,6 +6002,25 @@ function buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady) {
   };
 }
 
+function buildClientReportReviewTrendNextCheck(result, reviewTrendReadiness) {
+  const monitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const beforeAfterItems = reviewMonitoringBeforeAfterItems(monitoring);
+  const latestFocus = sentence(beforeAfterItems[1]?.value || "");
+  const movement = sentence(buildReviewThemeMovementCopy(monitoring));
+  const focus = latestFocus || movement;
+
+  if (reviewTrendReadiness?.ready && focus) {
+    return copyWithValues(t("clientReportNextCheckReviewTrendReady"), { focus });
+  }
+
+  if (reviewTrendReadiness?.collecting) {
+    return t("clientReportNextCheckReviewTrendCollecting");
+  }
+
+  return t("clientReportNextCheckReviewTrendBaseline");
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -6063,6 +6094,7 @@ function buildClientReportSummary(firstView, result = null) {
     t("clientReportNextCheckBaseline"),
     t("clientReportNextCheckCompetitor"),
     t("clientReportNextCheckSignals"),
+    buildClientReportReviewTrendNextCheck(result, reviewTrendReadiness),
     t("clientReportNextCheckAction"),
   ]);
   const evidencePack = buildClientReportEvidencePack(result);

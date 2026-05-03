@@ -80,8 +80,26 @@ function periodLabel(record, lang) {
   };
 }
 
-function defaultCollectingSummary({ record, lang, status = "collecting_history" }) {
+function reviewThemeMonitoringNote(reviewThemeMonitoring) {
+  if (!reviewThemeMonitoring?.notableShift) return null;
+  if (reviewThemeMonitoring.status === "ready") return reviewThemeMonitoring.notableShift;
+  if (
+    reviewThemeMonitoring.status === "collecting_history" &&
+    Number(reviewThemeMonitoring.ownSnapshotCount) > 0
+  ) {
+    return reviewThemeMonitoring.notableShift;
+  }
+  return null;
+}
+
+function defaultCollectingSummary({
+  record,
+  lang,
+  status = "collecting_history",
+  reviewThemeMonitoring = null,
+}) {
   const noCompetitor = status === "no_competitor";
+  const themeNote = reviewThemeMonitoringNote(reviewThemeMonitoring);
   return {
     status,
     tone: "collecting",
@@ -101,6 +119,7 @@ function defaultCollectingSummary({ record, lang, status = "collecting_history" 
             "Today's baseline is still usable: competitor choice, visible proof gaps, and the first recommended task are ready for the client update.",
             "今日の基準値も、競合選定・見える根拠差・最初の推奨タスクとしてクライアント報告に使えます。"
           ),
+      themeNote,
     ],
     metrics: [],
     notableChange: null,
@@ -126,13 +145,18 @@ export function buildWeeklyDiffSummary(
   } = {}
 ) {
   if (!record?.competitorPlaceId) {
-    return defaultCollectingSummary({ record, lang, status: "no_competitor" });
+    return defaultCollectingSummary({
+      record,
+      lang,
+      status: "no_competitor",
+      reviewThemeMonitoring,
+    });
   }
 
   const latest = record?.latestMetrics ?? null;
   const previous = record?.previousMetrics ?? null;
   if (!latest || !hasPreviousMetrics(record)) {
-    return defaultCollectingSummary({ record, lang });
+    return defaultCollectingSummary({ record, lang, reviewThemeMonitoring });
   }
 
   const reviewDelta = roundedDelta(latest?.reviewCount, previous?.reviewCount, 0);
@@ -260,7 +284,7 @@ export function buildWeeklyDiffSummary(
       : null,
     reviewThemeMonitoring?.status === "ready" && reviewThemeMonitoring?.notableShift
       ? reviewThemeMonitoring.notableShift
-      : null,
+      : reviewThemeMonitoringNote(reviewThemeMonitoring),
   ].filter(Boolean).slice(0, 3);
 
   return {

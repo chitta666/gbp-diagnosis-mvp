@@ -507,19 +507,38 @@ function riskScore(snapshot) {
   );
 }
 
-function buildCollectingReviewThemeMonitoring(lang = "en") {
+function buildCollectingReviewThemeMonitoring(
+  lang = "en",
+  {
+    ownSnapshotCount = 0,
+    competitorSnapshotCount = 0,
+    latestCapturedAt = null,
+  } = {}
+) {
+  const hasFirstSnapshot = ownSnapshotCount > 0;
   return {
     status: "collecting_history",
     trend: null,
     gapDirection: null,
     recurringFrictions: [],
-    notableShift: isJapanese(lang)
-      ? "保存済みのレビュー傾向スナップショットが2回分そろうと表示されます。"
-      : "Available after two saved review-theme snapshots.",
+    notableShift: hasFirstSnapshot
+      ? isJapanese(lang)
+        ? `保存済みレビュー傾向スナップショットは ${ownSnapshotCount}/2 件まで蓄積済みです。`
+        : `${ownSnapshotCount}/2 saved review-theme snapshots collected.`
+      : isJapanese(lang)
+        ? "保存済みのレビュー傾向スナップショットが2回分そろうと表示されます。"
+        : "Available after two saved review-theme snapshots.",
     nextAction: isJapanese(lang)
-      ? "次の保存済みレビュー傾向スナップショットが追加されるまで、そのまま観測を続けてください。"
-      : "Keep monitoring until another saved review snapshot is available.",
+      ? hasFirstSnapshot
+        ? "次回の保存済み確認後に、同じ不安要素が続いているか比較してください。"
+        : "次の保存済みレビュー傾向スナップショットが追加されるまで、そのまま観測を続けてください。"
+      : hasFirstSnapshot
+        ? "Compare again after the next saved check to see whether the same friction repeats."
+        : "Keep monitoring until another saved review snapshot is available.",
     confidence: "low",
+    ownSnapshotCount,
+    competitorSnapshotCount,
+    latestCapturedAt,
   };
 }
 
@@ -647,7 +666,11 @@ export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) 
     .map((item) => localizeStoredSnapshot(item, lang));
 
   if (ownHistory.length < 2) {
-    return buildCollectingReviewThemeMonitoring(lang);
+    return buildCollectingReviewThemeMonitoring(lang, {
+      ownSnapshotCount: ownHistory.length,
+      competitorSnapshotCount: competitorHistory.length,
+      latestCapturedAt: ownHistory[0]?.capturedAt ?? null,
+    });
   }
 
   const latest = ownHistory[0];
@@ -683,6 +706,8 @@ export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) 
       gapDirection,
     }, lang),
     confidence: ownHistory.length >= 3 && sampleTotal >= 6 ? "medium" : "low",
+    ownSnapshotCount: ownHistory.length,
+    competitorSnapshotCount: competitorHistory.length,
     latestCapturedAt: latest?.capturedAt ?? null,
     previousCapturedAt: previous?.capturedAt ?? null,
   };

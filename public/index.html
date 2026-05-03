@@ -1389,6 +1389,7 @@ const COPY = {
     clientReportReadinessWeeklyDiff: "Weekly diff",
     clientReportReadinessActionHistory: "Action history",
     clientReportReadinessCompetitor: "Competitor",
+    clientReportReadinessReviewTrend: "Review trend",
     clientReportReadinessShareLink: "Share link",
     savedClientReadinessTitle: "Client report readiness",
     savedClientReadinessSubtitle: "Before sharing, confirm what is ready and what is still collecting.",
@@ -1397,6 +1398,7 @@ const COPY = {
     savedClientReadinessNextCompetitor: "Open the report and choose the competitor you want to keep comparing.",
     savedClientReadinessNextAction: "Open the report and save this week's task before sharing.",
     savedClientReadinessNextWeekly: "Check this saved listing again next week to turn collecting history into weekly movement.",
+    savedClientReadinessNextReviewTrend: "Re-check the same competitor once more so review-theme trend history is ready.",
     savedClientReadinessNextShare: "Open the report once to generate a stable client share link.",
     clientReportReady: "Ready",
     clientReportCollecting: "Collecting",
@@ -2175,6 +2177,7 @@ const COPY = {
     clientReportReadinessWeeklyDiff: "週次差分",
     clientReportReadinessActionHistory: "実行履歴",
     clientReportReadinessCompetitor: "競合",
+    clientReportReadinessReviewTrend: "レビュー傾向",
     clientReportReadinessShareLink: "共有リンク",
     savedClientReadinessTitle: "提出準備",
     savedClientReadinessSubtitle: "共有前に、準備済みの材料と収集中の材料を確認します。",
@@ -2183,6 +2186,7 @@ const COPY = {
     savedClientReadinessNextCompetitor: "レポートを開き、継続比較したい競合を選んでください。",
     savedClientReadinessNextAction: "共有前にレポートを開き、今週の実行タスクを保存してください。",
     savedClientReadinessNextWeekly: "次週もう一度この保存済み店舗を確認し、収集中の履歴を週次変化に変えてください。",
+    savedClientReadinessNextReviewTrend: "同じ競合でもう一度確認し、レビュー傾向の履歴を準備済みにしてください。",
     savedClientReadinessNextShare: "レポートを一度開き、安定したクライアント共有リンクを生成してください。",
     clientReportReady: "準備済み",
     clientReportCollecting: "収集中",
@@ -9253,15 +9257,37 @@ function buildSavedReadinessItem(label, value, tone) {
   `;
 }
 
+function getSavedReviewTrendReadiness(item) {
+  const monitoring = item?.reviewThemeMonitoring || null;
+  const ownSnapshotCount = Number.isFinite(Number(monitoring?.ownSnapshotCount))
+    ? Number(monitoring.ownSnapshotCount)
+    : 0;
+  const ready = monitoring?.status === "ready";
+  const collecting = !ready && ownSnapshotCount > 0;
+
+  return {
+    ready,
+    collecting,
+    value: ready
+      ? t("clientReportReady")
+      : collecting
+        ? t("clientReportCollecting")
+        : t("clientReportMissing"),
+    tone: ready ? "ready" : "pending",
+  };
+}
+
 function buildSavedReadinessNextStep({
   weeklyReady,
   actionReady,
   competitorReady,
+  reviewTrendReady,
   shareReady,
 }) {
   if (!competitorReady) return t("savedClientReadinessNextCompetitor");
   if (!actionReady) return t("savedClientReadinessNextAction");
   if (!weeklyReady) return t("savedClientReadinessNextWeekly");
+  if (!reviewTrendReady) return t("savedClientReadinessNextReviewTrend");
   if (!shareReady) return t("savedClientReadinessNextShare");
   return t("savedClientReadinessNextReady");
 }
@@ -9270,12 +9296,20 @@ function getSavedListingReadiness(item) {
   const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
   const actionReady = Boolean(item?.latestAction?.label || item?.latestAction?.body);
   const competitorReady = Boolean(item?.competitorPlaceId || item?.competitorName);
+  const reviewTrend = getSavedReviewTrendReadiness(item);
   const shareReady = Boolean(item?.id && savedReportShareUrl(item.id));
-  const readyCount = [weeklyReady, actionReady, competitorReady, shareReady].filter(Boolean).length;
+  const readyCount = [
+    weeklyReady,
+    actionReady,
+    competitorReady,
+    reviewTrend.ready,
+    shareReady,
+  ].filter(Boolean).length;
   const nextStep = buildSavedReadinessNextStep({
     weeklyReady,
     actionReady,
     competitorReady,
+    reviewTrendReady: reviewTrend.ready,
     shareReady,
   });
 
@@ -9283,12 +9317,13 @@ function getSavedListingReadiness(item) {
     weeklyReady,
     actionReady,
     competitorReady,
+    reviewTrend,
     shareReady,
     readyCount,
     nextStep,
-    scoreLabel: `${readyCount}/4`,
-    complete: readyCount === 4,
-    tone: readyCount >= 3 ? "ready" : "pending",
+    scoreLabel: `${readyCount}/5`,
+    complete: readyCount === 5,
+    tone: readyCount >= 4 ? "ready" : "pending",
   };
 }
 
@@ -9322,6 +9357,11 @@ function buildSavedListingReadinessBlock(item) {
         t("clientReportReadinessCompetitor"),
         readiness.competitorReady ? t("clientReportSelected") : t("clientReportMissing"),
         savedReadinessTone(readiness.competitorReady)
+      )}
+      ${buildSavedReadinessItem(
+        t("clientReportReadinessReviewTrend"),
+        readiness.reviewTrend.value,
+        readiness.reviewTrend.tone
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessShareLink"),

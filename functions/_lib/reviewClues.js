@@ -661,6 +661,17 @@ function inferListingCategory(types) {
   if (
     normalized.some((type) =>
       [
+        "lodging",
+        "hotel",
+      ].includes(type)
+    )
+  ) {
+    return "lodging";
+  }
+
+  if (
+    normalized.some((type) =>
+      [
         "restaurant",
         "cafe",
         "bar",
@@ -715,6 +726,10 @@ function productServiceAxisLabel(types, lang = "en") {
     return isJapanese(lang) ? "技術・仕上がり" : "Technique / Finish";
   }
 
+  if (category === "lodging") {
+    return isJapanese(lang) ? "滞在・設備" : "Stay / Facility";
+  }
+
   if (category === "medical") {
     return isJapanese(lang) ? "施術・診療の質" : "Treatment Quality";
   }
@@ -725,9 +740,17 @@ function productServiceAxisLabel(types, lang = "en") {
 function buildReviewAxisDefinitions(details, lang = "en") {
   const category = inferListingCategory(details?.types);
   const productPositiveKeys =
-    category === "beauty" || category === "medical"
+    category === "beauty" || category === "medical" || category === "lodging"
       ? ["quality", "professionalism"]
       : ["quality"];
+  const atmosphereLabel =
+    category === "lodging"
+      ? isJapanese(lang) ? "館内・雰囲気" : "Property / Atmosphere"
+      : isJapanese(lang) ? "雰囲気" : "Atmosphere";
+  const priceLabel =
+    category === "lodging"
+      ? isJapanese(lang) ? "価格・納得感" : "Value / Price"
+      : isJapanese(lang) ? "価格" : "Price";
 
   return [
     {
@@ -738,7 +761,7 @@ function buildReviewAxisDefinitions(details, lang = "en") {
     },
     {
       key: "atmosphere",
-      label: isJapanese(lang) ? "雰囲気" : "Atmosphere",
+      label: atmosphereLabel,
       positiveKeys: ["atmosphere"],
       negativeKeys: ["noise_crowding"],
     },
@@ -750,7 +773,7 @@ function buildReviewAxisDefinitions(details, lang = "en") {
     },
     {
       key: "price",
-      label: isJapanese(lang) ? "価格" : "Price",
+      label: priceLabel,
       positiveKeys: ["value"],
       negativeKeys: ["overpriced"],
     },

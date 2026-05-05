@@ -98,8 +98,107 @@ function pickNearestDefaultCompetitor({ competitors }) {
   return nearest?.place_id ?? list[0]?.place_id ?? null;
 }
 
-function buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang = "en") {
+function inferListingCategory(types) {
+  const normalized = (Array.isArray(types) ? types : []).map((type) =>
+    String(type || "").toLowerCase()
+  );
+
+  if (normalized.some((type) => ["lodging", "hotel"].includes(type))) {
+    return "lodging";
+  }
+
+  if (
+    normalized.some((type) =>
+      ["restaurant", "cafe", "bar", "meal_takeaway", "meal_delivery", "bakery", "food"].includes(type)
+    )
+  ) {
+    return "food";
+  }
+
+  if (
+    normalized.some((type) =>
+      ["hair_care", "beauty_salon", "spa", "nail_salon"].includes(type)
+    )
+  ) {
+    return "beauty";
+  }
+
+  return "general";
+}
+
+function recommendedPhotoShots(category, lang = "en") {
+  const ja = lang === "ja";
+
+  if (category === "lodging") {
+    return ja
+      ? ["外観 / エントランス", "客室タイプ", "ロビー / 共用部", "朝食 / 食事", "設備 / アクセス"]
+      : ["Exterior / Entrance", "Room Types", "Lobby / Common Areas", "Breakfast / Dining", "Amenities / Access"];
+  }
+
+  if (category === "beauty") {
+    return ja
+      ? ["外観 / 入口", "施術スペース", "仕上がり例", "メニュー / 料金", "スタイリスト / チーム"]
+      : ["Exterior / Entrance", "Service Space", "Finished Styles", "Menu / Pricing", "Stylist / Team"];
+  }
+
+  if (category === "food") {
+    return ja
+      ? ["外観 / 店頭", "看板メニュー", "メニュー", "店内の雰囲気", "スタッフ / 提供シーン"]
+      : ["Storefront / Exterior", "Signature Dishes", "Menu", "Interior Atmosphere", "Staff / Service Moment"];
+  }
+
+  return ja
+    ? ["外観 / 入口", "主な商品・サービス", "店内 / 利用シーン", "スタッフ / チーム", "信頼材料"]
+    : ["Exterior / Entrance", "Main Products / Services", "Interior / Usage Scene", "Staff / Team", "Trust Proof"];
+}
+
+function categoryPhotoAdvice(category, missingPhotos, lang = "en") {
+  const hasGap = Number.isFinite(missingPhotos) && missingPhotos > 0;
+
+  if (category === "lodging") {
+    return lang === "ja"
+      ? hasGap
+        ? "客室・共用部・朝食など、予約前に不安が残りやすい写真を優先して追加してください。"
+        : "客室・共用部・朝食・アクセスの写真が揃っているかを維持確認してください。"
+      : hasGap
+        ? "Prioritize room, common-area, and breakfast photos that reduce uncertainty before booking."
+        : "Keep room, common-area, breakfast, and access photos current so booking proof stays clear.";
+  }
+
+  if (category === "beauty") {
+    return lang === "ja"
+      ? hasGap
+        ? "仕上がり例・施術スペース・料金の分かる写真を優先し、来店前の期待値を合わせてください。"
+        : "仕上がり例・施術スペース・スタイリスト写真を定期的に更新し、指名前の安心感を保ってください。"
+      : hasGap
+        ? "Prioritize finished-style, service-space, and pricing photos so expectations are clear before booking."
+        : "Keep finished-style, service-space, and stylist photos fresh so booking confidence stays high.";
+  }
+
+  if (category === "food") {
+    return lang === "ja"
+      ? hasGap
+        ? "看板メニュー・店内雰囲気・提供シーンを優先し、来店前に味と体験を想像しやすくしてください。"
+        : "看板メニュー・店内雰囲気・最新メニュー写真を保ち、比較時の選びやすさを維持してください。"
+      : hasGap
+        ? "Prioritize signature dishes, interior atmosphere, and service moments so diners can picture the visit."
+        : "Keep signature dish, atmosphere, and current menu photos fresh so the listing stays easy to choose.";
+  }
+
+  return lang === "ja"
+    ? hasGap
+      ? "主な商品・サービスと利用シーンが伝わる写真を優先してください。"
+      : "主な商品・サービスと利用シーンが古く見えないよう定期的に更新してください。"
+    : hasGap
+      ? "Prioritize photos that show the main product, service, and usage context."
+      : "Keep product, service, and usage-context photos current.";
+}
+
+function buildPhotoAdvice(myPhotos, competitorPhotoAvg, { details = null, lang = "en" } = {}) {
   const advice = [];
+  const category = inferListingCategory(details?.types);
+  const missingPhotos =
+    competitorPhotoAvg != null ? Math.max(competitorPhotoAvg - myPhotos, 0) : null;
 
   if (competitorPhotoAvg == null) {
     advice.push(
@@ -121,18 +220,12 @@ function buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang = "en") {
     );
   }
 
+  advice.push(categoryPhotoAdvice(category, missingPhotos, lang));
+
   return {
-    recommendedShots:
-      lang === "ja"
-        ? ["外観 / 店頭", "看板メニュー", "メニュー", "店内の雰囲気", "スタッフ / チーム"]
-        : [
-            "Storefront / Exterior",
-            "Signature Dishes",
-            "Menu",
-            "Interior Atmosphere",
-            "Staff / Team",
-          ],
-    advice,
+    category,
+    recommendedShots: recommendedPhotoShots(category, lang),
+    advice: [...new Set(advice)].slice(0, 3),
   };
 }
 
@@ -244,7 +337,7 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
   const missingPhotos =
     competitorPhotoAvg != null ? Math.max(competitorPhotoAvg - myPhotos, 0) : null;
 
-  const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg, lang);
+  const photoAdvice = buildPhotoAdvice(myPhotos, competitorPhotoAvg, { details, lang });
   const defaultCompetitorPlaceId = pickNearestDefaultCompetitor({
     competitors: enrichedCompetitors,
   });

@@ -68,12 +68,6 @@ const TYPE_ALIASES = new Map([
   ["coffee_shop", "cafe"],
   ["espresso_bar", "cafe"],
   ["tea_house", "cafe"],
-  ["brunch_restaurant", "restaurant"],
-  ["japanese_restaurant", "restaurant"],
-  ["ramen_restaurant", "restaurant"],
-  ["sushi_restaurant", "restaurant"],
-  ["steak_house", "restaurant"],
-  ["pizza_restaurant", "restaurant"],
   ["izakaya_restaurant", "bar"],
   ["pub", "bar"],
   ["cocktail_bar", "bar"],
@@ -82,6 +76,100 @@ const TYPE_ALIASES = new Map([
   ["karaoke_club", "night_club"],
   ["karaoke_studio", "night_club"],
 ]);
+
+const SEARCH_TYPE_ALIASES = new Map([
+  ...TYPE_ALIASES,
+  ["brunch_restaurant", "restaurant"],
+  ["japanese_restaurant", "restaurant"],
+  ["ramen_restaurant", "restaurant"],
+  ["sushi_restaurant", "restaurant"],
+  ["steak_house", "restaurant"],
+  ["pizza_restaurant", "restaurant"],
+]);
+
+const SEARCH_TYPE_PRIORITY = new Map([
+  ["cafe", 10],
+  ["bakery", 11],
+  ["bar", 12],
+  ["restaurant", 13],
+  ["lodging", 20],
+  ["hair_care", 20],
+  ["spa", 21],
+  ["doctor", 22],
+  ["dentist", 22],
+  ["meal_takeaway", 50],
+  ["meal_delivery", 51],
+]);
+
+const FOOD_NICHE_BY_TYPE = new Map([
+  ["brunch_restaurant", "brunch"],
+  ["japanese_restaurant", "japanese"],
+  ["ramen_restaurant", "ramen"],
+  ["sushi_restaurant", "sushi"],
+  ["steak_house", "steak"],
+  ["pizza_restaurant", "pizza"],
+  ["izakaya_restaurant", "izakaya"],
+  ["bakery", "bakery"],
+  ["cafe", "cafe"],
+  ["coffee_shop", "cafe"],
+  ["espresso_bar", "cafe"],
+  ["tea_house", "cafe"],
+]);
+
+const FOOD_NICHE_KEYWORDS = [
+  {
+    niche: "ramen",
+    patterns: [/ramen/i, /ラーメン/, /らーめん/, /らぁめん/, /らぁ麺/, /中華そば/, /麺/],
+  },
+  {
+    niche: "sushi",
+    patterns: [/sushi/i, /すし/, /寿司/, /鮨/],
+  },
+  {
+    niche: "izakaya",
+    patterns: [/izakaya/i, /居酒屋/, /酒場/, /大衆酒場/],
+  },
+  {
+    niche: "yakiniku",
+    patterns: [/yakiniku/i, /焼肉/, /ホルモン/],
+  },
+  {
+    niche: "yakitori",
+    patterns: [/yakitori/i, /焼鳥/, /焼き鳥/],
+  },
+  {
+    niche: "soba",
+    patterns: [/soba/i, /そば/, /蕎麦/],
+  },
+  {
+    niche: "udon",
+    patterns: [/udon/i, /うどん/],
+  },
+  {
+    niche: "curry",
+    patterns: [/curry/i, /カレー/],
+  },
+  {
+    niche: "pizza",
+    patterns: [/pizza/i, /ピザ/, /ピッツァ/],
+  },
+  {
+    niche: "burger",
+    patterns: [/burger/i, /hamburger/i, /バーガー/, /ハンバーガー/],
+  },
+  {
+    niche: "steak",
+    patterns: [/steak/i, /ステーキ/],
+  },
+  {
+    niche: "cafe",
+    patterns: [/cafe/i, /coffee/i, /コーヒー/, /珈琲/, /カフェ/, /喫茶/],
+  },
+  {
+    niche: "bakery",
+    patterns: [/bakery/i, /bread/i, /ベーカリー/, /パン屋/, /パン/],
+  },
+];
 
 function toRadians(value) {
   return (Number(value) * Math.PI) / 180;
@@ -116,10 +204,32 @@ function normalizeType(rawType) {
   if (!type) return null;
   if (TYPE_ALIASES.has(type)) return TYPE_ALIASES.get(type);
   if (SUPPORTED_NEARBY_TYPES.has(type)) return type;
+  if (FOOD_NICHE_BY_TYPE.has(type)) return type;
   if (type.endsWith("_restaurant")) return "restaurant";
   if (type.endsWith("_bar")) return "bar";
   if (type.endsWith("_cafe")) return "cafe";
   return null;
+}
+
+function normalizeSearchType(rawType) {
+  const type = String(rawType || "").trim().toLowerCase();
+  if (!type) return null;
+  if (SEARCH_TYPE_ALIASES.has(type)) return SEARCH_TYPE_ALIASES.get(type);
+  if (SUPPORTED_NEARBY_TYPES.has(type)) return type;
+  if (type.endsWith("_restaurant")) return "restaurant";
+  if (type.endsWith("_bar")) return "bar";
+  if (type.endsWith("_cafe")) return "cafe";
+  return null;
+}
+
+function typeFamily(type) {
+  if (!type) return null;
+  if (FOOD_NICHE_BY_TYPE.has(type)) {
+    if (type === "cafe" || type === "bakery") return type;
+    if (type === "izakaya_restaurant") return "bar";
+    return "restaurant";
+  }
+  return normalizeSearchType(type);
 }
 
 function comparableTypes(types) {
@@ -130,16 +240,59 @@ function comparableTypes(types) {
     const clean = String(rawType || "").trim().toLowerCase();
     if (!clean || GENERIC_PLACE_TYPES.has(clean)) return;
     const normalized = normalizeType(clean) ?? clean;
-    if (!normalized || seen.has(normalized)) return;
-    seen.add(normalized);
-    result.push(normalized);
+    [normalized, typeFamily(normalized)].filter(Boolean).forEach((type) => {
+      if (seen.has(type)) return;
+      seen.add(type);
+      result.push(type);
+    });
   });
 
   return result;
 }
 
 function pickNearbySearchType(types) {
+  const seen = new Set();
+  const candidates = [];
+  for (const rawType of Array.isArray(types) ? types : []) {
+    const clean = String(rawType || "").trim().toLowerCase();
+    if (!clean || GENERIC_PLACE_TYPES.has(clean)) continue;
+    const searchType = normalizeSearchType(clean);
+    if (!searchType || seen.has(searchType)) continue;
+    seen.add(searchType);
+    if (SUPPORTED_NEARBY_TYPES.has(searchType)) candidates.push(searchType);
+  }
+
+  if (candidates.length) {
+    return candidates.sort(
+      (a, b) =>
+        (SEARCH_TYPE_PRIORITY.get(a) ?? 30) - (SEARCH_TYPE_PRIORITY.get(b) ?? 30)
+    )[0];
+  }
+
   return comparableTypes(types).find((type) => SUPPORTED_NEARBY_TYPES.has(type)) ?? null;
+}
+
+function foodNicheSignals({ name = "", types = [], text = "" } = {}) {
+  const niches = new Set();
+  const normalizedTypes = (Array.isArray(types) ? types : [])
+    .map((type) => String(type || "").trim().toLowerCase())
+    .filter(Boolean);
+
+  normalizedTypes.forEach((type) => {
+    const niche = FOOD_NICHE_BY_TYPE.get(type);
+    if (niche) niches.add(niche);
+  });
+
+  const combinedText = [name, text].filter(Boolean).join(" ");
+  if (combinedText) {
+    FOOD_NICHE_KEYWORDS.forEach(({ niche, patterns }) => {
+      if (patterns.some((pattern) => pattern.test(combinedText))) {
+        niches.add(niche);
+      }
+    });
+  }
+
+  return [...niches];
 }
 
 function reviewTolerance(reviewCount) {
@@ -167,31 +320,68 @@ function distanceScore(distanceMeters) {
   return 0.1;
 }
 
-function typeMatchScore(candidateTypes, listingTypes) {
+function typeMatchScore({
+  candidateTypes,
+  candidateName,
+  listingTypes,
+  listingName,
+  listingText,
+}) {
   const candidateComparableTypes = comparableTypes(candidateTypes);
   const listingComparableTypes = comparableTypes(listingTypes);
+  const listingFoodNiches = foodNicheSignals({
+    name: listingName,
+    types: listingTypes,
+    text: listingText,
+  });
+  const candidateFoodNiches = foodNicheSignals({ name: candidateName, types: candidateTypes });
+  const listingFoodNicheSet = new Set(listingFoodNiches);
+  const foodNicheMatches = candidateFoodNiches.filter((niche) => listingFoodNicheSet.has(niche));
+
   if (!listingComparableTypes.length) {
     return {
       score: 0,
       candidateComparableTypes,
       listingComparableTypes,
+      listingFoodNiches,
+      candidateFoodNiches,
+      foodNicheMatches,
     };
   }
 
   const listingSet = new Set(listingComparableTypes);
   const overlapCount = candidateComparableTypes.filter((type) => listingSet.has(type)).length;
-  const score = overlapCount > 0 ? 2 + overlapCount : 0;
+  const isFoodContext = listingComparableTypes.some((type) =>
+    ["restaurant", "bar", "cafe", "bakery", "meal_takeaway", "meal_delivery"].includes(type)
+  );
+  const genericFoodMatch = isFoodContext && overlapCount > 0;
+  let score = overlapCount > 0 ? 2 + overlapCount : 0;
+
+  if (foodNicheMatches.length) {
+    score += 4 + foodNicheMatches.length;
+  } else if (listingFoodNiches.length && genericFoodMatch) {
+    score = Math.max(1, score - 1.5);
+  }
 
   return {
     score,
     candidateComparableTypes,
     listingComparableTypes,
+    listingFoodNiches,
+    candidateFoodNiches,
+    foodNicheMatches,
   };
 }
 
-function rankCompetitors(results, { listingTypes, myReviewCount }) {
+function rankCompetitors(results, { listingTypes, listingName, listingText, myReviewCount }) {
   const scored = (Array.isArray(results) ? results : []).map((item) => {
-    const typeMatch = typeMatchScore(item?.types, listingTypes);
+    const typeMatch = typeMatchScore({
+      candidateTypes: item?.types,
+      candidateName: item?.name,
+      listingTypes,
+      listingName,
+      listingText,
+    });
     const reviewCount = Number.isFinite(item?.user_ratings_total)
       ? Number(item.user_ratings_total)
       : null;
@@ -209,6 +399,9 @@ function rankCompetitors(results, { listingTypes, myReviewCount }) {
       type_match_score: typeMatch.score,
       listing_types: typeMatch.listingComparableTypes,
       comparable_types: typeMatch.candidateComparableTypes,
+      listing_food_niches: typeMatch.listingFoodNiches,
+      candidate_food_niches: typeMatch.candidateFoodNiches,
+      food_niche_matches: typeMatch.foodNicheMatches,
       competitive_fit_score: Number(competitiveFitScore.toFixed(3)),
     };
   });
@@ -220,6 +413,9 @@ function rankCompetitors(results, { listingTypes, myReviewCount }) {
     const fitDiff = (b.competitive_fit_score || 0) - (a.competitive_fit_score || 0);
     if (fitDiff !== 0) return fitDiff;
 
+    const nicheDiff = (b.food_niche_matches?.length || 0) - (a.food_niche_matches?.length || 0);
+    if (nicheDiff !== 0) return nicheDiff;
+
     const reviewGapA = Number.isFinite(a.review_gap) ? a.review_gap : Number.MAX_SAFE_INTEGER;
     const reviewGapB = Number.isFinite(b.review_gap) ? b.review_gap : Number.MAX_SAFE_INTEGER;
     if (reviewGapA !== reviewGapB) return reviewGapA - reviewGapB;
@@ -230,7 +426,11 @@ function rankCompetitors(results, { listingTypes, myReviewCount }) {
   });
 }
 
-function mergeCompetitorResults(primary, fallback, { listingTypes, myReviewCount }) {
+function mergeCompetitorResults(
+  primary,
+  fallback,
+  { listingTypes, listingName, listingText, myReviewCount }
+) {
   const merged = [...(Array.isArray(primary) ? primary : []), ...(Array.isArray(fallback) ? fallback : [])];
   const byPlaceId = new Map();
 
@@ -240,7 +440,12 @@ function mergeCompetitorResults(primary, fallback, { listingTypes, myReviewCount
     byPlaceId.set(placeId, item);
   });
 
-  return rankCompetitors([...byPlaceId.values()], { listingTypes, myReviewCount });
+  return rankCompetitors([...byPlaceId.values()], {
+    listingTypes,
+    listingName,
+    listingText,
+    myReviewCount,
+  });
 }
 
 export async function fetchCompetitors({
@@ -250,6 +455,8 @@ export async function fetchCompetitors({
   radius = 800,
   type = null,
   listingTypes = [],
+  listingName = "",
+  listingText = "",
   myReviewCount = null,
   lang = "en",
 }) {
@@ -289,7 +496,12 @@ export async function fetchCompetitors({
     };
   });
 
-  const results = rankCompetitors(rawResults, { listingTypes, myReviewCount }).slice(0, 10);
+  const results = rankCompetitors(rawResults, {
+    listingTypes,
+    listingName,
+    listingText,
+    myReviewCount,
+  }).slice(0, 10);
 
   return { status: res.status, results, searchType: type ?? null };
 }
@@ -300,6 +512,8 @@ export async function fetchCompetitorsAutoRadius({
   lng,
   type = null,
   listingTypes = [],
+  listingName = "",
+  listingText = "",
   myReviewCount = null,
   lang = "en",
   target = 12,
@@ -322,6 +536,8 @@ export async function fetchCompetitorsAutoRadius({
       radius: usedRadius,
       type: searchType,
       listingTypes,
+      listingName,
+      listingText,
       myReviewCount,
       lang,
     });
@@ -339,6 +555,8 @@ export async function fetchCompetitorsAutoRadius({
         radius: usedRadius,
         type: null,
         listingTypes,
+        listingName,
+        listingText,
         myReviewCount,
         lang,
       });
@@ -348,6 +566,8 @@ export async function fetchCompetitorsAutoRadius({
           ...primary,
           results: mergeCompetitorResults(primary.results, broader.results, {
             listingTypes,
+            listingName,
+            listingText,
             myReviewCount,
           }),
           broadenedSearch: true,

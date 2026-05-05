@@ -661,6 +661,17 @@ function inferListingCategory(types) {
   if (
     normalized.some((type) =>
       [
+        "lodging",
+        "hotel",
+      ].includes(type)
+    )
+  ) {
+    return "lodging";
+  }
+
+  if (
+    normalized.some((type) =>
+      [
         "restaurant",
         "cafe",
         "bar",
@@ -715,6 +726,10 @@ function productServiceAxisLabel(types, lang = "en") {
     return isJapanese(lang) ? "技術・仕上がり" : "Technique / Finish";
   }
 
+  if (category === "lodging") {
+    return isJapanese(lang) ? "滞在・設備" : "Stay / Facility";
+  }
+
   if (category === "medical") {
     return isJapanese(lang) ? "施術・診療の質" : "Treatment Quality";
   }
@@ -725,9 +740,17 @@ function productServiceAxisLabel(types, lang = "en") {
 function buildReviewAxisDefinitions(details, lang = "en") {
   const category = inferListingCategory(details?.types);
   const productPositiveKeys =
-    category === "beauty" || category === "medical"
+    category === "beauty" || category === "medical" || category === "lodging"
       ? ["quality", "professionalism"]
       : ["quality"];
+  const atmosphereLabel =
+    category === "lodging"
+      ? isJapanese(lang) ? "館内・雰囲気" : "Property / Atmosphere"
+      : isJapanese(lang) ? "雰囲気" : "Atmosphere";
+  const priceLabel =
+    category === "lodging"
+      ? isJapanese(lang) ? "価格・納得感" : "Value / Price"
+      : isJapanese(lang) ? "価格" : "Price";
 
   return [
     {
@@ -738,7 +761,7 @@ function buildReviewAxisDefinitions(details, lang = "en") {
     },
     {
       key: "atmosphere",
-      label: isJapanese(lang) ? "雰囲気" : "Atmosphere",
+      label: atmosphereLabel,
       positiveKeys: ["atmosphere"],
       negativeKeys: ["noise_crowding"],
     },
@@ -750,7 +773,7 @@ function buildReviewAxisDefinitions(details, lang = "en") {
     },
     {
       key: "price",
-      label: isJapanese(lang) ? "価格" : "Price",
+      label: priceLabel,
       positiveKeys: ["value"],
       negativeKeys: ["overpriced"],
     },
@@ -871,6 +894,59 @@ function buildReviewComparisonSummary({ axes, competitorName }, lang = "en") {
   return isJapanese(lang)
     ? `${competitorName}と比べても、直近レビューだけでは優劣を強く断言できる軸はまだ多くありません。`
     : `Even against ${competitorName}, the recent visible reviews do not yet show many clear win-or-lose axes.`;
+}
+
+function buildReviewScaleCaution({ details, sample }, lang = "en") {
+  const totalReviewCount = Number.isFinite(details?.user_ratings_total)
+    ? Number(details.user_ratings_total)
+    : null;
+  const sampleReviewCount = Array.isArray(sample) ? sample.length : 0;
+
+  if (Number.isFinite(totalReviewCount) && totalReviewCount < 20) {
+    return {
+      level: "high",
+      totalReviewCount,
+      sampleReviewCount,
+      message: isJapanese(lang)
+        ? `総レビュー数が ${totalReviewCount} 件と少ないため、レビュー傾向は断定ではなく方向性として扱ってください。レポート提出時は、新規レビュー獲得とセットで補強する前提にしてください。`
+        : `The total review base is small (${totalReviewCount} total), so treat review themes as directional rather than conclusive. Pair this report with a fresh review acquisition push.`,
+      nextProof: isJapanese(lang)
+        ? "次回までに新しいレビューを増やし、同じ競合で再チェックしてください。"
+        : "Collect fresh reviews before the next check, then compare the same competitor again.",
+    };
+  }
+
+  if (Number.isFinite(totalReviewCount) && totalReviewCount < 50) {
+    return {
+      level: "medium",
+      totalReviewCount,
+      sampleReviewCount,
+      message: isJapanese(lang)
+        ? `総レビュー数がまだ ${totalReviewCount} 件のため、レビュー軸は初期シグナルとして扱ってください。継続的なレビュー獲得で判断材料を厚くする必要があります。`
+        : `The review base is still early (${totalReviewCount} total), so use these review axes as an early signal until more fresh reviews are collected.`,
+      nextProof: isJapanese(lang)
+        ? "レビュー依頼を継続し、次回レポートで同じ軸が繰り返し出るか確認してください。"
+        : "Keep review requests active and confirm whether the same themes repeat in the next report.",
+    };
+  }
+
+  if (sampleReviewCount > 0 && sampleReviewCount < 4) {
+    return {
+      level: "sample",
+      totalReviewCount,
+      sampleReviewCount,
+      message: isJapanese(lang)
+        ? `直近で見えているレビュー本文が ${sampleReviewCount} 件だけなので、まだトレンドとしては言い切らないでください。`
+        : `Only ${sampleReviewCount} recent visible review text sample${
+            sampleReviewCount === 1 ? " is" : "s are"
+          } available, so avoid calling this a trend yet.`,
+      nextProof: isJapanese(lang)
+        ? "次回チェックで表示レビュー本文を増やしてから、傾向として扱ってください。"
+        : "Use the next check to gather more visible review text before framing this as a trend.",
+    };
+  }
+
+  return null;
 }
 
 function buildReviewComparisonAxes({
@@ -1396,10 +1472,19 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
     competitor,
     photoAnalysis,
   }, lang);
+  const reviewScaleCaution = buildReviewScaleCaution({ details, sample }, lang);
+  const comparisonNote = [comparison?.note, reviewScaleCaution?.message]
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .join(" ");
 
   return {
     sampleBasis: "recent_visible_reviews",
     reviewCountInSample: sample.length,
+    totalReviewCount: Number.isFinite(details?.user_ratings_total)
+      ? Number(details.user_ratings_total)
+      : null,
+    reviewScaleCaution,
     competitorContextPlaceId: competitor?.place_id ?? competitor?.placeId ?? null,
     competitorContextName: competitor?.name ?? null,
     summary: buildSummary({
@@ -1428,8 +1513,8 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
     choicePriorityReason,
     comparisonSummary: comparison?.summary ?? null,
     comparisonAxes: Array.isArray(comparison?.axes) ? comparison.axes : [],
-    comparisonNote: comparison?.note ?? null,
+    comparisonNote: comparisonNote || null,
     googleSignals,
-    confidence: sample.length >= 4 ? "medium" : "low",
+    confidence: reviewScaleCaution ? "low" : sample.length >= 4 ? "medium" : "low",
   };
 }

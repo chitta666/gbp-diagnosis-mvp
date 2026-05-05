@@ -91,7 +91,12 @@ export function buildWeeklyInsight({
   return parts.length ? parts.join(" ") : copy.trackingMessage;
 }
 
-export async function getWeeklyReport({ KV, myPlaceId, lang = "en" }) {
+export async function getWeeklyReport({
+  KV,
+  myPlaceId,
+  competitorPlaceId: requestedCompetitorPlaceId = null,
+  lang = "en",
+}) {
   const copy = weeklyCopy(lang);
   const today = ymdTokyo();
   const weekAgo = ymdTokyo(dateDaysAgo(7));
@@ -127,6 +132,7 @@ export async function getWeeklyReport({ KV, myPlaceId, lang = "en" }) {
   const rawComp = await KV.get(`comp:${myPlaceId}`);
   if (!rawComp) {
     return baseResponse({
+      competitorPlaceId: requestedCompetitorPlaceId || null,
       status: "setup_required",
       message: copy.weeklyTrackingStarting,
       insight: copy.trackingMessage,
@@ -134,7 +140,7 @@ export async function getWeeklyReport({ KV, myPlaceId, lang = "en" }) {
   }
 
   const comp = safeJson(rawComp);
-  const competitorPlaceId = comp?.competitorPlaceId;
+  const competitorPlaceId = comp?.competitorPlaceId || requestedCompetitorPlaceId;
   if (!competitorPlaceId) {
     return baseResponse({
       status: "setup_required",

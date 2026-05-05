@@ -1100,6 +1100,22 @@ const COPY = {
     competitorSelected: "Selected",
     competitorRecommended: "Recommended",
     competitorUseThis: "Use this competitor",
+    competitorSameNiche: "Same niche: {niche}",
+    foodNicheRamen: "ramen",
+    foodNicheSushi: "sushi",
+    foodNicheIzakaya: "izakaya",
+    foodNicheYakiniku: "yakiniku",
+    foodNicheYakitori: "yakitori",
+    foodNicheSoba: "soba",
+    foodNicheUdon: "udon",
+    foodNicheCurry: "curry",
+    foodNichePizza: "pizza",
+    foodNicheBurger: "burger",
+    foodNicheSteak: "steak",
+    foodNicheCafe: "cafe",
+    foodNicheBakery: "bakery",
+    foodNicheBrunch: "brunch",
+    foodNicheJapanese: "Japanese dining",
     competitorSearchEmpty:
       "Nearby auto-matched competitors were limited here. Search for a better comparison manually.",
     competitorSearchPrompt: "Enter a business name and address to search.",
@@ -1176,6 +1192,8 @@ const COPY = {
     savedWorkQueueWatch: "Watch",
     savedWorkQueuePlannedAction: "Planned task waiting",
     savedWorkQueueWarningDiff: "Weekly diff needs attention",
+    savedWorkQueueThemeWarning: "Review-theme movement needs attention",
+    savedWorkQueueThemePositive: "Review-theme movement improved",
     savedWorkQueueReviewDrop: "Review count changed",
     savedWorkQueueStatusWarning: "Profile needs attention",
     savedWorkQueueCollecting: "Still collecting history",
@@ -1236,8 +1254,12 @@ const COPY = {
     clientReportImpactExpected: "Expected visible change",
     clientReportImpactMeasure: "Next check",
     clientReportImpactReportBack: "Report-back angle",
+    clientReportImpactReportBackTrendReady:
+      "Next report can connect the approved task, visible movement, review-theme movement, and the same-competitor gap.",
     clientReportImpactReportBackReady:
       "Next report can connect the approved task, visible movement, and same-competitor gap.",
+    clientReportImpactReportBackTrendCollecting:
+      "Next report can show whether the task starts changing review themes after another same-competitor check.",
     clientReportImpactReportBackBaseline:
       "Next report can show whether this baseline moved after the task is completed.",
     clientReportDeliveryTitle: "Message starter",
@@ -1274,6 +1296,13 @@ const COPY = {
     clientReportConfidenceNextProofCollecting:
       "Save the report and re-run the same listing after the next check.",
     clientReportCopyButton: "Copy client update",
+    clientReportConfirmCompetitorFirst: "Confirm competitor first",
+    clientReportConfirmCompetitorButton: "Confirm this competitor",
+    clientReportConfirmingCompetitor: "Confirming competitor...",
+    clientReportCompetitorConfirmedMessage:
+      "Competitor confirmed. The report copy and share link are ready to use.",
+    clientReportConfirmCompetitorFailed:
+      "Could not confirm this competitor. Save the report and try again.",
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
       "Could not copy. Select the summary text manually.",
@@ -1316,6 +1345,8 @@ const COPY = {
     clientReportWeeklyCollecting:
       "Weekly movement will become stronger after this saved listing is checked again.",
     clientReportProofCompetitor: "Competitor benchmark: {competitor}",
+    clientReportProofCompetitorConfirmed:
+      "Competitor confirmed for client delivery: {competitor}",
     clientReportProofPeriod: "Comparison period: {period}",
     clientReportProofAction: "Previous action record: {action}",
     clientReportProofSaved:
@@ -1330,7 +1361,10 @@ const COPY = {
     clientReportEvidenceBasisCompetitor: "Competitor",
     clientReportEvidenceBasisGoogle: "Google signals",
     clientReportEvidenceBasisDepth: "Signal depth",
+    clientReportEvidenceBasisReviewTrend: "Review trend",
+    clientReportEvidenceBasisReviewScale: "Review scale",
     clientReportEvidenceBasisSampleCount: "{count} visible",
+    clientReportEvidenceBasisTotalCount: "{count} total",
     clientReportEvidenceBasisCollecting: "Collecting",
     clientReportEvidenceBasisSelected: "Selected",
     clientReportEvidenceBasisIncluded: "Included",
@@ -1349,9 +1383,14 @@ const COPY = {
       "Frame this as a baseline until review text, competitor, or Google-side signals are stronger.",
     clientReportEvidenceVerdictMissingLabel: "Needs",
     clientReportEvidenceReviewSample: "Review sample: {count} recent visible reviews.",
+    clientReportEvidenceReviewScaleCaution: "Review scale caution: {message}",
     clientReportEvidenceReviewCollecting:
       "Review text signal: collecting enough recent review text for stronger evidence.",
     clientReportEvidenceAxis: "Review axis: {axis} is {status}. {evidence}",
+    clientReportEvidenceThemeMovement: "Review-theme movement: {movement}",
+    clientReportEvidenceThemeBeforeAfter: "Theme focus: {previous} -> {latest}",
+    clientReportEvidenceThemeBasis: "Monitoring basis: {basis}",
+    clientReportEvidenceSavedContext: "Saved action context: {context}",
     clientReportEvidenceGoogle: "Google-side proof: {signal}",
     clientReportEvidenceReviewTotals:
       "Review totals: this listing {my}, competitor {competitor}; gap {gap}.",
@@ -1363,6 +1402,8 @@ const COPY = {
     clientReportSendChecklistSubtitle:
       "Use this to turn the summary into a client update without rewriting it.",
     clientReportSendHandoff: "Paste the ready-to-send note as the report opener.",
+    clientReportSendConfirmCompetitor:
+      "Confirm the selected competitor before copying or sharing the client report.",
     clientReportSendEvidence:
       "Attach the evidence pack so the recommendation has visible proof.",
     clientReportSendTask: "Ask for approval on this week's task: {task}",
@@ -1377,25 +1418,44 @@ const COPY = {
       "Re-check the same competitor to see whether the gap widened or narrowed.",
     clientReportNextCheckSignals:
       "Review count, review momentum, photos, and visible profile proof are compared again.",
+    clientReportNextCheckReviewTrendReady:
+      "Review themes to compare next: {focus}",
+    clientReportNextCheckReviewTrendCollecting:
+      "One more same-competitor check can turn review-theme history into trend evidence.",
+    clientReportNextCheckReviewTrendBaseline:
+      "Save and re-check this listing to start review-theme trend history.",
     clientReportNextCheckAction:
       "The previous task, what changed, and the next task stay connected.",
     clientReportReadinessWeeklyDiff: "Weekly diff",
     clientReportReadinessActionHistory: "Action history",
     clientReportReadinessCompetitor: "Competitor",
+    clientReportReadinessCompetitorConfirmation: "Competitor confirmation",
+    clientReportReadinessReviewTrend: "Review trend",
     clientReportReadinessShareLink: "Share link",
     savedClientReadinessTitle: "Client report readiness",
     savedClientReadinessSubtitle: "Before sharing, confirm what is ready and what is still collecting.",
     savedClientReadinessNextLabel: "Next step",
     savedClientReadinessNextReady: "Open the client view and confirm the report before sending.",
-    savedClientReadinessNextCompetitor: "Open the report and choose the competitor you want to keep comparing.",
+    savedClientReadinessNextCompetitor: "Open the report and confirm the competitor you want to keep comparing.",
     savedClientReadinessNextAction: "Open the report and save this week's task before sharing.",
     savedClientReadinessNextWeekly: "Check this saved listing again next week to turn collecting history into weekly movement.",
+    savedClientReadinessNextReviewTrend: "Re-check the same competitor once more so review-theme trend history is ready.",
     savedClientReadinessNextShare: "Open the report once to generate a stable client share link.",
     clientReportReady: "Ready",
     clientReportCollecting: "Collecting",
     clientReportSaved: "Saved",
     clientReportMissing: "Missing",
     clientReportSelected: "Selected",
+    clientReportConfirmed: "Confirmed",
+    clientReportConfirmNeeded: "Confirm before sending",
+    clientReportCompetitorGateTitle: "Confirm the competitor before delivery",
+    clientReportCompetitorGateReadyTitle: "Competitor confirmed for delivery",
+    clientReportCompetitorGateBody:
+      "This report will be framed against {competitor}. Confirm it before copying the update or sharing the client link.",
+    clientReportCompetitorGateReadyBody:
+      "This report is locked to {competitor} for client delivery. If the comparison feels wrong, choose another competitor before sending.",
+    clientReportCompetitorGateMissing:
+      "Choose a specific competitor before preparing the client update.",
     actionHistoryTitle: "Action history",
     actionHistoryLoopGuideLabel: "How to read this",
     actionHistoryLoopGuidePrevious: "Previous action = what was recommended or skipped last time.",
@@ -1405,6 +1465,7 @@ const COPY = {
     actionHistoryCurrentChange: "What changed",
     actionHistoryNextTask: "Next task",
     actionHistoryClientHandoff: "Client handoff",
+    actionHistorySavedContext: "Saved context",
     actionOutcomeTitle: "Outcome check",
     actionOutcomeActionLabel: "Action status",
     actionOutcomeMovementLabel: "Visible movement",
@@ -1459,7 +1520,7 @@ const COPY = {
     noHistoryYet: "No history yet",
     deleteLabel: "Delete",
     openLatestReport: "Open Latest Report",
-    historyScoreLabel: "Score",
+    historyScoreLabel: "Basics",
     missingQuery: "Please enter a business name and address.",
     analysisComplete: "Analysis complete.",
     reportGeneratedPrefix: "Report generated: ",
@@ -1576,6 +1637,21 @@ const COPY = {
     themeTrendLabel: "Theme trend",
     competitorGapLabel: "Competitor gap",
     notEnoughCompetitorHistory: "Not enough competitor history yet",
+    reviewMonitoringNewFriction: "Newly visible",
+    reviewMonitoringSoftenedFriction: "Softened",
+    reviewMonitoringRecurringFriction: "Still repeating",
+    reviewMonitoringRecurringVerification: "Proof gap persists",
+    reviewMonitoringThemePressure: "Friction pressure",
+    reviewMonitoringCompetitorGapMovement: "Competitor gap movement",
+    reviewMonitoringBasisLabel: "Basis",
+    reviewMonitoringBasisSavedChecks: "{count} saved checks",
+    reviewMonitoringBasisVisibleReviews: "{count} recent visible reviews",
+    reviewMonitoringBasisCompetitorChecks: "{count} competitor checks",
+    reviewMonitoringConfidenceLow: "low confidence",
+    reviewMonitoringConfidenceMedium: "medium confidence",
+    reviewMonitoringVisibleSampleOnly: "visible review sample only",
+    reviewMonitoringPreviousCheck: "Previous check",
+    reviewMonitoringLatestCheck: "Latest check",
     savedListingFallbackName: "Saved Listing",
     analysisFailed: "Analysis failed.",
   },
@@ -1863,6 +1939,22 @@ const COPY = {
     competitorSelected: "選択中",
     competitorRecommended: "推奨",
     competitorUseThis: "この競合を使う",
+    competitorSameNiche: "同系統: {niche}",
+    foodNicheRamen: "ラーメン",
+    foodNicheSushi: "寿司",
+    foodNicheIzakaya: "居酒屋",
+    foodNicheYakiniku: "焼肉",
+    foodNicheYakitori: "焼鳥",
+    foodNicheSoba: "そば",
+    foodNicheUdon: "うどん",
+    foodNicheCurry: "カレー",
+    foodNichePizza: "ピザ",
+    foodNicheBurger: "バーガー",
+    foodNicheSteak: "ステーキ",
+    foodNicheCafe: "カフェ",
+    foodNicheBakery: "ベーカリー",
+    foodNicheBrunch: "ブランチ",
+    foodNicheJapanese: "和食",
     competitorSearchEmpty:
       "近隣の自動候補だけでは比較しづらいので、より適切な競合を手動検索してください。",
     competitorSearchPrompt: "検索する店舗名と住所を入力してください。",
@@ -1939,6 +2031,8 @@ const COPY = {
     savedWorkQueueWatch: "確認",
     savedWorkQueuePlannedAction: "未完了タスクあり",
     savedWorkQueueWarningDiff: "週次差分が要確認",
+    savedWorkQueueThemeWarning: "レビュー傾向が要確認",
+    savedWorkQueueThemePositive: "レビュー傾向が改善",
     savedWorkQueueReviewDrop: "レビュー数に変化",
     savedWorkQueueStatusWarning: "プロフィール要確認",
     savedWorkQueueCollecting: "履歴収集中",
@@ -1999,8 +2093,12 @@ const COPY = {
     clientReportImpactExpected: "見える変化",
     clientReportImpactMeasure: "次回見る指標",
     clientReportImpactReportBack: "次回の報告軸",
+    clientReportImpactReportBackTrendReady:
+      "次回レポートで、承認された実行案、見える変化、レビュー傾向の動き、同じ競合との差分をつなげて説明できます。",
     clientReportImpactReportBackReady:
       "次回レポートで、承認された実行案、見える変化、同じ競合との差分をつなげて説明できます。",
+    clientReportImpactReportBackTrendCollecting:
+      "次回レポートで、同じ競合で再チェックした後にレビュー傾向が動き始めたかを説明できます。",
     clientReportImpactReportBackBaseline:
       "次回レポートで、この基準値が実行後に動いたかを説明できます。",
     clientReportDeliveryTitle: "送付文面のたたき台",
@@ -2037,6 +2135,13 @@ const COPY = {
     clientReportConfidenceNextProofCollecting:
       "このレポートを保存し、次回チェックで同じ店舗を再実行してください。",
     clientReportCopyButton: "報告文をコピー",
+    clientReportConfirmCompetitorFirst: "先に競合を確認",
+    clientReportConfirmCompetitorButton: "この競合で確認済みにする",
+    clientReportConfirmingCompetitor: "競合を確認中...",
+    clientReportCompetitorConfirmedMessage:
+      "競合を確認済みにしました。報告文コピーと共有リンクを使えます。",
+    clientReportConfirmCompetitorFailed:
+      "競合を確認できませんでした。レポートを保存してからもう一度試してください。",
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
       "コピーできませんでした。要約テキストを手動で選択してください。",
@@ -2079,6 +2184,8 @@ const COPY = {
     clientReportWeeklyCollecting:
       "この保存済み店舗を次回もう一度確認すると、週次変化がより強い報告材料になります。",
     clientReportProofCompetitor: "比較対象: {competitor}",
+    clientReportProofCompetitorConfirmed:
+      "クライアント提出用に確認済みの競合: {competitor}",
     clientReportProofPeriod: "比較期間: {period}",
     clientReportProofAction: "前回アクション記録: {action}",
     clientReportProofSaved:
@@ -2093,7 +2200,10 @@ const COPY = {
     clientReportEvidenceBasisCompetitor: "競合比較",
     clientReportEvidenceBasisGoogle: "Googleシグナル",
     clientReportEvidenceBasisDepth: "根拠の厚み",
+    clientReportEvidenceBasisReviewTrend: "レビュー傾向",
+    clientReportEvidenceBasisReviewScale: "レビュー母数",
     clientReportEvidenceBasisSampleCount: "{count}件",
+    clientReportEvidenceBasisTotalCount: "総数 {count}件",
     clientReportEvidenceBasisCollecting: "収集中",
     clientReportEvidenceBasisSelected: "選択済み",
     clientReportEvidenceBasisIncluded: "反映済み",
@@ -2112,9 +2222,14 @@ const COPY = {
       "レビュー本文、競合比較、Google側シグナルが強くなるまでは初回基準として扱ってください。",
     clientReportEvidenceVerdictMissingLabel: "不足",
     clientReportEvidenceReviewSample: "レビューサンプル: 直近で見えているレビュー {count} 件。",
+    clientReportEvidenceReviewScaleCaution: "レビュー母数の注意: {message}",
     clientReportEvidenceReviewCollecting:
       "レビュー本文シグナル: より強い根拠を出すための直近レビュー本文を収集中です。",
     clientReportEvidenceAxis: "レビュー軸: {axis} は「{status}」。{evidence}",
+    clientReportEvidenceThemeMovement: "レビュー傾向の変化: {movement}",
+    clientReportEvidenceThemeBeforeAfter: "レビュー焦点: {previous} -> {latest}",
+    clientReportEvidenceThemeBasis: "モニタリング根拠: {basis}",
+    clientReportEvidenceSavedContext: "保存時のアクション根拠: {context}",
     clientReportEvidenceGoogle: "Google側の見える根拠: {signal}",
     clientReportEvidenceReviewTotals:
       "レビュー総数: 自店舗 {my}、競合 {competitor}、差分 {gap}。",
@@ -2126,6 +2241,8 @@ const COPY = {
     clientReportSendChecklistSubtitle:
       "この要約を、書き直しなしでクライアント報告に変えるための確認項目です。",
     clientReportSendHandoff: "そのまま送れる報告文を冒頭に貼ります。",
+    clientReportSendConfirmCompetitor:
+      "報告文コピーや共有リンクを使う前に、選択中の競合で問題ないか確認します。",
     clientReportSendEvidence:
       "根拠パックを添付し、提案に見える根拠を持たせます。",
     clientReportSendTask: "今週の実行案として承認を取ります: {task}",
@@ -2140,25 +2257,44 @@ const COPY = {
       "同じ競合で再チェックし、差が広がったか縮まったかを確認します。",
     clientReportNextCheckSignals:
       "レビュー数、レビュー増加ペース、写真、見えるプロフィール根拠を再比較します。",
+    clientReportNextCheckReviewTrendReady:
+      "次回比較するレビュー傾向: {focus}",
+    clientReportNextCheckReviewTrendCollecting:
+      "同じ競合でもう一度確認すると、レビュー傾向履歴をトレンド根拠にできます。",
+    clientReportNextCheckReviewTrendBaseline:
+      "この店舗を保存して再チェックし、レビュー傾向の履歴を作り始めます。",
     clientReportNextCheckAction:
       "前回タスク、今回の変化、次のタスクをつなげて報告できます。",
     clientReportReadinessWeeklyDiff: "週次差分",
     clientReportReadinessActionHistory: "実行履歴",
     clientReportReadinessCompetitor: "競合",
+    clientReportReadinessCompetitorConfirmation: "競合確認",
+    clientReportReadinessReviewTrend: "レビュー傾向",
     clientReportReadinessShareLink: "共有リンク",
     savedClientReadinessTitle: "提出準備",
     savedClientReadinessSubtitle: "共有前に、準備済みの材料と収集中の材料を確認します。",
     savedClientReadinessNextLabel: "次にやること",
     savedClientReadinessNextReady: "送付前にクライアント表示を開いて、レポート内容を確認してください。",
-    savedClientReadinessNextCompetitor: "レポートを開き、継続比較したい競合を選んでください。",
+    savedClientReadinessNextCompetitor: "レポートを開き、継続比較したい競合を確認済みにしてください。",
     savedClientReadinessNextAction: "共有前にレポートを開き、今週の実行タスクを保存してください。",
     savedClientReadinessNextWeekly: "次週もう一度この保存済み店舗を確認し、収集中の履歴を週次変化に変えてください。",
+    savedClientReadinessNextReviewTrend: "同じ競合でもう一度確認し、レビュー傾向の履歴を準備済みにしてください。",
     savedClientReadinessNextShare: "レポートを一度開き、安定したクライアント共有リンクを生成してください。",
     clientReportReady: "準備済み",
     clientReportCollecting: "収集中",
     clientReportSaved: "保存済み",
     clientReportMissing: "未保存",
     clientReportSelected: "選択済み",
+    clientReportConfirmed: "確認済み",
+    clientReportConfirmNeeded: "送付前に確認",
+    clientReportCompetitorGateTitle: "送付前に競合を確認",
+    clientReportCompetitorGateReadyTitle: "送付用の競合を確認済み",
+    clientReportCompetitorGateBody:
+      "このレポートは「{competitor}」との比較として送付されます。報告文コピーや共有前に、この競合で問題ないか確認してください。",
+    clientReportCompetitorGateReadyBody:
+      "このレポートは「{competitor}」との比較として送付できます。比較相手が違う場合は、送付前に競合を変更してください。",
+    clientReportCompetitorGateMissing:
+      "クライアント報告を作る前に、具体的な競合を選んでください。",
     actionHistoryTitle: "実行履歴",
     actionHistoryLoopGuideLabel: "この見方",
     actionHistoryLoopGuidePrevious: "前回のアクション = 前回提案したこと / 見送ったこと",
@@ -2168,6 +2304,7 @@ const COPY = {
     actionHistoryCurrentChange: "今回の変化",
     actionHistoryNextTask: "次のタスク",
     actionHistoryClientHandoff: "クライアント報告文",
+    actionHistorySavedContext: "保存時の根拠",
     actionOutcomeTitle: "成果確認",
     actionOutcomeActionLabel: "アクション状態",
     actionOutcomeMovementLabel: "見えている変化",
@@ -2222,7 +2359,7 @@ const COPY = {
     noHistoryYet: "履歴はまだありません",
     deleteLabel: "削除",
     openLatestReport: "最新レポートを開く",
-    historyScoreLabel: "スコア",
+    historyScoreLabel: "基本情報",
     missingQuery: "店舗名と住所を入力してください。",
     analysisComplete: "分析が完了しました。",
     reportGeneratedPrefix: "レポート生成: ",
@@ -2339,6 +2476,21 @@ const COPY = {
     themeTrendLabel: "テーマ傾向",
     competitorGapLabel: "競合ギャップ",
     notEnoughCompetitorHistory: "競合履歴がまだ足りません",
+    reviewMonitoringNewFriction: "新しく見えた不満",
+    reviewMonitoringSoftenedFriction: "弱まった不満",
+    reviewMonitoringRecurringFriction: "継続している不満",
+    reviewMonitoringRecurringVerification: "残っている根拠不足",
+    reviewMonitoringThemePressure: "不安要素の圧力",
+    reviewMonitoringCompetitorGapMovement: "競合差の動き",
+    reviewMonitoringBasisLabel: "根拠",
+    reviewMonitoringBasisSavedChecks: "保存チェック {count} 回",
+    reviewMonitoringBasisVisibleReviews: "直近表示レビュー {count} 件",
+    reviewMonitoringBasisCompetitorChecks: "競合チェック {count} 回",
+    reviewMonitoringConfidenceLow: "信頼度: 低",
+    reviewMonitoringConfidenceMedium: "信頼度: 中",
+    reviewMonitoringVisibleSampleOnly: "表示レビューサンプルベース",
+    reviewMonitoringPreviousCheck: "前回チェック",
+    reviewMonitoringLatestCheck: "最新チェック",
     savedListingFallbackName: "保存した店舗",
     analysisFailed: "分析に失敗しました。",
   },
@@ -3133,6 +3285,26 @@ function competitorScaleLabel(reviewCount, myReviewCount) {
   const tolerance = reviewCountTolerance(myReviewCount);
   if (gap <= tolerance) return t("reviewScaleSimilar");
   return reviewCount > myReviewCount ? t("reviewScaleLarger") : t("reviewScaleSmaller");
+}
+
+function foodNicheLabel(niche) {
+  const key = `foodNiche${String(niche || "")
+    .split(/[_-]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("")}`;
+  const label = t(key);
+  return label === key ? String(niche || "").replace(/[_-]/g, " ") : label;
+}
+
+function formatFoodNicheMatchLabel(matches) {
+  const list = Array.isArray(matches) ? matches.filter(Boolean) : [];
+  if (!list.length) return "";
+  const separator = currentLanguage === "ja" ? "・" : ", ";
+  return t("competitorSameNiche").replace(
+    "{niche}",
+    list.slice(0, 2).map(foodNicheLabel).join(separator)
+  );
 }
 
 function resetCompetitorSearchState() {
@@ -4220,6 +4392,7 @@ function getCompetitorCandidates(data, limit = 5) {
       address: competitorAddress(item) || "",
       reviewCount: Number.isFinite(item?.user_ratings_total) ? Number(item.user_ratings_total) : null,
       distanceMeters: Number.isFinite(item?.distance_meters) ? Number(item.distance_meters) : null,
+      foodNicheMatches: Array.isArray(item?.food_niche_matches) ? item.food_niche_matches : [],
       matchLabel: competitorScaleLabel(item?.user_ratings_total, myReviewCount),
       recommended:
         placeId === (data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId ?? null),
@@ -4292,6 +4465,7 @@ function getSelectedCompetitorSnapshot(data) {
       t("selectedCompetitorFallback"),
     distanceMeters: Number.isFinite(raw?.distance_meters) ? Number(raw.distance_meters) : null,
     reviewCount: Number.isFinite(raw?.user_ratings_total) ? Number(raw.user_ratings_total) : null,
+    foodNicheMatches: Array.isArray(raw?.food_niche_matches) ? raw.food_niche_matches : [],
     photoCount: Number.isFinite(raw?.photoCount)
       ? Number(raw.photoCount)
       : Array.isArray(raw?.photos)
@@ -4323,6 +4497,7 @@ function renderCompareMeta(competitor) {
 function buildCompetitorOptionMeta(candidate) {
   const parts = [
     formatDistanceLabel(candidate?.distanceMeters),
+    formatFoodNicheMatchLabel(candidate?.foodNicheMatches),
     formatReviewCountLabel(candidate?.reviewCount),
     candidate?.matchLabel || "",
   ].filter(Boolean);
@@ -4482,6 +4657,8 @@ function getDiagnosisContext(data) {
   const compare = data?.compare ?? {};
   const weeklyReport = data?.weeklyReport ?? {};
   const reviewDropSignal = data?.savedListing?.reviewDropSignal ?? null;
+  const commercialHealth = diagnosis?.commercialHealth || null;
+  const commercialHealthLevel = String(commercialHealth?.level || "").toLowerCase();
   const missing = Array.isArray(diagnosis?.missing) ? diagnosis.missing : [];
   const missingPhotos = Number.isFinite(data?.photoAnalysis?.missingPhotos)
     ? Number(data.photoAnalysis.missingPhotos)
@@ -4532,6 +4709,8 @@ function getDiagnosisContext(data) {
   }
   if (Number.isFinite(deltaDiff) && deltaDiff < 0) riskPoints += 1;
   if (Number.isFinite(weeklyGainDiff) && weeklyGainDiff < 0) riskPoints += 1;
+  if (commercialHealthLevel === "risk") riskPoints += 2;
+  else if (commercialHealthLevel === "watch") riskPoints += 1;
 
   const customerChoiceRisk =
     riskPoints >= 4 ? "high" : riskPoints >= 2 ? "medium" : "low";
@@ -4554,6 +4733,8 @@ function getDiagnosisContext(data) {
     deltaDiff,
     weeklyGainDiff,
     competitorName,
+    commercialHealth,
+    commercialHealthLevel,
     reviewDropSignal,
     reviewDropCount,
     materialReviewDrop,
@@ -4726,6 +4907,14 @@ function buildCustomerChoiceView(data) {
       blindSpots.forEach((item) => bullets.push(sentence(item)));
     }
 
+    const basisNote =
+      currentLanguage === "ja"
+        ? `直近で見えているレビュー ${reviewClues.reviewCountInSample} 件をもとにしています。`
+        : `Based on ${reviewClues.reviewCountInSample} recent visible review${
+            reviewClues.reviewCountInSample === 1 ? "" : "s"
+          }.`;
+    const scaleCaution = sentence(reviewClues?.reviewScaleCaution?.message || "");
+
     return {
       summary: sentence(reviewClues.summary),
       bullets: uniqueStrings(bullets).slice(0, 3),
@@ -4737,12 +4926,7 @@ function buildCustomerChoiceView(data) {
             "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
           )
       ),
-      note:
-        currentLanguage === "ja"
-          ? `直近で見えているレビュー ${reviewClues.reviewCountInSample} 件をもとにしています。`
-          : `Based on ${reviewClues.reviewCountInSample} recent visible review${
-              reviewClues.reviewCountInSample === 1 ? "" : "s"
-            }.`,
+      note: [basisNote, scaleCaution].filter(Boolean).join(" "),
     };
   }
 
@@ -4812,6 +4996,7 @@ function buildComparisonFocusView(data) {
     note: sentence(reviewClues?.comparisonNote || ""),
     metaItems: uniqueStrings([
       formatDistanceLabel(competitor?.distanceMeters),
+      formatFoodNicheMatchLabel(competitor?.foodNicheMatches),
       formatReviewCountLabel(competitor?.reviewCount),
       competitorScaleLabel(competitor?.reviewCount, myReviewCount),
     ]).filter(Boolean),
@@ -5319,7 +5504,7 @@ function buildDiagnosisFirstView(data) {
         "Nothing looks fundamentally broken in the Google basics.",
         "Google基本情報に大きな破綻は見えていません。"
       ),
-      buildCompetitiveDetail(context),
+      sentence(context.commercialHealth?.summary) || buildCompetitiveDetail(context),
       langText(
         "The next step is making the strongest proof visible in the first few seconds.",
         "次は強い根拠を最初の数秒で見えるようにすることです。"
@@ -5353,6 +5538,22 @@ function buildDiagnosisFirstView(data) {
         ? langText("Needs work", "要対応")
         : langText("In place", "整備済み"),
       tone: context.foundationStatus === "needs_work" ? "warning" : "good",
+    },
+    {
+      label: langText("Commercial health", "商業面"),
+      value:
+        context.commercialHealth?.label ||
+        (context.commercialHealthLevel === "risk"
+          ? langText("Commercial risk", "商業面は要改善")
+          : context.commercialHealthLevel === "watch"
+            ? langText("Commercial watch", "商業面は要観察")
+            : langText("Commercially steady", "商業面は安定")),
+      tone:
+        context.commercialHealthLevel === "risk"
+          ? "warning"
+          : context.commercialHealthLevel === "watch"
+            ? "accent"
+            : "good",
     },
     {
       label: langText("Customer choice", "顧客視点"),
@@ -5492,9 +5693,25 @@ function buildClientReportEvidencePack(result) {
   const reviewSampleCount = Number.isFinite(reviewClues?.reviewCountInSample)
     ? Number(reviewClues.reviewCountInSample)
     : null;
+  const reviewTotalCount = Number.isFinite(reviewClues?.totalReviewCount)
+    ? Number(reviewClues.totalReviewCount)
+    : Number.isFinite(result?.details?.user_ratings_total)
+      ? Number(result.details.user_ratings_total)
+      : null;
+  const reviewScaleCaution = reviewClues?.reviewScaleCaution || null;
+  const reviewScaleCautionMessage = sentence(reviewScaleCaution?.message || "");
+  const hasReviewScaleCaution = Boolean(reviewScaleCautionMessage);
   const googleSignal = Array.isArray(reviewClues?.googleSignals)
     ? sentence(reviewClues.googleSignals[0])
     : "";
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const reviewThemeOwnSnapshotCount = Number.isFinite(Number(reviewThemeMonitoring?.ownSnapshotCount))
+    ? Number(reviewThemeMonitoring.ownSnapshotCount)
+    : 0;
+  const reviewThemeStatus = String(reviewThemeMonitoring?.status || "");
+  const reviewThemeReady = reviewThemeStatus === "ready";
+  const hasReviewThemeHistory = reviewThemeOwnSnapshotCount > 0;
   const hasCompetitor =
     Boolean(result?.selectedCompetitor?.name) ||
     Boolean(result?.savedListing?.competitorName) ||
@@ -5504,9 +5721,14 @@ function buildClientReportEvidencePack(result) {
     Number.isFinite(compare?.my?.todayTotal) ||
     Number.isFinite(photo?.myPhotos);
   const isSteadySignal =
-    reviewSampleCount >= 4 ||
-    reviewClues?.confidence === "medium" ||
-    compare?.status === "ready";
+    !hasReviewScaleCaution &&
+    (
+      reviewSampleCount >= 4 ||
+      reviewClues?.confidence === "medium" ||
+      compare?.status === "ready" ||
+      reviewThemeReady ||
+      (hasReviewThemeHistory && reviewThemeMonitoring?.confidence === "medium")
+    );
   const basisItems = [
     {
       label: t("clientReportEvidenceBasisReviews"),
@@ -5516,6 +5738,15 @@ function buildClientReportEvidencePack(result) {
           })
         : t("clientReportEvidenceBasisCollecting"),
       tone: Number.isFinite(reviewSampleCount) && reviewSampleCount > 0 ? "ready" : "pending",
+    },
+    {
+      label: t("clientReportEvidenceBasisReviewScale"),
+      value: Number.isFinite(reviewTotalCount)
+        ? copyWithValues(t("clientReportEvidenceBasisTotalCount"), {
+            count: formatCompactCount(reviewTotalCount),
+          })
+        : t("clientReportEvidenceBasisCollecting"),
+      tone: Number.isFinite(reviewTotalCount) && !hasReviewScaleCaution ? "ready" : "pending",
     },
     {
       label: t("clientReportEvidenceBasisCompetitor"),
@@ -5538,17 +5769,31 @@ function buildClientReportEvidencePack(result) {
         : t("clientReportEvidenceBasisEarly"),
       tone: isSteadySignal ? "ready" : "pending",
     },
+    {
+      label: t("clientReportEvidenceBasisReviewTrend"),
+      value: reviewThemeReady
+        ? t("clientReportEvidenceBasisIncluded")
+        : hasReviewThemeHistory
+          ? t("clientReportEvidenceBasisCollecting")
+          : t("clientReportEvidenceBasisMissing"),
+      tone: reviewThemeReady ? "ready" : "pending",
+    },
   ];
   const missing = [];
   if (!Number.isFinite(reviewSampleCount) || reviewSampleCount <= 0) {
     missing.push(t("clientReportEvidenceBasisReviews"));
   }
+  if (hasReviewScaleCaution || !Number.isFinite(reviewTotalCount)) {
+    missing.push(t("clientReportEvidenceBasisReviewScale"));
+  }
   if (!hasCompetitor) missing.push(t("clientReportEvidenceBasisCompetitor"));
   if (!hasGoogleSignal) missing.push(t("clientReportEvidenceBasisGoogle"));
   if (!isSteadySignal) missing.push(t("clientReportEvidenceBasisDepth"));
+  if (!reviewThemeReady) missing.push(t("clientReportEvidenceBasisReviewTrend"));
   const readyCount = basisItems.filter((item) => item.tone === "ready").length;
+  const readyThreshold = basisItems.length >= 5 ? 4 : 3;
   const verdict =
-    readyCount >= 3
+    readyCount >= readyThreshold && !hasReviewScaleCaution
       ? {
           tone: "ready",
           title: t("clientReportEvidenceVerdictReadyTitle"),
@@ -5580,6 +5825,14 @@ function buildClientReportEvidencePack(result) {
     items.push(t("clientReportEvidenceReviewCollecting"));
   }
 
+  if (reviewScaleCautionMessage) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceReviewScaleCaution"), {
+        message: reviewScaleCautionMessage,
+      })
+    );
+  }
+
   const axes =
     canUseReviewComparison(result) && Array.isArray(reviewClues?.comparisonAxes)
       ? reviewClues.comparisonAxes
@@ -5595,6 +5848,46 @@ function buildClientReportEvidencePack(result) {
           evidence: sentence(axis.evidence || axis.summary || ""),
         })
       )
+    );
+  }
+
+  const reviewThemeMovement = buildReviewThemeMovementCopy(reviewThemeMonitoring);
+  const reviewThemeBeforeAfter = reviewMonitoringBeforeAfterItems(reviewThemeMonitoring);
+  const reviewThemeBasis = buildReviewMonitoringBasisCopy(reviewThemeMonitoring);
+  const savedListing = result?.savedListing || null;
+  const history = Array.isArray(savedListing?.actionHistory) ? savedListing.actionHistory : [];
+  const savedReviewContext = actionSnapshotReviewContext(savedListing?.latestAction || history[0] || null);
+
+  if (reviewThemeMovement) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceThemeMovement"), {
+        movement: reviewThemeMovement,
+      })
+    );
+  }
+
+  if (reviewThemeBeforeAfter.length >= 2) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceThemeBeforeAfter"), {
+        previous: reviewThemeBeforeAfter[0]?.value || "-",
+        latest: reviewThemeBeforeAfter[1]?.value || "-",
+      })
+    );
+  }
+
+  if (reviewThemeBasis) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceThemeBasis"), {
+        basis: reviewThemeBasis,
+      })
+    );
+  }
+
+  if (savedReviewContext?.headline) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceSavedContext"), {
+        context: savedReviewContext.headline,
+      })
     );
   }
 
@@ -5653,16 +5946,70 @@ function buildClientReportEvidencePack(result) {
     title: t("clientReportEvidenceTitle"),
     subtitle: t("clientReportEvidenceSubtitle"),
     verdict,
+    reviewScaleCaution: reviewScaleCautionMessage
+      ? {
+          ...reviewScaleCaution,
+          message: reviewScaleCautionMessage,
+          nextProof: sentence(reviewScaleCaution?.nextProof || ""),
+        }
+      : null,
     basisItems,
-    items: uniqueStrings(items.map(sentence)).slice(0, 5),
+    items: uniqueStrings(items.map(sentence)).slice(0, 7),
   };
 }
 
-function buildClientReportSendChecklist(task, evidencePack) {
+function selectedCompetitorPlaceIdForReport(result) {
+  return (
+    result?.selectedCompetitor?.place_id ||
+    result?.selectedCompetitor?.placeId ||
+    result?.savedListing?.competitorPlaceId ||
+    result?.recommendedCompetitorPlaceId ||
+    result?.defaultCompetitorPlaceId ||
+    null
+  );
+}
+
+function getCompetitorConfirmation(result, hasSpecificCompetitor = null) {
+  const savedListing = result?.savedListing || null;
+  const competitorName =
+    result?.selectedCompetitor?.name ||
+    savedListing?.competitorName ||
+    "";
+  const selected = Boolean(
+    hasSpecificCompetitor ?? (competitorName && !/selected competitor/i.test(competitorName))
+  );
+  const selectedPlaceId = selectedCompetitorPlaceIdForReport(result);
+  const confirmedPlaceId = savedListing?.competitorConfirmedPlaceId || null;
+  const confirmed = Boolean(
+    selected &&
+      savedListing?.competitorConfirmedAt &&
+      selectedPlaceId &&
+      confirmedPlaceId &&
+      String(confirmedPlaceId) === String(selectedPlaceId)
+  );
+
+  return {
+    selected,
+    confirmed,
+    canConfirm: Boolean(savedListing?.id && selected && selectedPlaceId),
+    competitorName,
+    selectedPlaceId,
+    confirmedAt: confirmed ? savedListing.competitorConfirmedAt : null,
+    tone: confirmed ? "ready" : "pending",
+    value: confirmed
+      ? t("clientReportConfirmed")
+      : selected
+        ? t("clientReportConfirmNeeded")
+        : t("clientReportMissing"),
+  };
+}
+
+function buildClientReportSendChecklist(task, evidencePack, competitorConfirmation = null) {
   const taskCopy = task?.body
     ? [task.label, task.body].filter(Boolean).join(": ")
     : "";
   const items = [
+    competitorConfirmation?.confirmed ? "" : t("clientReportSendConfirmCompetitor"),
     t("clientReportSendHandoff"),
     Array.isArray(evidencePack?.items) && evidencePack.items.length
       ? t("clientReportSendEvidence")
@@ -5683,6 +6030,7 @@ function buildClientReportSendChecklist(task, evidencePack) {
 function buildClientReportConfidenceFrame(evidencePack, readinessVerdict) {
   const evidenceTone = evidencePack?.verdict?.tone || "collecting";
   const readinessTone = readinessVerdict?.tone || "baseline";
+  const reviewScaleCaution = evidencePack?.reviewScaleCaution || null;
   let tone = "partial";
 
   if (evidenceTone === "ready" && readinessTone === "ready") {
@@ -5711,24 +6059,35 @@ function buildClientReportConfidenceFrame(evidencePack, readinessVerdict) {
     items: [
       {
         label: t("clientReportConfidenceActionLabel"),
-        body: t(actionKey),
+        body: reviewScaleCaution?.message || t(actionKey),
       },
       {
         label: t("clientReportConfidenceNextProofLabel"),
-        body: t(nextProofKey),
+        body: reviewScaleCaution?.nextProof || t(nextProofKey),
       },
     ],
   };
 }
 
-function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpecificCompetitor }) {
+function buildClientReportReadinessVerdict({
+  weeklyReady,
+  latestAction,
+  hasSpecificCompetitor,
+  competitorConfirmed,
+  reviewTrendReady,
+}) {
   const missing = [];
   if (!weeklyReady) missing.push(t("clientReportReadinessWeeklyDiff"));
   if (!latestAction) missing.push(t("clientReportReadinessActionHistory"));
-  if (!hasSpecificCompetitor) missing.push(t("clientReportReadinessCompetitor"));
+  if (!hasSpecificCompetitor) {
+    missing.push(t("clientReportReadinessCompetitor"));
+  } else if (!competitorConfirmed) {
+    missing.push(t("clientReportReadinessCompetitorConfirmation"));
+  }
+  if (!reviewTrendReady) missing.push(t("clientReportReadinessReviewTrend"));
 
-  const readyCount = 3 - missing.length;
-  if (readyCount === 3) {
+  const readyCount = 4 - missing.length;
+  if (readyCount === 4) {
     return {
       tone: "ready",
       title: t("clientReportVerdictReadyTitle"),
@@ -5737,7 +6096,7 @@ function buildClientReportReadinessVerdict({ weeklyReady, latestAction, hasSpeci
     };
   }
 
-  if (readyCount >= 2) {
+  if (readyCount >= 3) {
     return {
       tone: "partial",
       title: t("clientReportVerdictPartialTitle"),
@@ -5789,13 +6148,24 @@ function buildClientReportDeliveryCopy({
   };
 }
 
-function buildClientReportImpactPreview(result, task, latestAction, weeklyReady) {
+function buildClientReportImpactPreview(
+  result,
+  task,
+  latestAction,
+  weeklyReady,
+  reviewTrendReady = false
+) {
   if (!task?.body) return null;
 
   const actionBrief = buildActionExecutionBrief(result, task, latestAction);
-  const reportBack = weeklyReady
-    ? t("clientReportImpactReportBackReady")
-    : t("clientReportImpactReportBackBaseline");
+  const reportBack =
+    weeklyReady && reviewTrendReady
+      ? t("clientReportImpactReportBackTrendReady")
+      : weeklyReady
+        ? t("clientReportImpactReportBackReady")
+        : reviewTrendReady
+          ? t("clientReportImpactReportBackTrendCollecting")
+          : t("clientReportImpactReportBackBaseline");
 
   return {
     title: t("clientReportImpactTitle"),
@@ -5854,6 +6224,25 @@ function buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady) {
   };
 }
 
+function buildClientReportReviewTrendNextCheck(result, reviewTrendReadiness) {
+  const monitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const beforeAfterItems = reviewMonitoringBeforeAfterItems(monitoring);
+  const latestFocus = sentence(beforeAfterItems[1]?.value || "");
+  const movement = sentence(buildReviewThemeMovementCopy(monitoring));
+  const focus = latestFocus || movement;
+
+  if (reviewTrendReadiness?.ready && focus) {
+    return copyWithValues(t("clientReportNextCheckReviewTrendReady"), { focus });
+  }
+
+  if (reviewTrendReadiness?.collecting) {
+    return t("clientReportNextCheckReviewTrendCollecting");
+  }
+
+  return t("clientReportNextCheckReviewTrendBaseline");
+}
+
 function buildClientReportSummary(firstView, result = null) {
   const summaryLines = Array.isArray(firstView?.summaryLines) ? firstView.summaryLines : [];
   const actions = Array.isArray(firstView?.actions) ? uniqueStrings(firstView.actions) : [];
@@ -5886,10 +6275,14 @@ function buildClientReportSummary(firstView, result = null) {
     "";
   const hasSpecificCompetitor =
     competitorName && !/selected competitor/i.test(competitorName);
+  const competitorConfirmation = getCompetitorConfirmation(result, hasSpecificCompetitor);
   const latestActionCopy = latestAction
     ? [latestAction.label, latestAction.body].filter(Boolean).join(": ")
     : "";
   const proofItems = [
+    competitorConfirmation.confirmed && competitorName
+      ? copyWithValues(t("clientReportProofCompetitorConfirmed"), { competitor: competitorName })
+      : "",
     hasSpecificCompetitor
       ? copyWithValues(t("clientReportProofCompetitor"), { competitor: competitorName })
       : "",
@@ -5903,10 +6296,16 @@ function buildClientReportSummary(firstView, result = null) {
   ];
   const proofBody = sentence(uniqueStrings(proofItems).join(" / "));
   const weeklyReady = weeklySummary?.status === "ready";
+  const reviewTrendReadiness = getSavedReviewTrendReadiness({
+    reviewThemeMonitoring:
+      savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null,
+  });
   const readinessVerdict = buildClientReportReadinessVerdict({
     weeklyReady,
     latestAction,
     hasSpecificCompetitor,
+    competitorConfirmed: competitorConfirmation.confirmed,
+    reviewTrendReady: reviewTrendReadiness.ready,
   });
   const deliveryCopy = buildClientReportDeliveryCopy({
     businessName,
@@ -5922,13 +6321,20 @@ function buildClientReportSummary(firstView, result = null) {
     t("clientReportNextCheckBaseline"),
     t("clientReportNextCheckCompetitor"),
     t("clientReportNextCheckSignals"),
+    buildClientReportReviewTrendNextCheck(result, reviewTrendReadiness),
     t("clientReportNextCheckAction"),
   ]);
   const evidencePack = buildClientReportEvidencePack(result);
   const confidenceFrame = buildClientReportConfidenceFrame(evidencePack, readinessVerdict);
-  const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
+  const sendChecklist = buildClientReportSendChecklist(task, evidencePack, competitorConfirmation);
   const decisionRequest = buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady);
-  const impactPreview = buildClientReportImpactPreview(result, task, latestAction, weeklyReady);
+  const impactPreview = buildClientReportImpactPreview(
+    result,
+    task,
+    latestAction,
+    weeklyReady,
+    reviewTrendReadiness.ready
+  );
   const recommendationWhy = sentence(summaryLines[1] || evidencePack?.items?.[0] || weeklyMovement);
   const recommendationApproval = sentence(
     task?.body
@@ -5958,6 +6364,7 @@ function buildClientReportSummary(firstView, result = null) {
 
   return {
     readinessVerdict,
+    competitorConfirmation,
     deliveryCopy,
     chips: [
       {
@@ -5972,8 +6379,13 @@ function buildClientReportSummary(firstView, result = null) {
       },
       {
         label: t("clientReportReadinessCompetitor"),
-        value: hasSpecificCompetitor ? t("clientReportSelected") : t("clientReportMissing"),
-        tone: hasSpecificCompetitor ? "ready" : "pending",
+        value: competitorConfirmation.value,
+        tone: competitorConfirmation.tone,
+      },
+      {
+        label: t("clientReportReadinessReviewTrend"),
+        value: reviewTrendReadiness.value,
+        tone: reviewTrendReadiness.tone,
       },
     ],
     briefItems: [
@@ -6244,8 +6656,12 @@ function renderReportSharePanel(result = currentResult) {
   const view = buildDiagnosisFirstView(result);
   const clientReportSummary = buildClientReportSummary(view, result);
   const readinessTitle = sentence(clientReportSummary?.readinessVerdict?.title || "");
+  const competitorConfirmed = clientReportSummary?.competitorConfirmation?.confirmed === true;
   const sharePackageItems = [
     readinessTitle,
+    competitorConfirmed
+      ? t("clientReportCompetitorGateReadyTitle")
+      : t("clientReportCompetitorGateTitle"),
     t("savedReportShareClientViewReady"),
     t("savedReportSharePdfReady"),
     t("savedReportShareCopyReady"),
@@ -6269,8 +6685,12 @@ function renderReportSharePanel(result = currentResult) {
     <div class="report-share__actions">
       <button class="btn secondary report-share__copy" type="button" data-report-share-copy="${escapeAttr(
         shareUrl
-      )}">
-        ${escapeHtml(t("savedReportShareButton"))}
+      )}" ${competitorConfirmed ? "" : "disabled"}>
+        ${escapeHtml(
+          competitorConfirmed
+            ? t("savedReportShareButton")
+            : t("clientReportConfirmCompetitorFirst")
+        )}
       </button>
       <a class="btn secondary report-share__preview" href="${escapeAttr(
         shareUrl
@@ -6372,6 +6792,22 @@ function renderClientReportSummary(summary) {
     ? sendChecklist.items.map((item) => sentence(item)).filter(Boolean)
     : [];
   const readinessVerdict = normalized.readinessVerdict || null;
+  const competitorConfirmation = normalized.competitorConfirmation || {};
+  const competitorConfirmed = competitorConfirmation.confirmed === true;
+  const canConfirmCompetitor = competitorConfirmation.canConfirm === true;
+  const competitorGateBody = competitorConfirmation.selected
+    ? copyWithValues(
+        t(
+          competitorConfirmed
+            ? "clientReportCompetitorGateReadyBody"
+            : "clientReportCompetitorGateBody"
+        ),
+        {
+          competitor:
+            competitorConfirmation.competitorName || t("savedListingSelectedCompetitor"),
+        }
+      )
+    : t("clientReportCompetitorGateMissing");
   const readinessMissing = Array.isArray(readinessVerdict?.missing)
     ? readinessVerdict.missing.map((item) => sentence(item)).filter(Boolean)
     : [];
@@ -6444,10 +6880,39 @@ function renderClientReportSummary(summary) {
               </div>`
             : ""
         }
-        <button class="btn secondary client-report-summary__copy" type="button" data-client-report-copy>
-          ${escapeHtml(t("clientReportCopyButton"))}
+        <button class="btn secondary client-report-summary__copy" type="button" data-client-report-copy ${
+          competitorConfirmed ? "" : "disabled"
+        }>
+          ${escapeHtml(
+            competitorConfirmed
+              ? t("clientReportCopyButton")
+              : t("clientReportConfirmCompetitorFirst")
+          )}
         </button>
       </div>
+    </div>
+    <div class="client-report-summary__competitor-gate client-report-summary__competitor-gate--${escapeAttr(
+      competitorConfirmed ? "ready" : "pending"
+    )}">
+      <div>
+        <div class="client-report-summary__label">${escapeHtml(
+          t(
+            competitorConfirmed
+              ? "clientReportCompetitorGateReadyTitle"
+              : "clientReportCompetitorGateTitle"
+          )
+        )}</div>
+        <div class="client-report-summary__competitor-gate-body">${escapeHtml(
+          competitorGateBody
+        )}</div>
+      </div>
+      ${
+        competitorConfirmed || !canConfirmCompetitor
+          ? ""
+          : `<button class="btn client-report-summary__confirm-competitor" type="button" data-confirm-report-competitor>
+              ${escapeHtml(t("clientReportConfirmCompetitorButton"))}
+            </button>`
+      }
     </div>
     ${
       readinessVerdict?.title || readinessVerdict?.body
@@ -6804,6 +7269,23 @@ function actionHistoryLanguageMeta(action) {
   });
 }
 
+function actionSnapshotReviewContext(action) {
+  const snapshot = action?.snapshotContext || {};
+  const headline = sentence(snapshot.reviewThemeHeadline || "");
+  const previous = sentence(snapshot.reviewThemePrevious || "");
+  const latest = sentence(snapshot.reviewThemeLatest || "");
+  const basis = sentence(snapshot.reviewThemeBasis || "");
+
+  if (!headline && !previous && !latest && !basis) return null;
+
+  return {
+    headline,
+    previous,
+    latest,
+    basis,
+  };
+}
+
 function buildCurrentActionTask(result, firstView = null) {
   const view = firstView || buildDiagnosisFirstView(result);
   const actions = Array.isArray(view?.actions) ? uniqueStrings(view.actions) : [];
@@ -6812,6 +7294,9 @@ function buildCurrentActionTask(result, firstView = null) {
 
   const task = splitActionTask(rawTask, 0);
   const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring || null;
+  const reviewThemeBeforeAfter = reviewThemeMonitoring?.beforeAfter || null;
   const normalizedTask = {
     label: task?.label || t("actionHistoryNextTask"),
     body: task?.body || rawTask,
@@ -6840,6 +7325,10 @@ function buildCurrentActionTask(result, firstView = null) {
         result?.weeklyReport?.insight ||
         "",
       weeklyStatus: weeklySummary?.status || "",
+      reviewThemeHeadline: buildReviewThemeMovementCopy(reviewThemeMonitoring),
+      reviewThemePrevious: reviewThemeBeforeAfter?.previous || "",
+      reviewThemeLatest: reviewThemeBeforeAfter?.latest || "",
+      reviewThemeBasis: buildReviewMonitoringBasisCopy(reviewThemeMonitoring),
       executionWhy: actionBrief.why,
       doneCriteria: actionBrief.doneCriteria,
       nextCheck: actionBrief.nextCheck,
@@ -6848,6 +7337,11 @@ function buildCurrentActionTask(result, firstView = null) {
 }
 
 function buildActionHistoryChangeCopy(result) {
+  const reviewThemeMovement = buildReviewThemeMovementCopy(
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring
+  );
+  if (reviewThemeMovement) return reviewThemeMovement;
+
   const weeklySummary = result?.savedListing?.weeklyDiffSummary || null;
   return (
     weeklySummary?.headline ||
@@ -7015,6 +7509,7 @@ function renderActionHistoryPanel(result, firstView = null) {
         .filter(Boolean)
         .join(" • ")
     : "";
+  const savedReviewContext = actionSnapshotReviewContext(latestAction);
 
   actionHistoryPanelEl.classList.remove("hidden");
   actionHistoryPanelEl.innerHTML = `
@@ -7057,6 +7552,32 @@ function renderActionHistoryPanel(result, firstView = null) {
         ${
           latestActionMeta
             ? `<div class="action-history__meta">${escapeHtml(latestActionMeta)}</div>`
+            : ""
+        }
+        ${
+          savedReviewContext
+            ? `<div class="action-history__snapshot-context">
+                <span>${escapeHtml(t("actionHistorySavedContext"))}</span>
+                ${
+                  savedReviewContext.headline
+                    ? `<strong>${escapeHtml(savedReviewContext.headline)}</strong>`
+                    : ""
+                }
+                ${
+                  savedReviewContext.previous || savedReviewContext.latest
+                    ? `<div>${escapeHtml(
+                        [savedReviewContext.previous, savedReviewContext.latest]
+                          .filter(Boolean)
+                          .join(" -> ")
+                      )}</div>`
+                    : ""
+                }
+                ${
+                  savedReviewContext.basis
+                    ? `<div>${escapeHtml(savedReviewContext.basis)}</div>`
+                    : ""
+                }
+              </div>`
             : ""
         }
       </div>
@@ -7906,6 +8427,13 @@ function renderReportWeeklyDiffSummary(result) {
 
   const tone = savedWeeklyToneClass(summary.tone);
   const metrics = Array.isArray(summary.metrics) ? summary.metrics.slice(0, 4) : [];
+  const reviewThemeMonitoring =
+    result?.savedListing?.reviewThemeMonitoring || result?.reviewThemeMonitoring;
+  const movementItems = savedMonitoringMovementItems(
+    reviewThemeMonitoring
+  );
+  const beforeAfterItems = reviewMonitoringBeforeAfterItems(reviewThemeMonitoring);
+  const basisCopy = buildReviewMonitoringBasisCopy(reviewThemeMonitoring);
   const clientSummary = Array.isArray(summary.clientSummary)
     ? summary.clientSummary.filter(Boolean).slice(0, 2)
     : [];
@@ -7935,6 +8463,45 @@ function renderReportWeeklyDiffSummary(result) {
               )
               .join("")}
           </div>`
+        : ""
+    }
+    ${
+      beforeAfterItems.length >= 2
+        ? `<div class="report-weekly-diff__before-after">
+            ${beforeAfterItems
+              .map(
+                (item) => `
+                  <div class="report-weekly-diff__before-after-item">
+                    <span>${escapeHtml(item.label)}</span>
+                    <strong>${escapeHtml(item.value)}</strong>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>`
+        : ""
+    }
+    ${
+      movementItems.length
+        ? `<div class="report-weekly-diff__movement">
+            ${movementItems
+              .map(
+                (item) => `
+                  <div class="report-weekly-diff__movement-item report-weekly-diff__movement-item--${escapeAttr(
+                    item.tone
+                  )}">
+                    <span>${escapeHtml(item.label)}</span>
+                    <strong>${escapeHtml(item.value)}</strong>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>`
+        : ""
+    }
+    ${
+      basisCopy
+        ? `<div class="report-weekly-diff__basis">${escapeHtml(basisCopy)}</div>`
         : ""
     }
     ${
@@ -7970,7 +8537,12 @@ async function showResult(data, options = {}) {
   data.generatedAt = generatedAt;
   setReportDate(generatedAt);
 
-  scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
+  const profileScore = Number.isFinite(diagnosis?.profileCompletenessScore)
+    ? Number(diagnosis.profileCompletenessScore)
+    : Number.isFinite(diagnosis?.score)
+      ? Number(diagnosis.score)
+      : 0;
+  scoreEl.textContent = String(profileScore);
   renderTodos(diagnosis?.todos, diagnosis?.missing);
   renderBreakdown(diagnosis);
   renderSummary(details, placeId);
@@ -8438,6 +9010,207 @@ function savedMonitoringLabel(value, fallback = t("notAvailableYet")) {
   return labels[String(value)] || String(value).replace(/_/g, " ");
 }
 
+function savedMonitoringMovementItems(monitoring) {
+  const items = [];
+  const emerging = Array.isArray(monitoring?.emergingFrictions)
+    ? monitoring.emergingFrictions
+    : [];
+  const softened = Array.isArray(monitoring?.softenedFrictions)
+    ? monitoring.softenedFrictions
+    : [];
+  const recurring = Array.isArray(monitoring?.recurringFrictions)
+    ? monitoring.recurringFrictions
+    : [];
+  const recurringVerification = Array.isArray(monitoring?.recurringVerificationGaps)
+    ? monitoring.recurringVerificationGaps
+    : [];
+
+  if (emerging.length) {
+    items.push({
+      tone: "warning",
+      label: t("reviewMonitoringNewFriction"),
+      value: humanJoin(emerging),
+    });
+  }
+
+  if (softened.length) {
+    items.push({
+      tone: "accent",
+      label: t("reviewMonitoringSoftenedFriction"),
+      value: humanJoin(softened),
+    });
+  }
+
+  if (recurring.length && !emerging.length) {
+    items.push({
+      tone: "warning",
+      label: t("reviewMonitoringRecurringFriction"),
+      value: humanJoin(recurring),
+    });
+  }
+
+  if (recurringVerification.length) {
+    items.push({
+      tone: "warning",
+      label: t("reviewMonitoringRecurringVerification"),
+      value: humanJoin(recurringVerification),
+    });
+  }
+
+  if (
+    Number.isFinite(monitoring?.themePressureDelta) &&
+    Number(monitoring.themePressureDelta) !== 0
+  ) {
+    items.push({
+      tone: Number(monitoring.themePressureDelta) < 0 ? "accent" : "warning",
+      label: t("reviewMonitoringThemePressure"),
+      value: formatWeeklyDelta(Number(monitoring.themePressureDelta)),
+    });
+  }
+
+  if (
+    monitoring?.hasCompetitorThemeHistory &&
+    Number.isFinite(monitoring?.competitorGapDelta) &&
+    Number(monitoring.competitorGapDelta) !== 0
+  ) {
+    items.push({
+      tone: Number(monitoring.competitorGapDelta) < 0 ? "accent" : "warning",
+      label: t("reviewMonitoringCompetitorGapMovement"),
+      value: formatWeeklyDelta(Number(monitoring.competitorGapDelta)),
+    });
+  }
+
+  return items.filter((item) => item.value).slice(0, 3);
+}
+
+function buildReviewThemeMovementCopy(monitoring) {
+  if (!monitoring || monitoring.status !== "ready") return "";
+  const notableShift = sentence(monitoring?.notableShift || "");
+  if (notableShift) return notableShift;
+
+  const movementItem = savedMonitoringMovementItems(monitoring)[0];
+  if (!movementItem?.value) return "";
+  return `${movementItem.label}: ${movementItem.value}`;
+}
+
+function reviewMonitoringBeforeAfterItems(monitoring) {
+  if (!monitoring || monitoring.status !== "ready" || !monitoring?.beforeAfter) {
+    return [];
+  }
+
+  return [
+    {
+      label: t("reviewMonitoringPreviousCheck"),
+      value: sentence(monitoring.beforeAfter.previous),
+    },
+    {
+      label: t("reviewMonitoringLatestCheck"),
+      value: sentence(monitoring.beforeAfter.latest),
+    },
+  ].filter((item) => item.value);
+}
+
+function buildReviewMonitoringBasisCopy(monitoring) {
+  if (!monitoring || monitoring.status !== "ready") return "";
+
+  const parts = [];
+  const confidence = String(monitoring?.confidence || "").toLowerCase();
+  const ownSnapshotCount = Number.isFinite(monitoring?.ownSnapshotCount)
+    ? Number(monitoring.ownSnapshotCount)
+    : null;
+  const competitorSnapshotCount = Number.isFinite(monitoring?.competitorSnapshotCount)
+    ? Number(monitoring.competitorSnapshotCount)
+    : null;
+  const latestSampleReviewCount = Number.isFinite(monitoring?.latestSampleReviewCount)
+    ? Number(monitoring.latestSampleReviewCount)
+    : 0;
+  const previousSampleReviewCount = Number.isFinite(monitoring?.previousSampleReviewCount)
+    ? Number(monitoring.previousSampleReviewCount)
+    : 0;
+  const totalSampleReviewCount = latestSampleReviewCount + previousSampleReviewCount;
+  const previousDate = formatShortDate(monitoring?.previousCapturedAt);
+  const latestDate = formatShortDate(monitoring?.latestCapturedAt);
+
+  if (Number.isFinite(ownSnapshotCount) && ownSnapshotCount > 0) {
+    parts.push(
+      copyWithValues(t("reviewMonitoringBasisSavedChecks"), {
+        count: ownSnapshotCount,
+      })
+    );
+  }
+
+  if (totalSampleReviewCount > 0) {
+    parts.push(
+      copyWithValues(t("reviewMonitoringBasisVisibleReviews"), {
+        count: totalSampleReviewCount,
+      })
+    );
+  }
+
+  if (monitoring?.hasCompetitorThemeHistory && Number.isFinite(competitorSnapshotCount)) {
+    parts.push(
+      copyWithValues(t("reviewMonitoringBasisCompetitorChecks"), {
+        count: competitorSnapshotCount,
+      })
+    );
+  }
+
+  if (previousDate && latestDate) {
+    parts.push(`${previousDate} -> ${latestDate}`);
+  }
+
+  if (confidence === "medium") {
+    parts.push(t("reviewMonitoringConfidenceMedium"));
+  } else if (confidence === "low") {
+    parts.push(t("reviewMonitoringConfidenceLow"));
+    parts.push(t("reviewMonitoringVisibleSampleOnly"));
+  }
+
+  return parts.length ? `${t("reviewMonitoringBasisLabel")}: ${parts.join(" / ")}` : "";
+}
+
+function buildSavedReviewMonitoringBeforeAfterBlock(monitoring) {
+  const items = reviewMonitoringBeforeAfterItems(monitoring);
+  if (items.length < 2) return null;
+
+  const block = document.createElement("div");
+  block.className = "saved__monitoring-before-after";
+
+  items.forEach((item) => {
+    const node = document.createElement("div");
+    node.className = "saved__monitoring-before-after-item";
+    node.innerHTML = `
+      <span>${escapeHtml(item.label)}</span>
+      <strong>${escapeHtml(item.value)}</strong>
+    `;
+    block.appendChild(node);
+  });
+
+  return block;
+}
+
+function buildSavedMonitoringMovementBlock(monitoring) {
+  const items = savedMonitoringMovementItems(monitoring);
+  if (!items.length) return null;
+
+  const movement = document.createElement("div");
+  movement.className = "saved__monitoring-movement";
+
+  items.forEach((item) => {
+    const node = document.createElement("div");
+    node.className = `saved__monitoring-movement-item saved__monitoring-movement-item--${escapeAttr(
+      item.tone
+    )}`;
+    node.innerHTML = `
+      <span>${escapeHtml(item.label)}</span>
+      <strong>${escapeHtml(item.value)}</strong>
+    `;
+    movement.appendChild(node);
+  });
+
+  return movement;
+}
+
 function buildSavedListingMonitoringBlock(monitoring) {
   if (!monitoring?.status) return null;
 
@@ -8509,6 +9282,20 @@ function buildSavedListingMonitoringBlock(monitoring) {
   grid.appendChild(trendItem);
   grid.appendChild(gapItem);
   block.appendChild(grid);
+
+  const beforeAfterBlock = buildSavedReviewMonitoringBeforeAfterBlock(monitoring);
+  if (beforeAfterBlock) block.appendChild(beforeAfterBlock);
+
+  const movementBlock = buildSavedMonitoringMovementBlock(monitoring);
+  if (movementBlock) block.appendChild(movementBlock);
+
+  const basisCopy = buildReviewMonitoringBasisCopy(monitoring);
+  if (basisCopy) {
+    const basis = document.createElement("div");
+    basis.className = "saved__monitoring-basis";
+    basis.textContent = basisCopy;
+    block.appendChild(basis);
+  }
 
   if (monitoring?.notableShift) {
     const shift = document.createElement("div");
@@ -8766,6 +9553,7 @@ function buildSavedListingActionBlock(action, item = null) {
 
   const status = action?.status || "planned";
   const languageMeta = actionHistoryLanguageMeta(action);
+  const savedReviewContext = actionSnapshotReviewContext(action);
   const outcome = item ? buildSavedWorkQueueOutcome(item) : null;
   const block = document.createElement("div");
   block.className = "saved__action-history";
@@ -8782,6 +9570,27 @@ function buildSavedListingActionBlock(action, item = null) {
       }
     </div>
     ${languageMeta ? `<div class="saved__action-meta">${escapeHtml(languageMeta)}</div>` : ""}
+    ${
+      savedReviewContext
+        ? `<div class="saved__action-context">
+            <span>${escapeHtml(t("actionHistorySavedContext"))}</span>
+            ${
+              savedReviewContext.headline
+                ? `<strong>${escapeHtml(savedReviewContext.headline)}</strong>`
+                : ""
+            }
+            ${
+              savedReviewContext.previous || savedReviewContext.latest
+                ? `<div>${escapeHtml(
+                    [savedReviewContext.previous, savedReviewContext.latest]
+                      .filter(Boolean)
+                      .join(" -> ")
+                  )}</div>`
+                : ""
+            }
+          </div>`
+        : ""
+    }
     ${
       outcome
         ? `<div class="saved__action-outcome">
@@ -8807,15 +9616,37 @@ function buildSavedReadinessItem(label, value, tone) {
   `;
 }
 
+function getSavedReviewTrendReadiness(item) {
+  const monitoring = item?.reviewThemeMonitoring || null;
+  const ownSnapshotCount = Number.isFinite(Number(monitoring?.ownSnapshotCount))
+    ? Number(monitoring.ownSnapshotCount)
+    : 0;
+  const ready = monitoring?.status === "ready";
+  const collecting = !ready && ownSnapshotCount > 0;
+
+  return {
+    ready,
+    collecting,
+    value: ready
+      ? t("clientReportReady")
+      : collecting
+        ? t("clientReportCollecting")
+        : t("clientReportMissing"),
+    tone: ready ? "ready" : "pending",
+  };
+}
+
 function buildSavedReadinessNextStep({
   weeklyReady,
   actionReady,
   competitorReady,
+  reviewTrendReady,
   shareReady,
 }) {
   if (!competitorReady) return t("savedClientReadinessNextCompetitor");
   if (!actionReady) return t("savedClientReadinessNextAction");
   if (!weeklyReady) return t("savedClientReadinessNextWeekly");
+  if (!reviewTrendReady) return t("savedClientReadinessNextReviewTrend");
   if (!shareReady) return t("savedClientReadinessNextShare");
   return t("savedClientReadinessNextReady");
 }
@@ -8823,13 +9654,25 @@ function buildSavedReadinessNextStep({
 function getSavedListingReadiness(item) {
   const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
   const actionReady = Boolean(item?.latestAction?.label || item?.latestAction?.body);
-  const competitorReady = Boolean(item?.competitorPlaceId || item?.competitorName);
+  const competitorConfirmation = getCompetitorConfirmation(
+    { savedListing: item },
+    Boolean(item?.competitorName || item?.competitorPlaceId)
+  );
+  const competitorReady = competitorConfirmation.confirmed;
+  const reviewTrend = getSavedReviewTrendReadiness(item);
   const shareReady = Boolean(item?.id && savedReportShareUrl(item.id));
-  const readyCount = [weeklyReady, actionReady, competitorReady, shareReady].filter(Boolean).length;
+  const readyCount = [
+    weeklyReady,
+    actionReady,
+    competitorReady,
+    reviewTrend.ready,
+    shareReady,
+  ].filter(Boolean).length;
   const nextStep = buildSavedReadinessNextStep({
     weeklyReady,
     actionReady,
     competitorReady,
+    reviewTrendReady: reviewTrend.ready,
     shareReady,
   });
 
@@ -8837,12 +9680,14 @@ function getSavedListingReadiness(item) {
     weeklyReady,
     actionReady,
     competitorReady,
+    competitorConfirmation,
+    reviewTrend,
     shareReady,
     readyCount,
     nextStep,
-    scoreLabel: `${readyCount}/4`,
-    complete: readyCount === 4,
-    tone: readyCount >= 3 ? "ready" : "pending",
+    scoreLabel: `${readyCount}/5`,
+    complete: readyCount === 5,
+    tone: readyCount >= 4 ? "ready" : "pending",
   };
 }
 
@@ -8874,8 +9719,13 @@ function buildSavedListingReadinessBlock(item) {
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessCompetitor"),
-        readiness.competitorReady ? t("clientReportSelected") : t("clientReportMissing"),
+        readiness.competitorConfirmation?.value || t("clientReportMissing"),
         savedReadinessTone(readiness.competitorReady)
+      )}
+      ${buildSavedReadinessItem(
+        t("clientReportReadinessReviewTrend"),
+        readiness.reviewTrend.value,
+        readiness.reviewTrend.tone
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessShareLink"),
@@ -8902,7 +9752,11 @@ function buildSavedWorkQueueOutcome(item) {
   if (!["done", "skipped"].includes(status)) return null;
 
   const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
-  const headline = sentence(item?.weeklyDiffSummary?.headline || "");
+  const headline = sentence(
+    buildReviewThemeMovementCopy(item?.reviewThemeMonitoring) ||
+      item?.weeklyDiffSummary?.headline ||
+      ""
+  );
 
   if (status === "done") {
     return {
@@ -8922,6 +9776,43 @@ function buildSavedWorkQueueOutcome(item) {
   };
 }
 
+function buildSavedWorkQueueReviewThemeSignal(item) {
+  const monitoring = item?.reviewThemeMonitoring || null;
+  if (!monitoring || monitoring.status !== "ready") return null;
+
+  const trend = String(monitoring?.trend || "");
+  const gapDirection = String(monitoring?.gapDirection || "");
+  const movementCopy = sentence(buildReviewThemeMovementCopy(monitoring));
+  const nextAction = sentence(monitoring?.nextAction || "");
+  const movementItems = savedMonitoringMovementItems(monitoring);
+  const hasWarning =
+    trend === "worsening" ||
+    gapDirection === "widening" ||
+    movementItems.some((item) => item?.tone === "warning");
+  const hasPositive =
+    trend === "improving" ||
+    gapDirection === "narrowing" ||
+    movementItems.some((item) => item?.tone === "accent");
+
+  if (hasWarning) {
+    return {
+      tone: "warning",
+      reason: movementCopy || t("savedWorkQueueThemeWarning"),
+      nextAction: nextAction || movementCopy || t("savedWorkQueueThemeWarning"),
+    };
+  }
+
+  if (hasPositive) {
+    return {
+      tone: "positive",
+      reason: movementCopy || t("savedWorkQueueThemePositive"),
+      nextAction: movementCopy || nextAction || t("savedWorkQueueThemePositive"),
+    };
+  }
+
+  return null;
+}
+
 function buildSavedWorkQueueItem(item) {
   if (!item?.id) return null;
 
@@ -8930,6 +9821,7 @@ function buildSavedWorkQueueItem(item) {
   const readiness = getSavedListingReadiness(item);
   const outcome = buildSavedWorkQueueOutcome(item);
   const cadence = buildSavedWeeklyCadence(item);
+  const reviewThemeSignal = buildSavedWorkQueueReviewThemeSignal(item);
 
   if (item?.latestAction?.status === "planned") {
     score += 34;
@@ -8963,6 +9855,18 @@ function buildSavedWorkQueueItem(item) {
     reasons.push(t("savedWorkQueueCollecting"));
   }
 
+  if (reviewThemeSignal) {
+    const weeklyAlreadySignalsMovement = ["warning", "positive"].includes(
+      item?.weeklyDiffSummary?.tone
+    );
+    if (reviewThemeSignal.tone === "warning") {
+      score += weeklyAlreadySignalsMovement ? 8 : 34;
+    } else {
+      score += weeklyAlreadySignalsMovement ? 4 : 14;
+    }
+    reasons.push(reviewThemeSignal.reason);
+  }
+
   if (item?.statusSummary?.tone === "warning") {
     score += 28;
     reasons.push(item.statusSummary.reason || t("savedWorkQueueStatusWarning"));
@@ -8972,7 +9876,7 @@ function buildSavedWorkQueueItem(item) {
   }
 
   if (!readiness.complete) {
-    score += Math.max(6, (4 - readiness.readyCount) * 8);
+    score += Math.max(6, (5 - readiness.readyCount) * 8);
     reasons.push(
       copyWithValues(t("savedWorkQueueReadinessGap"), {
         score: readiness.scoreLabel,
@@ -8982,6 +9886,7 @@ function buildSavedWorkQueueItem(item) {
 
   const nextAction =
     outcome?.nextAction ||
+    reviewThemeSignal?.nextAction ||
     (!readiness.complete ? readiness.nextStep : "") ||
     item?.weeklyDiffSummary?.nextAction ||
     (item?.latestAction?.status === "planned"
@@ -9230,12 +10135,22 @@ function renderSavedListings(listings) {
     const shareUrl = savedReportShareUrl(item.id);
 
     const shareBtn = document.createElement("button");
+    const competitorConfirmation = getCompetitorConfirmation(
+      { savedListing: item },
+      Boolean(item?.competitorName || item?.competitorPlaceId)
+    );
     shareBtn.type = "button";
     shareBtn.className = "btn secondary";
     shareBtn.dataset.action = "copy-link";
     shareBtn.dataset.savedId = item.id;
     shareBtn.dataset.shareUrl = shareUrl;
-    shareBtn.textContent = t("savedReportShareButton");
+    shareBtn.disabled = !competitorConfirmation.confirmed;
+    shareBtn.title = competitorConfirmation.confirmed
+      ? ""
+      : t("clientReportCompetitorGateTitle");
+    shareBtn.textContent = competitorConfirmation.confirmed
+      ? t("savedReportShareButton")
+      : t("clientReportConfirmCompetitorFirst");
 
     const previewLink = document.createElement("a");
     previewLink.className = "btn secondary saved__preview-link";
@@ -9277,6 +10192,47 @@ async function saveListingSubscription(payload) {
   });
 }
 
+async function confirmCurrentReportCompetitor(button) {
+  if (!currentResult?.savedListing?.id) {
+    setSavedMessage(t("clientReportConfirmCompetitorFailed"), true);
+    return;
+  }
+
+  const payload = {
+    ...buildSavePayload(),
+    competitorConfirmed: true,
+    competitorConfirmedSource: "client_report_gate",
+  };
+
+  if (!payload.placeId || !payload.competitorPlaceId) {
+    setSavedMessage(t("clientReportConfirmCompetitorFailed"), true);
+    return;
+  }
+
+  const originalLabel = button?.textContent || t("clientReportConfirmCompetitorButton");
+  if (button) {
+    button.disabled = true;
+    button.textContent = t("clientReportConfirmingCompetitor");
+  }
+
+  try {
+    const response = await saveListingSubscription(payload);
+    if (!response?.ok) {
+      throw new Error(getApiMessage(response, t("clientReportConfirmCompetitorFailed")));
+    }
+
+    applyUpdatedSavedListing(response.listing);
+    setSavedMessage(t("clientReportCompetitorConfirmedMessage"));
+    await refreshSavedListings({ quiet: true });
+  } catch (error) {
+    setSavedMessage(error?.message || String(error), true);
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }
+  }
+}
+
 async function removeSavedListing(id, email) {
   return fetchApiJson(
     `/api/saved-listings?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`,
@@ -9307,6 +10263,9 @@ function applyUpdatedSavedListing(savedListing) {
     renderActionHistoryPanel(currentResult);
     renderPrintCover(currentResult);
     renderReportSharePanel(currentResult);
+    renderClientReportSummary(
+      buildClientReportSummary(buildDiagnosisFirstView(currentResult), currentResult)
+    );
   }
 
   if (currentSavedListings.some((item) => item?.id === savedListing.id)) {
@@ -9345,7 +10304,11 @@ function buildSavePayload() {
       details?.address ||
       currentResult?.savedListing?.address ||
       "",
-    analysisScore: Number.isFinite(diagnosis?.score) ? diagnosis.score : null,
+    analysisScore: Number.isFinite(diagnosis?.profileCompletenessScore)
+      ? diagnosis.profileCompletenessScore
+      : Number.isFinite(diagnosis?.score)
+        ? diagnosis.score
+        : null,
     analysisMissing: Array.isArray(diagnosis?.missing) ? diagnosis.missing : [],
     compareTotalDiff: Number.isFinite(currentResult?.compare?.total_diff)
       ? currentResult.compare.total_diff
@@ -9552,6 +10515,12 @@ if (savedPlanNoticeEl) {
 
 if (clientReportSummaryEl) {
   clientReportSummaryEl.addEventListener("click", async (event) => {
+    const confirmButton = event.target.closest("button[data-confirm-report-competitor]");
+    if (confirmButton) {
+      await confirmCurrentReportCompetitor(confirmButton);
+      return;
+    }
+
     const button = event.target.closest("button[data-client-report-copy]");
     if (!button) return;
 
@@ -9990,7 +10959,11 @@ async function analyzeCurrentInput(options = {}) {
 
     const details = data?.details ?? {};
     const diagnosis = data?.diagnosis ?? data;
-    const score = Number.isFinite(diagnosis?.score) ? diagnosis.score : 0;
+    const score = Number.isFinite(diagnosis?.profileCompletenessScore)
+      ? diagnosis.profileCompletenessScore
+      : Number.isFinite(diagnosis?.score)
+        ? diagnosis.score
+        : 0;
     const hydrated = await showResult(data);
 
     addHistory({

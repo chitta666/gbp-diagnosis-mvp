@@ -56,6 +56,10 @@ function normalizeActionSnapshotContext(value) {
     competitorName: compactText(value.competitorName, 160),
     weeklyHeadline: compactText(value.weeklyHeadline, 260),
     weeklyStatus: compactText(value.weeklyStatus, 80),
+    reviewThemeHeadline: compactText(value.reviewThemeHeadline, 260),
+    reviewThemePrevious: compactText(value.reviewThemePrevious, 180),
+    reviewThemeLatest: compactText(value.reviewThemeLatest, 180),
+    reviewThemeBasis: compactText(value.reviewThemeBasis, 260),
     executionWhy: compactText(value.executionWhy, 320),
     doneCriteria: compactText(value.doneCriteria, 320),
     nextCheck: compactText(value.nextCheck, 320),
@@ -249,6 +253,7 @@ function localizeStoredSnapshot(snapshot, lang = "en") {
       lang,
       8
     ),
+    reviewScaleCaution: localizedString(snapshot.reviewScaleCaution, lang),
     priorityAction: localizedString(snapshot.priorityAction, lang),
   };
 }
@@ -319,6 +324,9 @@ export function publicSavedListing(
     competitorPlaceId: record.competitorPlaceId ?? null,
     competitorName: record.competitorName ?? null,
     competitorAddress: record.competitorAddress ?? null,
+    competitorConfirmedAt: record.competitorConfirmedAt ?? null,
+    competitorConfirmedPlaceId: record.competitorConfirmedPlaceId ?? null,
+    competitorConfirmedSource: record.competitorConfirmedSource ?? null,
     q: record.q ?? null,
     name: record.name ?? null,
     address: record.address ?? null,
@@ -378,6 +386,13 @@ function normalizedReviewThemeHistory(history) {
     own: Array.isArray(history?.own) ? history.own.filter(Boolean) : [],
     competitor: Array.isArray(history?.competitor) ? history.competitor.filter(Boolean) : [],
   };
+}
+
+function latestStoredSnapshots(history, limit = 4) {
+  return (Array.isArray(history) ? history : [])
+    .filter(Boolean)
+    .sort((a, b) => String(b?.capturedAt || "").localeCompare(String(a?.capturedAt || "")))
+    .slice(0, limit);
 }
 
 function snapshotDayKey(capturedAt) {
@@ -456,6 +471,10 @@ export function buildStoredReviewThemeSnapshot({
       reviewCluesEn?.competitorChoiceEdges,
       reviewCluesJa?.competitorChoiceEdges
     ),
+    reviewScaleCaution: localizedPair(
+      reviewCluesEn?.reviewScaleCaution?.message,
+      reviewCluesJa?.reviewScaleCaution?.message
+    ),
     priorityAction: localizedPair(
       reviewCluesEn?.priorityAction,
       reviewCluesJa?.priorityAction
@@ -496,6 +515,27 @@ function themeFrequency(snapshots, key) {
   return [...counts.entries()]
     .map(([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
+function themeCountMap(snapshots, key) {
+  return themeFrequency(snapshots, key).reduce((acc, item) => {
+    acc.set(item.label, item.count);
+    return acc;
+  }, new Map());
+}
+
+function themeList(snapshot, key) {
+  return compactStringList(snapshot?.[key], 8);
+}
+
+function listDifference(current, previous) {
+  const previousSet = new Set(Array.isArray(previous) ? previous : []);
+  return compactStringList(current, 8).filter((item) => !previousSet.has(item));
+}
+
+function listIntersection(current, previous) {
+  const previousSet = new Set(Array.isArray(previous) ? previous : []);
+  return compactStringList(current, 8).filter((item) => previousSet.has(item));
 }
 
 function riskScore(snapshot) {
@@ -542,59 +582,133 @@ function buildCollectingReviewThemeMonitoring(
   };
 }
 
-function buildTrendLabel({ latest, previous, recurringFrictions }) {
+function buildThemeMovement({ latest, previous, ownHistory }) {
+  const latestFrictions = themeList(latest, "frictions");
+  const previousFrictions = themeList(previous, "frictions");
+  const latestVerificationGaps = themeList(latest, "verificationGaps");
+  const previousVerificationGaps = themeList(previous, "verificationGaps");
+  const frequency = themeCountMap(ownHistory, "frictions");
+  const verificationFrequency = themeCountMap(ownHistory, "verificationGaps");
+  const latestScore = riskScore(latest);
+  const previousScore = riskScore(previous);
+
+  return {
+    latestScore,
+    previousScore,
+    pressureDelta: latestScore - previousScore,
+    recurringFrictions: latestFrictions
+      .filter((item) => (frequency.get(item) || 0) >= 2)
+      .slice(0, 2),
+    emergingFrictions: listDifference(latestFrictions, previousFrictions).slice(0, 2),
+    softenedFrictions: listDifference(previousFrictions, latestFrictions).slice(0, 2),
+    repeatedFrictions: listIntersection(latestFrictions, previousFrictions).slice(0, 2),
+    recurringVerificationGaps: latestVerificationGaps
+      .filter((item) => (verificationFrequency.get(item) || 0) >= 2)
+      .slice(0, 2),
+    emergingVerificationGaps: listDifference(
+      latestVerificationGaps,
+      previousVerificationGaps
+    ).slice(0, 2),
+    softenedVerificationGaps: listDifference(
+      previousVerificationGaps,
+      latestVerificationGaps
+    ).slice(0, 2),
+  };
+}
+
+function competitorEdgeScore(ownSnapshot, competitorSnapshot) {
+  const competitorEdges = themeList(ownSnapshot, "competitorChoiceEdges").length;
+  const counterEdges = themeList(competitorSnapshot, "competitorChoiceEdges").length;
+  return competitorEdges - counterEdges;
+}
+
+function buildGapMovement({ latest, previous, latestCompetitor, previousCompetitor }) {
+  const hasCompetitorHistory = Boolean(latestCompetitor && previousCompetitor);
+  const currentScore = hasCompetitorHistory
+    ? competitorEdgeScore(latest, latestCompetitor)
+    : themeList(latest, "competitorChoiceEdges").length;
+  const previousScore = hasCompetitorHistory
+    ? competitorEdgeScore(previous, previousCompetitor)
+    : themeList(previous, "competitorChoiceEdges").length;
+  const delta = currentScore - previousScore;
+
+  if (!Number.isFinite(currentScore) || !Number.isFinite(previousScore)) {
+    return {
+      direction: null,
+      currentScore: null,
+      previousScore: null,
+      delta: null,
+      hasCompetitorHistory,
+    };
+  }
+
+  return {
+    direction: delta < 0 ? "narrowing" : delta > 0 ? "widening" : "unchanged",
+    currentScore,
+    previousScore,
+    delta,
+    hasCompetitorHistory,
+  };
+}
+
+function buildTrendLabel({ latest, previous, movement }) {
   const latestScore = riskScore(latest);
   const previousScore = riskScore(previous);
   const delta = latestScore - previousScore;
 
   if (delta <= -2) return "improving";
   if (delta >= 2) return "worsening";
-  if (recurringFrictions.length || compactStringList(latest?.verificationGaps, 8).length) {
+  if (
+    movement?.emergingFrictions?.length ||
+    movement?.emergingVerificationGaps?.length
+  ) {
+    return "worsening";
+  }
+  if (
+    (movement?.softenedFrictions?.length || movement?.softenedVerificationGaps?.length) &&
+    !movement?.recurringFrictions?.length
+  ) {
+    return "improving";
+  }
+  if (
+    movement?.recurringFrictions?.length ||
+    movement?.recurringVerificationGaps?.length
+  ) {
     return "mixed";
   }
   return "steady";
 }
 
-function buildGapDirection({ latest, previous, competitorHistory }) {
-  if (!Array.isArray(competitorHistory) || competitorHistory.length < 2) {
-    return null;
-  }
-
-  const latestEdgeCount = compactStringList(latest?.competitorChoiceEdges, 8).length;
-  const previousEdgeCount = compactStringList(previous?.competitorChoiceEdges, 8).length;
-
-  if (latestEdgeCount < previousEdgeCount) return "narrowing";
-  if (latestEdgeCount > previousEdgeCount) return "widening";
-  return "unchanged";
-}
-
 function buildNotableShift({
-  latest,
-  previous,
-  recurringFrictions,
+  movement,
   trend,
   gapDirection,
 }, lang = "en") {
-  const previousFrictions = new Set(compactStringList(previous?.frictions, 8));
-  const latestFrictions = compactStringList(latest?.frictions, 8);
-
-  if (recurringFrictions[0]) {
+  if (movement?.recurringFrictions?.[0]) {
     return isJapanese(lang)
-      ? `${recurringFrictions[0]} が直近の確認で繰り返し出ています。`
-      : `${recurringFrictions[0]} is repeating across recent checks.`;
+      ? `${movement.recurringFrictions[0]}が直近の保存チェックで繰り返し出ています。`
+      : `Recent saved checks keep showing ${movement.recurringFrictions[0]}.`;
   }
 
-  const newFriction = latestFrictions.find((item) => !previousFrictions.has(item));
-  if (newFriction) {
+  if (movement?.emergingFrictions?.[0]) {
     return isJapanese(lang)
-      ? `${newFriction} が最新のレビュー傾向スナップショットではよりはっきり見えるようになっています。`
-      : `${newFriction} is appearing more clearly in the latest review snapshot.`;
+      ? `${movement.emergingFrictions[0]}が最新のレビュー傾向スナップショットではよりはっきり見えるようになっています。`
+      : `The latest review snapshot shows ${movement.emergingFrictions[0]} more clearly.`;
   }
 
-  if (
-    compactStringList(previous?.verificationGaps, 8).length &&
-    !compactStringList(latest?.verificationGaps, 8).length
-  ) {
+  if (movement?.recurringVerificationGaps?.[0]) {
+    return isJapanese(lang)
+      ? `${movement.recurringVerificationGaps[0]}が複数回の保存チェックで残っています。`
+      : `Recent saved checks still show ${movement.recurringVerificationGaps[0]}.`;
+  }
+
+  if (movement?.softenedFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `${movement.softenedFrictions[0]}は前回の保存チェックほど中心ではなくなっています。`
+      : `Recent saved checks show less ${movement.softenedFrictions[0]} than before.`;
+  }
+
+  if (movement?.softenedVerificationGaps?.[0]) {
     return isJapanese(lang)
       ? "確認しづらさの問題は、前回の保存チェックほど中心ではなくなっています。"
       : "Verification friction looks less central than in the previous saved check.";
@@ -630,10 +744,13 @@ function buildNotableShift({
 }
 
 function buildTrendAwareNextAction(
-  { latest, recurringFrictions, trend, gapDirection },
+  { latest, movement, trend, gapDirection },
   lang = "en"
 ) {
-  if (recurringFrictions.length && latest?.priorityAction) {
+  if (
+    (movement?.recurringFrictions?.length || movement?.emergingFrictions?.length) &&
+    latest?.priorityAction
+  ) {
     return latest.priorityAction;
   }
 
@@ -641,6 +758,12 @@ function buildTrendAwareNextAction(
     return isJapanese(lang)
       ? "勢いを比較し直す前に、まず見た目で分かる競合との差を埋めてください。"
       : "Close the easiest visible competitor proof gap before comparing momentum again.";
+  }
+
+  if (gapDirection === "narrowing") {
+    return isJapanese(lang)
+      ? "差が縮んでいる要因を次回報告に残し、同じ改善ペースを続けてください。"
+      : "Document what likely narrowed the gap and keep the same improvement cadence.";
   }
 
   if (trend === "improving") {
@@ -657,12 +780,110 @@ function buildTrendAwareNextAction(
   );
 }
 
+function primarySnapshotFocus(snapshot, lang = "en") {
+  const friction = themeList(snapshot, "frictions")[0];
+  if (friction) {
+    return isJapanese(lang) ? `不満: ${friction}` : `Friction: ${friction}`;
+  }
+
+  const verificationGap = themeList(snapshot, "verificationGaps")[0];
+  if (verificationGap) {
+    return isJapanese(lang) ? `根拠不足: ${verificationGap}` : `Proof gap: ${verificationGap}`;
+  }
+
+  const competitorEdge = themeList(snapshot, "competitorChoiceEdges")[0];
+  if (competitorEdge) {
+    return isJapanese(lang)
+      ? `競合優位: ${competitorEdge}`
+      : `Competitor edge: ${competitorEdge}`;
+  }
+
+  const strength = themeList(snapshot, "strengths")[0];
+  if (strength) {
+    return isJapanese(lang) ? `強み: ${strength}` : `Strength: ${strength}`;
+  }
+
+  return compactText(localizedString(snapshot?.summary, lang), 120);
+}
+
+function latestThemeFocus({ latest, movement, gapDirection }, lang = "en") {
+  if (movement?.emergingFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `新しく見えた不満: ${movement.emergingFrictions[0]}`
+      : `Newly visible friction: ${movement.emergingFrictions[0]}`;
+  }
+
+  if (movement?.recurringFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `継続している不満: ${movement.recurringFrictions[0]}`
+      : `Still repeating: ${movement.recurringFrictions[0]}`;
+  }
+
+  if (movement?.softenedFrictions?.[0]) {
+    return isJapanese(lang)
+      ? `弱まった不満: ${movement.softenedFrictions[0]}`
+      : `Softened friction: ${movement.softenedFrictions[0]}`;
+  }
+
+  if (movement?.recurringVerificationGaps?.[0]) {
+    return isJapanese(lang)
+      ? `残っている根拠不足: ${movement.recurringVerificationGaps[0]}`
+      : `Proof gap persists: ${movement.recurringVerificationGaps[0]}`;
+  }
+
+  if (gapDirection === "narrowing") {
+    return isJapanese(lang)
+      ? "競合優位は前回より弱まって見えます"
+      : "The competitor edge looks softer than before";
+  }
+
+  if (gapDirection === "widening") {
+    return isJapanese(lang)
+      ? "競合優位は前回より強く残っています"
+      : "The competitor edge looks more persistent than before";
+  }
+
+  return primarySnapshotFocus(latest, lang);
+}
+
+function buildReviewThemeBeforeAfter({ latest, previous, movement, gapDirection }, lang = "en") {
+  const previousFocus = primarySnapshotFocus(previous, lang);
+  const latestFocus = latestThemeFocus({ latest, movement, gapDirection }, lang);
+
+  if (!previousFocus && !latestFocus) return null;
+
+  return {
+    previous: previousFocus || (isJapanese(lang) ? "前回の主要論点なし" : "No clear previous theme"),
+    latest: latestFocus || (isJapanese(lang) ? "最新の主要論点なし" : "No clear latest theme"),
+  };
+}
+
 export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) {
   const history = normalizedReviewThemeHistory(record?.reviewThemeHistory);
-  const ownHistory = history.own.slice(0, 4).map((item) => localizeStoredSnapshot(item, lang));
-  const competitorHistory = history.competitor
-    .filter((item) => String(item?.placeId || "") === String(record?.competitorPlaceId || ""))
-    .slice(0, 4)
+  const comparisonPlaceId = String(record?.competitorPlaceId || "").trim();
+  const ownPlaceId = String(record?.placeId || "").trim();
+  const ownHistory = latestStoredSnapshots(
+    comparisonPlaceId
+      ? history.own.filter(
+          (item) =>
+            String(item?.comparedAgainstPlaceId || "").trim() === comparisonPlaceId
+        )
+      : [],
+    4
+  ).map((item) =>
+    localizeStoredSnapshot(item, lang)
+  );
+  const competitorHistory = latestStoredSnapshots(
+    comparisonPlaceId
+      ? history.competitor.filter(
+          (item) =>
+            String(item?.placeId || "").trim() === comparisonPlaceId &&
+            (!ownPlaceId ||
+              String(item?.comparedAgainstPlaceId || "").trim() === ownPlaceId)
+        )
+      : [],
+    4
+  )
     .map((item) => localizeStoredSnapshot(item, lang));
 
   if (ownHistory.length < 2) {
@@ -675,17 +896,24 @@ export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) 
 
   const latest = ownHistory[0];
   const previous = ownHistory[1];
-  const recurringFrictions = themeFrequency(ownHistory, "frictions")
-    .filter((item) => item.count >= 2)
-    .map((item) => item.label)
-    .slice(0, 2);
-  const trend = buildTrendLabel({ latest, previous, recurringFrictions });
-  const gapDirection = buildGapDirection({ latest, previous, competitorHistory });
-  const notableShift = buildNotableShift({
+  const movement = buildThemeMovement({ latest, previous, ownHistory });
+  const trend = buildTrendLabel({ latest, previous, movement });
+  const gapMovement = buildGapMovement({
     latest,
     previous,
-    recurringFrictions,
+    latestCompetitor: competitorHistory[0],
+    previousCompetitor: competitorHistory[1],
+  });
+  const gapDirection = gapMovement.direction;
+  const notableShift = buildNotableShift({
+    movement,
     trend,
+    gapDirection,
+  }, lang);
+  const beforeAfter = buildReviewThemeBeforeAfter({
+    latest,
+    previous,
+    movement,
     gapDirection,
   }, lang);
   const sampleTotal = ownHistory.reduce(
@@ -697,15 +925,32 @@ export function buildReviewThemeMonitoringSummary(record, { lang = "en" } = {}) 
     status: "ready",
     trend,
     gapDirection,
-    recurringFrictions,
+    recurringFrictions: movement.recurringFrictions,
+    emergingFrictions: movement.emergingFrictions,
+    softenedFrictions: movement.softenedFrictions,
+    recurringVerificationGaps: movement.recurringVerificationGaps,
     notableShift,
+    beforeAfter,
     nextAction: buildTrendAwareNextAction({
       latest,
-      recurringFrictions,
+      movement,
       trend,
       gapDirection,
     }, lang),
     confidence: ownHistory.length >= 3 && sampleTotal >= 6 ? "medium" : "low",
+    themePressure: movement.latestScore,
+    previousThemePressure: movement.previousScore,
+    themePressureDelta: movement.pressureDelta,
+    competitorGapScore: gapMovement.currentScore,
+    previousCompetitorGapScore: gapMovement.previousScore,
+    competitorGapDelta: gapMovement.delta,
+    hasCompetitorThemeHistory: gapMovement.hasCompetitorHistory,
+    latestSampleReviewCount: Number.isFinite(latest?.sampleReviewCount)
+      ? Number(latest.sampleReviewCount)
+      : null,
+    previousSampleReviewCount: Number.isFinite(previous?.sampleReviewCount)
+      ? Number(previous.sampleReviewCount)
+      : null,
     ownSnapshotCount: ownHistory.length,
     competitorSnapshotCount: competitorHistory.length,
     latestCapturedAt: latest?.capturedAt ?? null,
@@ -1257,16 +1502,33 @@ export async function upsertSavedListing({ KV, payload }) {
   const existingId = await KV.get(dedupeKey(email, placeId));
   const existing = existingId ? await getSavedListing(KV, existingId) : null;
   const id = existing?.id ?? crypto.randomUUID();
+  const nextCompetitorPlaceId = competitorPlaceId || existing?.competitorPlaceId || null;
+  const confirmRequested =
+    payload.competitorConfirmed === true || Boolean(payload.competitorConfirmedAt);
+  const existingConfirmationStillMatches =
+    existing?.competitorConfirmedAt &&
+    existing?.competitorConfirmedPlaceId &&
+    existing.competitorConfirmedPlaceId === nextCompetitorPlaceId;
+  const competitorConfirmedAt = confirmRequested
+    ? now
+    : existingConfirmationStillMatches
+      ? existing.competitorConfirmedAt
+      : null;
 
   const record = {
     id,
     email,
     placeId,
-    competitorPlaceId: competitorPlaceId || existing?.competitorPlaceId || null,
+    competitorPlaceId: nextCompetitorPlaceId,
     competitorName:
       String(payload.competitorName || existing?.competitorName || "").trim() || null,
     competitorAddress:
       String(payload.competitorAddress || existing?.competitorAddress || "").trim() || null,
+    competitorConfirmedAt,
+    competitorConfirmedPlaceId: competitorConfirmedAt ? nextCompetitorPlaceId : null,
+    competitorConfirmedSource: competitorConfirmedAt
+      ? compactText(payload.competitorConfirmedSource || existing?.competitorConfirmedSource || "operator", 80)
+      : null,
     q: String(payload.q || existing?.q || "").trim() || null,
     name: String(payload.name || existing?.name || "").trim() || null,
     address: String(payload.address || existing?.address || "").trim() || null,

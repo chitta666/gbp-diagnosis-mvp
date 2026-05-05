@@ -34,6 +34,7 @@ function safeJson(s) {
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const myPlaceId = (url.searchParams.get("my") || "").trim();
+  const requestedCompetitorPlaceId = (url.searchParams.get("competitor") || "").trim();
   const { lang } = resolveRequestLanguage({ request, fallback: "en" });
   const copy = compareCopy(lang);
 
@@ -97,6 +98,7 @@ export async function onRequest({ request, env }) {
   if (!rawComp) {
     return json(
       baseResponse({
+        competitorPlaceId: requestedCompetitorPlaceId || null,
         status: "setup_required",
         message: copy.startingComparisonTracking,
       })
@@ -104,7 +106,7 @@ export async function onRequest({ request, env }) {
   }
 
   const comp = safeJson(rawComp);
-  const competitorPlaceId = comp?.competitorPlaceId;
+  const competitorPlaceId = comp?.competitorPlaceId || requestedCompetitorPlaceId;
   if (!competitorPlaceId) {
     return json(
       baseResponse({

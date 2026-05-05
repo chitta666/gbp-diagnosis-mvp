@@ -12,6 +12,7 @@ export async function onRequest({ request, env }) {
 
   const url = new URL(request.url);
   const myPlaceId = (url.searchParams.get("my") || "").trim();
+  const competitorPlaceId = (url.searchParams.get("competitor") || "").trim();
   const { lang } = resolveRequestLanguage({ request, fallback: "en" });
   const isJa = String(lang || "").toLowerCase().startsWith("ja");
 
@@ -40,6 +41,11 @@ export async function onRequest({ request, env }) {
     );
   }
 
-  const report = await getWeeklyReport({ KV, myPlaceId, lang });
+  const report = await getWeeklyReport({
+    KV,
+    myPlaceId,
+    competitorPlaceId: competitorPlaceId || null,
+    lang,
+  });
   return json(report);
 }

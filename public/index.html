@@ -1100,6 +1100,22 @@ const COPY = {
     competitorSelected: "Selected",
     competitorRecommended: "Recommended",
     competitorUseThis: "Use this competitor",
+    competitorSameNiche: "Same niche: {niche}",
+    foodNicheRamen: "ramen",
+    foodNicheSushi: "sushi",
+    foodNicheIzakaya: "izakaya",
+    foodNicheYakiniku: "yakiniku",
+    foodNicheYakitori: "yakitori",
+    foodNicheSoba: "soba",
+    foodNicheUdon: "udon",
+    foodNicheCurry: "curry",
+    foodNichePizza: "pizza",
+    foodNicheBurger: "burger",
+    foodNicheSteak: "steak",
+    foodNicheCafe: "cafe",
+    foodNicheBakery: "bakery",
+    foodNicheBrunch: "brunch",
+    foodNicheJapanese: "Japanese dining",
     competitorSearchEmpty:
       "Nearby auto-matched competitors were limited here. Search for a better comparison manually.",
     competitorSearchPrompt: "Enter a business name and address to search.",
@@ -1920,6 +1936,22 @@ const COPY = {
     competitorSelected: "選択中",
     competitorRecommended: "推奨",
     competitorUseThis: "この競合を使う",
+    competitorSameNiche: "同系統: {niche}",
+    foodNicheRamen: "ラーメン",
+    foodNicheSushi: "寿司",
+    foodNicheIzakaya: "居酒屋",
+    foodNicheYakiniku: "焼肉",
+    foodNicheYakitori: "焼鳥",
+    foodNicheSoba: "そば",
+    foodNicheUdon: "うどん",
+    foodNicheCurry: "カレー",
+    foodNichePizza: "ピザ",
+    foodNicheBurger: "バーガー",
+    foodNicheSteak: "ステーキ",
+    foodNicheCafe: "カフェ",
+    foodNicheBakery: "ベーカリー",
+    foodNicheBrunch: "ブランチ",
+    foodNicheJapanese: "和食",
     competitorSearchEmpty:
       "近隣の自動候補だけでは比較しづらいので、より適切な競合を手動検索してください。",
     competitorSearchPrompt: "検索する店舗名と住所を入力してください。",
@@ -3249,6 +3281,26 @@ function competitorScaleLabel(reviewCount, myReviewCount) {
   return reviewCount > myReviewCount ? t("reviewScaleLarger") : t("reviewScaleSmaller");
 }
 
+function foodNicheLabel(niche) {
+  const key = `foodNiche${String(niche || "")
+    .split(/[_-]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("")}`;
+  const label = t(key);
+  return label === key ? String(niche || "").replace(/[_-]/g, " ") : label;
+}
+
+function formatFoodNicheMatchLabel(matches) {
+  const list = Array.isArray(matches) ? matches.filter(Boolean) : [];
+  if (!list.length) return "";
+  const separator = currentLanguage === "ja" ? "・" : ", ";
+  return t("competitorSameNiche").replace(
+    "{niche}",
+    list.slice(0, 2).map(foodNicheLabel).join(separator)
+  );
+}
+
 function resetCompetitorSearchState() {
   competitorSearchInFlight = false;
   competitorSearchState = {
@@ -4334,6 +4386,7 @@ function getCompetitorCandidates(data, limit = 5) {
       address: competitorAddress(item) || "",
       reviewCount: Number.isFinite(item?.user_ratings_total) ? Number(item.user_ratings_total) : null,
       distanceMeters: Number.isFinite(item?.distance_meters) ? Number(item.distance_meters) : null,
+      foodNicheMatches: Array.isArray(item?.food_niche_matches) ? item.food_niche_matches : [],
       matchLabel: competitorScaleLabel(item?.user_ratings_total, myReviewCount),
       recommended:
         placeId === (data?.recommendedCompetitorPlaceId ?? data?.defaultCompetitorPlaceId ?? null),
@@ -4406,6 +4459,7 @@ function getSelectedCompetitorSnapshot(data) {
       t("selectedCompetitorFallback"),
     distanceMeters: Number.isFinite(raw?.distance_meters) ? Number(raw.distance_meters) : null,
     reviewCount: Number.isFinite(raw?.user_ratings_total) ? Number(raw.user_ratings_total) : null,
+    foodNicheMatches: Array.isArray(raw?.food_niche_matches) ? raw.food_niche_matches : [],
     photoCount: Number.isFinite(raw?.photoCount)
       ? Number(raw.photoCount)
       : Array.isArray(raw?.photos)
@@ -4437,6 +4491,7 @@ function renderCompareMeta(competitor) {
 function buildCompetitorOptionMeta(candidate) {
   const parts = [
     formatDistanceLabel(candidate?.distanceMeters),
+    formatFoodNicheMatchLabel(candidate?.foodNicheMatches),
     formatReviewCountLabel(candidate?.reviewCount),
     candidate?.matchLabel || "",
   ].filter(Boolean);
@@ -4926,6 +4981,7 @@ function buildComparisonFocusView(data) {
     note: sentence(reviewClues?.comparisonNote || ""),
     metaItems: uniqueStrings([
       formatDistanceLabel(competitor?.distanceMeters),
+      formatFoodNicheMatchLabel(competitor?.foodNicheMatches),
       formatReviewCountLabel(competitor?.reviewCount),
       competitorScaleLabel(competitor?.reviewCount, myReviewCount),
     ]).filter(Boolean),

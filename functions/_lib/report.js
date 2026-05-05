@@ -222,6 +222,11 @@ export async function buildListingReport({ key, placeId, lang = "en" }) {
     lat,
     lng,
     listingTypes: details?.types ?? [],
+    listingName: details?.name ?? "",
+    listingText: (Array.isArray(details?.reviews) ? details.reviews : [])
+      .map((review) => review?.text)
+      .filter(Boolean)
+      .join(" "),
     myReviewCount: details?.user_ratings_total ?? null,
     lang,
   });

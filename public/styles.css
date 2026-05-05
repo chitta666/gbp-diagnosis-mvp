@@ -162,6 +162,7 @@ body.client-share-view #reportSharePanel,
 body.client-share-view #pdfBtn,
 body.client-share-view .compare__controls,
 body.client-share-view .client-report-summary__copy,
+body.client-share-view .client-report-summary__confirm-competitor,
 body.client-share-view .action-history__actions {
   display: none !important;
 }
@@ -1063,6 +1064,39 @@ body.client-share-view .print-cover__meta-value {
   margin-top: 3px;
   color: var(--fg);
   font-weight: 850;
+}
+
+.client-report-summary__competitor-gate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: var(--r-1);
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 251, 235, 0.9), rgba(255, 255, 255, 0.78)),
+    rgba(255, 255, 255, 0.82);
+}
+
+.client-report-summary__competitor-gate--ready {
+  border-color: rgba(22, 163, 74, 0.2);
+  background:
+    linear-gradient(135deg, rgba(240, 253, 244, 0.86), rgba(255, 255, 255, 0.78)),
+    rgba(255, 255, 255, 0.82);
+}
+
+.client-report-summary__competitor-gate-body {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: var(--fs-2);
+  line-height: 1.45;
+}
+
+.client-report-summary__confirm-competitor {
+  min-height: 34px;
+  white-space: nowrap;
 }
 
 .client-report-summary__confidence {
@@ -3977,6 +4011,7 @@ body.client-share-view .print-cover__meta-value {
   }
 
   .client-report-summary__support-list,
+  .client-report-summary__competitor-gate,
   .client-report-summary__confidence-grid,
   .client-report-summary__delivery-grid,
   .client-report-summary__recommendation-grid,

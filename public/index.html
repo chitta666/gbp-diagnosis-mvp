@@ -1280,6 +1280,13 @@ const COPY = {
     clientReportConfidenceNextProofCollecting:
       "Save the report and re-run the same listing after the next check.",
     clientReportCopyButton: "Copy client update",
+    clientReportConfirmCompetitorFirst: "Confirm competitor first",
+    clientReportConfirmCompetitorButton: "Confirm this competitor",
+    clientReportConfirmingCompetitor: "Confirming competitor...",
+    clientReportCompetitorConfirmedMessage:
+      "Competitor confirmed. The report copy and share link are ready to use.",
+    clientReportConfirmCompetitorFailed:
+      "Could not confirm this competitor. Save the report and try again.",
     clientReportCopied: "Copied client update.",
     clientReportCopyFailed:
       "Could not copy. Select the summary text manually.",
@@ -1322,6 +1329,8 @@ const COPY = {
     clientReportWeeklyCollecting:
       "Weekly movement will become stronger after this saved listing is checked again.",
     clientReportProofCompetitor: "Competitor benchmark: {competitor}",
+    clientReportProofCompetitorConfirmed:
+      "Competitor confirmed for client delivery: {competitor}",
     clientReportProofPeriod: "Comparison period: {period}",
     clientReportProofAction: "Previous action record: {action}",
     clientReportProofSaved:
@@ -1374,6 +1383,8 @@ const COPY = {
     clientReportSendChecklistSubtitle:
       "Use this to turn the summary into a client update without rewriting it.",
     clientReportSendHandoff: "Paste the ready-to-send note as the report opener.",
+    clientReportSendConfirmCompetitor:
+      "Confirm the selected competitor before copying or sharing the client report.",
     clientReportSendEvidence:
       "Attach the evidence pack so the recommendation has visible proof.",
     clientReportSendTask: "Ask for approval on this week's task: {task}",
@@ -1399,13 +1410,14 @@ const COPY = {
     clientReportReadinessWeeklyDiff: "Weekly diff",
     clientReportReadinessActionHistory: "Action history",
     clientReportReadinessCompetitor: "Competitor",
+    clientReportReadinessCompetitorConfirmation: "Competitor confirmation",
     clientReportReadinessReviewTrend: "Review trend",
     clientReportReadinessShareLink: "Share link",
     savedClientReadinessTitle: "Client report readiness",
     savedClientReadinessSubtitle: "Before sharing, confirm what is ready and what is still collecting.",
     savedClientReadinessNextLabel: "Next step",
     savedClientReadinessNextReady: "Open the client view and confirm the report before sending.",
-    savedClientReadinessNextCompetitor: "Open the report and choose the competitor you want to keep comparing.",
+    savedClientReadinessNextCompetitor: "Open the report and confirm the competitor you want to keep comparing.",
     savedClientReadinessNextAction: "Open the report and save this week's task before sharing.",
     savedClientReadinessNextWeekly: "Check this saved listing again next week to turn collecting history into weekly movement.",
     savedClientReadinessNextReviewTrend: "Re-check the same competitor once more so review-theme trend history is ready.",
@@ -1415,6 +1427,16 @@ const COPY = {
     clientReportSaved: "Saved",
     clientReportMissing: "Missing",
     clientReportSelected: "Selected",
+    clientReportConfirmed: "Confirmed",
+    clientReportConfirmNeeded: "Confirm before sending",
+    clientReportCompetitorGateTitle: "Confirm the competitor before delivery",
+    clientReportCompetitorGateReadyTitle: "Competitor confirmed for delivery",
+    clientReportCompetitorGateBody:
+      "This report will be framed against {competitor}. Confirm it before copying the update or sharing the client link.",
+    clientReportCompetitorGateReadyBody:
+      "This report is locked to {competitor} for client delivery. If the comparison feels wrong, choose another competitor before sending.",
+    clientReportCompetitorGateMissing:
+      "Choose a specific competitor before preparing the client update.",
     actionHistoryTitle: "Action history",
     actionHistoryLoopGuideLabel: "How to read this",
     actionHistoryLoopGuidePrevious: "Previous action = what was recommended or skipped last time.",
@@ -2078,6 +2100,13 @@ const COPY = {
     clientReportConfidenceNextProofCollecting:
       "このレポートを保存し、次回チェックで同じ店舗を再実行してください。",
     clientReportCopyButton: "報告文をコピー",
+    clientReportConfirmCompetitorFirst: "先に競合を確認",
+    clientReportConfirmCompetitorButton: "この競合で確認済みにする",
+    clientReportConfirmingCompetitor: "競合を確認中...",
+    clientReportCompetitorConfirmedMessage:
+      "競合を確認済みにしました。報告文コピーと共有リンクを使えます。",
+    clientReportConfirmCompetitorFailed:
+      "競合を確認できませんでした。レポートを保存してからもう一度試してください。",
     clientReportCopied: "報告文をコピーしました。",
     clientReportCopyFailed:
       "コピーできませんでした。要約テキストを手動で選択してください。",
@@ -2120,6 +2149,8 @@ const COPY = {
     clientReportWeeklyCollecting:
       "この保存済み店舗を次回もう一度確認すると、週次変化がより強い報告材料になります。",
     clientReportProofCompetitor: "比較対象: {competitor}",
+    clientReportProofCompetitorConfirmed:
+      "クライアント提出用に確認済みの競合: {competitor}",
     clientReportProofPeriod: "比較期間: {period}",
     clientReportProofAction: "前回アクション記録: {action}",
     clientReportProofSaved:
@@ -2172,6 +2203,8 @@ const COPY = {
     clientReportSendChecklistSubtitle:
       "この要約を、書き直しなしでクライアント報告に変えるための確認項目です。",
     clientReportSendHandoff: "そのまま送れる報告文を冒頭に貼ります。",
+    clientReportSendConfirmCompetitor:
+      "報告文コピーや共有リンクを使う前に、選択中の競合で問題ないか確認します。",
     clientReportSendEvidence:
       "根拠パックを添付し、提案に見える根拠を持たせます。",
     clientReportSendTask: "今週の実行案として承認を取ります: {task}",
@@ -2197,13 +2230,14 @@ const COPY = {
     clientReportReadinessWeeklyDiff: "週次差分",
     clientReportReadinessActionHistory: "実行履歴",
     clientReportReadinessCompetitor: "競合",
+    clientReportReadinessCompetitorConfirmation: "競合確認",
     clientReportReadinessReviewTrend: "レビュー傾向",
     clientReportReadinessShareLink: "共有リンク",
     savedClientReadinessTitle: "提出準備",
     savedClientReadinessSubtitle: "共有前に、準備済みの材料と収集中の材料を確認します。",
     savedClientReadinessNextLabel: "次にやること",
     savedClientReadinessNextReady: "送付前にクライアント表示を開いて、レポート内容を確認してください。",
-    savedClientReadinessNextCompetitor: "レポートを開き、継続比較したい競合を選んでください。",
+    savedClientReadinessNextCompetitor: "レポートを開き、継続比較したい競合を確認済みにしてください。",
     savedClientReadinessNextAction: "共有前にレポートを開き、今週の実行タスクを保存してください。",
     savedClientReadinessNextWeekly: "次週もう一度この保存済み店舗を確認し、収集中の履歴を週次変化に変えてください。",
     savedClientReadinessNextReviewTrend: "同じ競合でもう一度確認し、レビュー傾向の履歴を準備済みにしてください。",
@@ -2213,6 +2247,16 @@ const COPY = {
     clientReportSaved: "保存済み",
     clientReportMissing: "未保存",
     clientReportSelected: "選択済み",
+    clientReportConfirmed: "確認済み",
+    clientReportConfirmNeeded: "送付前に確認",
+    clientReportCompetitorGateTitle: "送付前に競合を確認",
+    clientReportCompetitorGateReadyTitle: "送付用の競合を確認済み",
+    clientReportCompetitorGateBody:
+      "このレポートは「{competitor}」との比較として送付されます。報告文コピーや共有前に、この競合で問題ないか確認してください。",
+    clientReportCompetitorGateReadyBody:
+      "このレポートは「{competitor}」との比較として送付できます。比較相手が違う場合は、送付前に競合を変更してください。",
+    clientReportCompetitorGateMissing:
+      "クライアント報告を作る前に、具体的な競合を選んでください。",
     actionHistoryTitle: "実行履歴",
     actionHistoryLoopGuideLabel: "この見方",
     actionHistoryLoopGuidePrevious: "前回のアクション = 前回提案したこと / 見送ったこと",
@@ -5789,11 +5833,58 @@ function buildClientReportEvidencePack(result) {
   };
 }
 
-function buildClientReportSendChecklist(task, evidencePack) {
+function selectedCompetitorPlaceIdForReport(result) {
+  return (
+    result?.selectedCompetitor?.place_id ||
+    result?.selectedCompetitor?.placeId ||
+    result?.savedListing?.competitorPlaceId ||
+    result?.recommendedCompetitorPlaceId ||
+    result?.defaultCompetitorPlaceId ||
+    null
+  );
+}
+
+function getCompetitorConfirmation(result, hasSpecificCompetitor = null) {
+  const savedListing = result?.savedListing || null;
+  const competitorName =
+    result?.selectedCompetitor?.name ||
+    savedListing?.competitorName ||
+    "";
+  const selected = Boolean(
+    hasSpecificCompetitor ?? (competitorName && !/selected competitor/i.test(competitorName))
+  );
+  const selectedPlaceId = selectedCompetitorPlaceIdForReport(result);
+  const confirmedPlaceId = savedListing?.competitorConfirmedPlaceId || null;
+  const confirmed = Boolean(
+    selected &&
+      savedListing?.competitorConfirmedAt &&
+      selectedPlaceId &&
+      confirmedPlaceId &&
+      String(confirmedPlaceId) === String(selectedPlaceId)
+  );
+
+  return {
+    selected,
+    confirmed,
+    canConfirm: Boolean(savedListing?.id && selected && selectedPlaceId),
+    competitorName,
+    selectedPlaceId,
+    confirmedAt: confirmed ? savedListing.competitorConfirmedAt : null,
+    tone: confirmed ? "ready" : "pending",
+    value: confirmed
+      ? t("clientReportConfirmed")
+      : selected
+        ? t("clientReportConfirmNeeded")
+        : t("clientReportMissing"),
+  };
+}
+
+function buildClientReportSendChecklist(task, evidencePack, competitorConfirmation = null) {
   const taskCopy = task?.body
     ? [task.label, task.body].filter(Boolean).join(": ")
     : "";
   const items = [
+    competitorConfirmation?.confirmed ? "" : t("clientReportSendConfirmCompetitor"),
     t("clientReportSendHandoff"),
     Array.isArray(evidencePack?.items) && evidencePack.items.length
       ? t("clientReportSendEvidence")
@@ -5856,12 +5947,17 @@ function buildClientReportReadinessVerdict({
   weeklyReady,
   latestAction,
   hasSpecificCompetitor,
+  competitorConfirmed,
   reviewTrendReady,
 }) {
   const missing = [];
   if (!weeklyReady) missing.push(t("clientReportReadinessWeeklyDiff"));
   if (!latestAction) missing.push(t("clientReportReadinessActionHistory"));
-  if (!hasSpecificCompetitor) missing.push(t("clientReportReadinessCompetitor"));
+  if (!hasSpecificCompetitor) {
+    missing.push(t("clientReportReadinessCompetitor"));
+  } else if (!competitorConfirmed) {
+    missing.push(t("clientReportReadinessCompetitorConfirmation"));
+  }
   if (!reviewTrendReady) missing.push(t("clientReportReadinessReviewTrend"));
 
   const readyCount = 4 - missing.length;
@@ -6053,10 +6149,14 @@ function buildClientReportSummary(firstView, result = null) {
     "";
   const hasSpecificCompetitor =
     competitorName && !/selected competitor/i.test(competitorName);
+  const competitorConfirmation = getCompetitorConfirmation(result, hasSpecificCompetitor);
   const latestActionCopy = latestAction
     ? [latestAction.label, latestAction.body].filter(Boolean).join(": ")
     : "";
   const proofItems = [
+    competitorConfirmation.confirmed && competitorName
+      ? copyWithValues(t("clientReportProofCompetitorConfirmed"), { competitor: competitorName })
+      : "",
     hasSpecificCompetitor
       ? copyWithValues(t("clientReportProofCompetitor"), { competitor: competitorName })
       : "",
@@ -6078,6 +6178,7 @@ function buildClientReportSummary(firstView, result = null) {
     weeklyReady,
     latestAction,
     hasSpecificCompetitor,
+    competitorConfirmed: competitorConfirmation.confirmed,
     reviewTrendReady: reviewTrendReadiness.ready,
   });
   const deliveryCopy = buildClientReportDeliveryCopy({
@@ -6099,7 +6200,7 @@ function buildClientReportSummary(firstView, result = null) {
   ]);
   const evidencePack = buildClientReportEvidencePack(result);
   const confidenceFrame = buildClientReportConfidenceFrame(evidencePack, readinessVerdict);
-  const sendChecklist = buildClientReportSendChecklist(task, evidencePack);
+  const sendChecklist = buildClientReportSendChecklist(task, evidencePack, competitorConfirmation);
   const decisionRequest = buildClientReportDecisionRequest(task, readinessVerdict, weeklyReady);
   const impactPreview = buildClientReportImpactPreview(
     result,
@@ -6137,6 +6238,7 @@ function buildClientReportSummary(firstView, result = null) {
 
   return {
     readinessVerdict,
+    competitorConfirmation,
     deliveryCopy,
     chips: [
       {
@@ -6151,8 +6253,8 @@ function buildClientReportSummary(firstView, result = null) {
       },
       {
         label: t("clientReportReadinessCompetitor"),
-        value: hasSpecificCompetitor ? t("clientReportSelected") : t("clientReportMissing"),
-        tone: hasSpecificCompetitor ? "ready" : "pending",
+        value: competitorConfirmation.value,
+        tone: competitorConfirmation.tone,
       },
       {
         label: t("clientReportReadinessReviewTrend"),
@@ -6428,8 +6530,12 @@ function renderReportSharePanel(result = currentResult) {
   const view = buildDiagnosisFirstView(result);
   const clientReportSummary = buildClientReportSummary(view, result);
   const readinessTitle = sentence(clientReportSummary?.readinessVerdict?.title || "");
+  const competitorConfirmed = clientReportSummary?.competitorConfirmation?.confirmed === true;
   const sharePackageItems = [
     readinessTitle,
+    competitorConfirmed
+      ? t("clientReportCompetitorGateReadyTitle")
+      : t("clientReportCompetitorGateTitle"),
     t("savedReportShareClientViewReady"),
     t("savedReportSharePdfReady"),
     t("savedReportShareCopyReady"),
@@ -6453,8 +6559,12 @@ function renderReportSharePanel(result = currentResult) {
     <div class="report-share__actions">
       <button class="btn secondary report-share__copy" type="button" data-report-share-copy="${escapeAttr(
         shareUrl
-      )}">
-        ${escapeHtml(t("savedReportShareButton"))}
+      )}" ${competitorConfirmed ? "" : "disabled"}>
+        ${escapeHtml(
+          competitorConfirmed
+            ? t("savedReportShareButton")
+            : t("clientReportConfirmCompetitorFirst")
+        )}
       </button>
       <a class="btn secondary report-share__preview" href="${escapeAttr(
         shareUrl
@@ -6556,6 +6666,22 @@ function renderClientReportSummary(summary) {
     ? sendChecklist.items.map((item) => sentence(item)).filter(Boolean)
     : [];
   const readinessVerdict = normalized.readinessVerdict || null;
+  const competitorConfirmation = normalized.competitorConfirmation || {};
+  const competitorConfirmed = competitorConfirmation.confirmed === true;
+  const canConfirmCompetitor = competitorConfirmation.canConfirm === true;
+  const competitorGateBody = competitorConfirmation.selected
+    ? copyWithValues(
+        t(
+          competitorConfirmed
+            ? "clientReportCompetitorGateReadyBody"
+            : "clientReportCompetitorGateBody"
+        ),
+        {
+          competitor:
+            competitorConfirmation.competitorName || t("savedListingSelectedCompetitor"),
+        }
+      )
+    : t("clientReportCompetitorGateMissing");
   const readinessMissing = Array.isArray(readinessVerdict?.missing)
     ? readinessVerdict.missing.map((item) => sentence(item)).filter(Boolean)
     : [];
@@ -6628,10 +6754,39 @@ function renderClientReportSummary(summary) {
               </div>`
             : ""
         }
-        <button class="btn secondary client-report-summary__copy" type="button" data-client-report-copy>
-          ${escapeHtml(t("clientReportCopyButton"))}
+        <button class="btn secondary client-report-summary__copy" type="button" data-client-report-copy ${
+          competitorConfirmed ? "" : "disabled"
+        }>
+          ${escapeHtml(
+            competitorConfirmed
+              ? t("clientReportCopyButton")
+              : t("clientReportConfirmCompetitorFirst")
+          )}
         </button>
       </div>
+    </div>
+    <div class="client-report-summary__competitor-gate client-report-summary__competitor-gate--${escapeAttr(
+      competitorConfirmed ? "ready" : "pending"
+    )}">
+      <div>
+        <div class="client-report-summary__label">${escapeHtml(
+          t(
+            competitorConfirmed
+              ? "clientReportCompetitorGateReadyTitle"
+              : "clientReportCompetitorGateTitle"
+          )
+        )}</div>
+        <div class="client-report-summary__competitor-gate-body">${escapeHtml(
+          competitorGateBody
+        )}</div>
+      </div>
+      ${
+        competitorConfirmed || !canConfirmCompetitor
+          ? ""
+          : `<button class="btn client-report-summary__confirm-competitor" type="button" data-confirm-report-competitor>
+              ${escapeHtml(t("clientReportConfirmCompetitorButton"))}
+            </button>`
+      }
     </div>
     ${
       readinessVerdict?.title || readinessVerdict?.body
@@ -9368,7 +9523,11 @@ function buildSavedReadinessNextStep({
 function getSavedListingReadiness(item) {
   const weeklyReady = item?.weeklyDiffSummary?.status === "ready";
   const actionReady = Boolean(item?.latestAction?.label || item?.latestAction?.body);
-  const competitorReady = Boolean(item?.competitorPlaceId || item?.competitorName);
+  const competitorConfirmation = getCompetitorConfirmation(
+    { savedListing: item },
+    Boolean(item?.competitorName || item?.competitorPlaceId)
+  );
+  const competitorReady = competitorConfirmation.confirmed;
   const reviewTrend = getSavedReviewTrendReadiness(item);
   const shareReady = Boolean(item?.id && savedReportShareUrl(item.id));
   const readyCount = [
@@ -9390,6 +9549,7 @@ function getSavedListingReadiness(item) {
     weeklyReady,
     actionReady,
     competitorReady,
+    competitorConfirmation,
     reviewTrend,
     shareReady,
     readyCount,
@@ -9428,7 +9588,7 @@ function buildSavedListingReadinessBlock(item) {
       )}
       ${buildSavedReadinessItem(
         t("clientReportReadinessCompetitor"),
-        readiness.competitorReady ? t("clientReportSelected") : t("clientReportMissing"),
+        readiness.competitorConfirmation?.value || t("clientReportMissing"),
         savedReadinessTone(readiness.competitorReady)
       )}
       ${buildSavedReadinessItem(
@@ -9844,12 +10004,22 @@ function renderSavedListings(listings) {
     const shareUrl = savedReportShareUrl(item.id);
 
     const shareBtn = document.createElement("button");
+    const competitorConfirmation = getCompetitorConfirmation(
+      { savedListing: item },
+      Boolean(item?.competitorName || item?.competitorPlaceId)
+    );
     shareBtn.type = "button";
     shareBtn.className = "btn secondary";
     shareBtn.dataset.action = "copy-link";
     shareBtn.dataset.savedId = item.id;
     shareBtn.dataset.shareUrl = shareUrl;
-    shareBtn.textContent = t("savedReportShareButton");
+    shareBtn.disabled = !competitorConfirmation.confirmed;
+    shareBtn.title = competitorConfirmation.confirmed
+      ? ""
+      : t("clientReportCompetitorGateTitle");
+    shareBtn.textContent = competitorConfirmation.confirmed
+      ? t("savedReportShareButton")
+      : t("clientReportConfirmCompetitorFirst");
 
     const previewLink = document.createElement("a");
     previewLink.className = "btn secondary saved__preview-link";
@@ -9891,6 +10061,47 @@ async function saveListingSubscription(payload) {
   });
 }
 
+async function confirmCurrentReportCompetitor(button) {
+  if (!currentResult?.savedListing?.id) {
+    setSavedMessage(t("clientReportConfirmCompetitorFailed"), true);
+    return;
+  }
+
+  const payload = {
+    ...buildSavePayload(),
+    competitorConfirmed: true,
+    competitorConfirmedSource: "client_report_gate",
+  };
+
+  if (!payload.placeId || !payload.competitorPlaceId) {
+    setSavedMessage(t("clientReportConfirmCompetitorFailed"), true);
+    return;
+  }
+
+  const originalLabel = button?.textContent || t("clientReportConfirmCompetitorButton");
+  if (button) {
+    button.disabled = true;
+    button.textContent = t("clientReportConfirmingCompetitor");
+  }
+
+  try {
+    const response = await saveListingSubscription(payload);
+    if (!response?.ok) {
+      throw new Error(getApiMessage(response, t("clientReportConfirmCompetitorFailed")));
+    }
+
+    applyUpdatedSavedListing(response.listing);
+    setSavedMessage(t("clientReportCompetitorConfirmedMessage"));
+    await refreshSavedListings({ quiet: true });
+  } catch (error) {
+    setSavedMessage(error?.message || String(error), true);
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }
+  }
+}
+
 async function removeSavedListing(id, email) {
   return fetchApiJson(
     `/api/saved-listings?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`,
@@ -9921,6 +10132,9 @@ function applyUpdatedSavedListing(savedListing) {
     renderActionHistoryPanel(currentResult);
     renderPrintCover(currentResult);
     renderReportSharePanel(currentResult);
+    renderClientReportSummary(
+      buildClientReportSummary(buildDiagnosisFirstView(currentResult), currentResult)
+    );
   }
 
   if (currentSavedListings.some((item) => item?.id === savedListing.id)) {
@@ -10166,6 +10380,12 @@ if (savedPlanNoticeEl) {
 
 if (clientReportSummaryEl) {
   clientReportSummaryEl.addEventListener("click", async (event) => {
+    const confirmButton = event.target.closest("button[data-confirm-report-competitor]");
+    if (confirmButton) {
+      await confirmCurrentReportCompetitor(confirmButton);
+      return;
+    }
+
     const button = event.target.closest("button[data-client-report-copy]");
     if (!button) return;
 

@@ -323,6 +323,9 @@ export function publicSavedListing(
     competitorPlaceId: record.competitorPlaceId ?? null,
     competitorName: record.competitorName ?? null,
     competitorAddress: record.competitorAddress ?? null,
+    competitorConfirmedAt: record.competitorConfirmedAt ?? null,
+    competitorConfirmedPlaceId: record.competitorConfirmedPlaceId ?? null,
+    competitorConfirmedSource: record.competitorConfirmedSource ?? null,
     q: record.q ?? null,
     name: record.name ?? null,
     address: record.address ?? null,
@@ -1494,16 +1497,33 @@ export async function upsertSavedListing({ KV, payload }) {
   const existingId = await KV.get(dedupeKey(email, placeId));
   const existing = existingId ? await getSavedListing(KV, existingId) : null;
   const id = existing?.id ?? crypto.randomUUID();
+  const nextCompetitorPlaceId = competitorPlaceId || existing?.competitorPlaceId || null;
+  const confirmRequested =
+    payload.competitorConfirmed === true || Boolean(payload.competitorConfirmedAt);
+  const existingConfirmationStillMatches =
+    existing?.competitorConfirmedAt &&
+    existing?.competitorConfirmedPlaceId &&
+    existing.competitorConfirmedPlaceId === nextCompetitorPlaceId;
+  const competitorConfirmedAt = confirmRequested
+    ? now
+    : existingConfirmationStillMatches
+      ? existing.competitorConfirmedAt
+      : null;
 
   const record = {
     id,
     email,
     placeId,
-    competitorPlaceId: competitorPlaceId || existing?.competitorPlaceId || null,
+    competitorPlaceId: nextCompetitorPlaceId,
     competitorName:
       String(payload.competitorName || existing?.competitorName || "").trim() || null,
     competitorAddress:
       String(payload.competitorAddress || existing?.competitorAddress || "").trim() || null,
+    competitorConfirmedAt,
+    competitorConfirmedPlaceId: competitorConfirmedAt ? nextCompetitorPlaceId : null,
+    competitorConfirmedSource: competitorConfirmedAt
+      ? compactText(payload.competitorConfirmedSource || existing?.competitorConfirmedSource || "operator", 80)
+      : null,
     q: String(payload.q || existing?.q || "").trim() || null,
     name: String(payload.name || existing?.name || "").trim() || null,
     address: String(payload.address || existing?.address || "").trim() || null,

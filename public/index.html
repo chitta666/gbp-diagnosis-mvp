@@ -1520,7 +1520,7 @@ const COPY = {
     noHistoryYet: "No history yet",
     deleteLabel: "Delete",
     openLatestReport: "Open Latest Report",
-    historyScoreLabel: "Score",
+    historyScoreLabel: "Basics",
     missingQuery: "Please enter a business name and address.",
     analysisComplete: "Analysis complete.",
     reportGeneratedPrefix: "Report generated: ",
@@ -2359,7 +2359,7 @@ const COPY = {
     noHistoryYet: "履歴はまだありません",
     deleteLabel: "削除",
     openLatestReport: "最新レポートを開く",
-    historyScoreLabel: "スコア",
+    historyScoreLabel: "基本情報",
     missingQuery: "店舗名と住所を入力してください。",
     analysisComplete: "分析が完了しました。",
     reportGeneratedPrefix: "レポート生成: ",
@@ -4657,6 +4657,8 @@ function getDiagnosisContext(data) {
   const compare = data?.compare ?? {};
   const weeklyReport = data?.weeklyReport ?? {};
   const reviewDropSignal = data?.savedListing?.reviewDropSignal ?? null;
+  const commercialHealth = diagnosis?.commercialHealth || null;
+  const commercialHealthLevel = String(commercialHealth?.level || "").toLowerCase();
   const missing = Array.isArray(diagnosis?.missing) ? diagnosis.missing : [];
   const missingPhotos = Number.isFinite(data?.photoAnalysis?.missingPhotos)
     ? Number(data.photoAnalysis.missingPhotos)
@@ -4707,6 +4709,8 @@ function getDiagnosisContext(data) {
   }
   if (Number.isFinite(deltaDiff) && deltaDiff < 0) riskPoints += 1;
   if (Number.isFinite(weeklyGainDiff) && weeklyGainDiff < 0) riskPoints += 1;
+  if (commercialHealthLevel === "risk") riskPoints += 2;
+  else if (commercialHealthLevel === "watch") riskPoints += 1;
 
   const customerChoiceRisk =
     riskPoints >= 4 ? "high" : riskPoints >= 2 ? "medium" : "low";
@@ -4729,6 +4733,8 @@ function getDiagnosisContext(data) {
     deltaDiff,
     weeklyGainDiff,
     competitorName,
+    commercialHealth,
+    commercialHealthLevel,
     reviewDropSignal,
     reviewDropCount,
     materialReviewDrop,
@@ -5498,7 +5504,7 @@ function buildDiagnosisFirstView(data) {
         "Nothing looks fundamentally broken in the Google basics.",
         "Google基本情報に大きな破綻は見えていません。"
       ),
-      buildCompetitiveDetail(context),
+      sentence(context.commercialHealth?.summary) || buildCompetitiveDetail(context),
       langText(
         "The next step is making the strongest proof visible in the first few seconds.",
         "次は強い根拠を最初の数秒で見えるようにすることです。"
@@ -5532,6 +5538,22 @@ function buildDiagnosisFirstView(data) {
         ? langText("Needs work", "要対応")
         : langText("In place", "整備済み"),
       tone: context.foundationStatus === "needs_work" ? "warning" : "good",
+    },
+    {
+      label: langText("Commercial health", "商業面"),
+      value:
+        context.commercialHealth?.label ||
+        (context.commercialHealthLevel === "risk"
+          ? langText("Commercial risk", "商業面は要改善")
+          : context.commercialHealthLevel === "watch"
+            ? langText("Commercial watch", "商業面は要観察")
+            : langText("Commercially steady", "商業面は安定")),
+      tone:
+        context.commercialHealthLevel === "risk"
+          ? "warning"
+          : context.commercialHealthLevel === "watch"
+            ? "accent"
+            : "good",
     },
     {
       label: langText("Customer choice", "顧客視点"),
@@ -8515,7 +8537,12 @@ async function showResult(data, options = {}) {
   data.generatedAt = generatedAt;
   setReportDate(generatedAt);
 
-  scoreEl.textContent = String(Number.isFinite(diagnosis?.score) ? diagnosis.score : 0);
+  const profileScore = Number.isFinite(diagnosis?.profileCompletenessScore)
+    ? Number(diagnosis.profileCompletenessScore)
+    : Number.isFinite(diagnosis?.score)
+      ? Number(diagnosis.score)
+      : 0;
+  scoreEl.textContent = String(profileScore);
   renderTodos(diagnosis?.todos, diagnosis?.missing);
   renderBreakdown(diagnosis);
   renderSummary(details, placeId);
@@ -10277,7 +10304,11 @@ function buildSavePayload() {
       details?.address ||
       currentResult?.savedListing?.address ||
       "",
-    analysisScore: Number.isFinite(diagnosis?.score) ? diagnosis.score : null,
+    analysisScore: Number.isFinite(diagnosis?.profileCompletenessScore)
+      ? diagnosis.profileCompletenessScore
+      : Number.isFinite(diagnosis?.score)
+        ? diagnosis.score
+        : null,
     analysisMissing: Array.isArray(diagnosis?.missing) ? diagnosis.missing : [],
     compareTotalDiff: Number.isFinite(currentResult?.compare?.total_diff)
       ? currentResult.compare.total_diff
@@ -10928,7 +10959,11 @@ async function analyzeCurrentInput(options = {}) {
 
     const details = data?.details ?? {};
     const diagnosis = data?.diagnosis ?? data;
-    const score = Number.isFinite(diagnosis?.score) ? diagnosis.score : 0;
+    const score = Number.isFinite(diagnosis?.profileCompletenessScore)
+      ? diagnosis.profileCompletenessScore
+      : Number.isFinite(diagnosis?.score)
+        ? diagnosis.score
+        : 0;
     const hydrated = await showResult(data);
 
     addHistory({

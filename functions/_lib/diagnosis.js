@@ -56,6 +56,94 @@ function analyzeCompetitors(competitors, lang = "en") {
   return { penalty, strongCount, todo };
 }
 
+function reviewBasePenalty(totalReviewCount) {
+  if (!Number.isFinite(totalReviewCount)) return 0;
+  if (totalReviewCount < 20) return 20;
+  if (totalReviewCount < 50) return 12;
+  if (totalReviewCount < 100) return 6;
+  return 0;
+}
+
+function ratingPenalty(rating) {
+  if (!Number.isFinite(rating)) return 0;
+  if (rating < 3.8) return 25;
+  if (rating < 4.0) return 18;
+  if (rating < 4.2) return 12;
+  if (rating < 4.5) return 6;
+  return 0;
+}
+
+function commercialLevel(score) {
+  if (score >= 82) return "strong";
+  if (score >= 65) return "watch";
+  return "risk";
+}
+
+function commercialHealthLabel(level, lang = "en") {
+  const ja = isJapanese(lang);
+  if (level === "strong") return ja ? "商業面は安定" : "Commercially steady";
+  if (level === "watch") return ja ? "商業面は要観察" : "Commercial watch";
+  return ja ? "商業面は要改善" : "Commercial risk";
+}
+
+function buildCommercialHealth({ details, competitorsAnalysis, lang = "en" } = {}) {
+  const ja = isJapanese(lang);
+  const reviewCount = Number.isFinite(details?.user_ratings_total)
+    ? Number(details.user_ratings_total)
+    : null;
+  const rating = Number.isFinite(details?.rating) ? Number(details.rating) : null;
+  const reviewPenalty = reviewBasePenalty(reviewCount);
+  const ratePenalty = ratingPenalty(rating);
+  const competitorPenalty = Number.isFinite(competitorsAnalysis?.penalty)
+    ? Number(competitorsAnalysis.penalty)
+    : 0;
+  const penalty = reviewPenalty + ratePenalty + competitorPenalty;
+  const score = Math.max(0, 100 - penalty);
+  const level = commercialLevel(score);
+  const risks = [];
+
+  if (ratePenalty > 0 && Number.isFinite(rating)) {
+    risks.push(
+      ja
+        ? `評価 ${rating.toFixed(1)} のため、比較時の選ばれやすさに影響する可能性があります。`
+        : `Rating is ${rating.toFixed(1)}, which can affect choice in side-by-side comparison.`
+    );
+  }
+
+  if (reviewPenalty > 0 && Number.isFinite(reviewCount)) {
+    risks.push(
+      ja
+        ? `総レビュー数が ${reviewCount} 件のため、見える信頼材料はまだ薄めです。`
+        : `Total review count is ${reviewCount}, so visible trust proof is still thin.`
+    );
+  }
+
+  if (competitorPenalty > 0 && competitorsAnalysis?.todo) {
+    risks.push(competitorsAnalysis.todo);
+  }
+
+  const summary =
+    risks[0] ||
+    (ja
+      ? "評価・レビュー規模・競合環境に大きな商業リスクは目立っていません。"
+      : "Rating, review scale, and competitor context do not show a major commercial risk right now.");
+
+  return {
+    score,
+    level,
+    label: commercialHealthLabel(level, lang),
+    summary,
+    risks,
+    components: {
+      rating,
+      reviewCount,
+      ratingPenalty: ratePenalty,
+      reviewBasePenalty: reviewPenalty,
+      competitorPenalty,
+    },
+  };
+}
+
 export function buildDiagnosis(details, competitors, { lang = "en" } = {}) {
   const copy = diagnosisCopy(lang);
   const missing = [];
@@ -83,27 +171,35 @@ export function buildDiagnosis(details, competitors, { lang = "en" } = {}) {
     },
   ];
 
-  let penalty = 0;
+  let profilePenalty = 0;
   for (const r of rules) {
     if (r.isMissing(details)) {
       missing.push(r.id);
       todos.push(r.todo);
-      penalty += r.weight;
+      profilePenalty += r.weight;
     }
   }
 
   const environment = [];
   if (comp.penalty > 0) environment.push(comp.todo);
-  penalty += comp.penalty;
+  const profileCompletenessScore = Math.max(0, 100 - profilePenalty);
+  const commercialHealth = buildCommercialHealth({
+    details,
+    competitorsAnalysis: comp,
+    lang,
+  });
 
   return {
-    version: "buildDiagnosis_v2",
-    score: Math.max(0, 100 - penalty),
+    version: "buildDiagnosis_v3",
+    score: profileCompletenessScore,
+    profileCompletenessScore,
+    profileCompletenessPenalty: profilePenalty,
     todos,
     missing,
-    penalty,
+    penalty: profilePenalty,
     breakdown: rules.map((r) => ({ id: r.id, weight: r.weight, missing: r.isMissing(details) })),
     competitorsAnalysis: comp,
+    commercialHealth,
     environment,
   };
 }

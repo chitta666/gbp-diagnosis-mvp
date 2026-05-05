@@ -1362,7 +1362,9 @@ const COPY = {
     clientReportEvidenceBasisGoogle: "Google signals",
     clientReportEvidenceBasisDepth: "Signal depth",
     clientReportEvidenceBasisReviewTrend: "Review trend",
+    clientReportEvidenceBasisReviewScale: "Review scale",
     clientReportEvidenceBasisSampleCount: "{count} visible",
+    clientReportEvidenceBasisTotalCount: "{count} total",
     clientReportEvidenceBasisCollecting: "Collecting",
     clientReportEvidenceBasisSelected: "Selected",
     clientReportEvidenceBasisIncluded: "Included",
@@ -1381,6 +1383,7 @@ const COPY = {
       "Frame this as a baseline until review text, competitor, or Google-side signals are stronger.",
     clientReportEvidenceVerdictMissingLabel: "Needs",
     clientReportEvidenceReviewSample: "Review sample: {count} recent visible reviews.",
+    clientReportEvidenceReviewScaleCaution: "Review scale caution: {message}",
     clientReportEvidenceReviewCollecting:
       "Review text signal: collecting enough recent review text for stronger evidence.",
     clientReportEvidenceAxis: "Review axis: {axis} is {status}. {evidence}",
@@ -2198,7 +2201,9 @@ const COPY = {
     clientReportEvidenceBasisGoogle: "Googleシグナル",
     clientReportEvidenceBasisDepth: "根拠の厚み",
     clientReportEvidenceBasisReviewTrend: "レビュー傾向",
+    clientReportEvidenceBasisReviewScale: "レビュー母数",
     clientReportEvidenceBasisSampleCount: "{count}件",
+    clientReportEvidenceBasisTotalCount: "総数 {count}件",
     clientReportEvidenceBasisCollecting: "収集中",
     clientReportEvidenceBasisSelected: "選択済み",
     clientReportEvidenceBasisIncluded: "反映済み",
@@ -2217,6 +2222,7 @@ const COPY = {
       "レビュー本文、競合比較、Google側シグナルが強くなるまでは初回基準として扱ってください。",
     clientReportEvidenceVerdictMissingLabel: "不足",
     clientReportEvidenceReviewSample: "レビューサンプル: 直近で見えているレビュー {count} 件。",
+    clientReportEvidenceReviewScaleCaution: "レビュー母数の注意: {message}",
     clientReportEvidenceReviewCollecting:
       "レビュー本文シグナル: より強い根拠を出すための直近レビュー本文を収集中です。",
     clientReportEvidenceAxis: "レビュー軸: {axis} は「{status}」。{evidence}",
@@ -4895,6 +4901,14 @@ function buildCustomerChoiceView(data) {
       blindSpots.forEach((item) => bullets.push(sentence(item)));
     }
 
+    const basisNote =
+      currentLanguage === "ja"
+        ? `直近で見えているレビュー ${reviewClues.reviewCountInSample} 件をもとにしています。`
+        : `Based on ${reviewClues.reviewCountInSample} recent visible review${
+            reviewClues.reviewCountInSample === 1 ? "" : "s"
+          }.`;
+    const scaleCaution = sentence(reviewClues?.reviewScaleCaution?.message || "");
+
     return {
       summary: sentence(reviewClues.summary),
       bullets: uniqueStrings(bullets).slice(0, 3),
@@ -4906,12 +4920,7 @@ function buildCustomerChoiceView(data) {
             "来店前に伝わる強い信頼シグナルをもっと見つけやすくしてください。"
           )
       ),
-      note:
-        currentLanguage === "ja"
-          ? `直近で見えているレビュー ${reviewClues.reviewCountInSample} 件をもとにしています。`
-          : `Based on ${reviewClues.reviewCountInSample} recent visible review${
-              reviewClues.reviewCountInSample === 1 ? "" : "s"
-            }.`,
+      note: [basisNote, scaleCaution].filter(Boolean).join(" "),
     };
   }
 
@@ -5662,6 +5671,14 @@ function buildClientReportEvidencePack(result) {
   const reviewSampleCount = Number.isFinite(reviewClues?.reviewCountInSample)
     ? Number(reviewClues.reviewCountInSample)
     : null;
+  const reviewTotalCount = Number.isFinite(reviewClues?.totalReviewCount)
+    ? Number(reviewClues.totalReviewCount)
+    : Number.isFinite(result?.details?.user_ratings_total)
+      ? Number(result.details.user_ratings_total)
+      : null;
+  const reviewScaleCaution = reviewClues?.reviewScaleCaution || null;
+  const reviewScaleCautionMessage = sentence(reviewScaleCaution?.message || "");
+  const hasReviewScaleCaution = Boolean(reviewScaleCautionMessage);
   const googleSignal = Array.isArray(reviewClues?.googleSignals)
     ? sentence(reviewClues.googleSignals[0])
     : "";
@@ -5682,11 +5699,14 @@ function buildClientReportEvidencePack(result) {
     Number.isFinite(compare?.my?.todayTotal) ||
     Number.isFinite(photo?.myPhotos);
   const isSteadySignal =
-    reviewSampleCount >= 4 ||
-    reviewClues?.confidence === "medium" ||
-    compare?.status === "ready" ||
-    reviewThemeReady ||
-    (hasReviewThemeHistory && reviewThemeMonitoring?.confidence === "medium");
+    !hasReviewScaleCaution &&
+    (
+      reviewSampleCount >= 4 ||
+      reviewClues?.confidence === "medium" ||
+      compare?.status === "ready" ||
+      reviewThemeReady ||
+      (hasReviewThemeHistory && reviewThemeMonitoring?.confidence === "medium")
+    );
   const basisItems = [
     {
       label: t("clientReportEvidenceBasisReviews"),
@@ -5696,6 +5716,15 @@ function buildClientReportEvidencePack(result) {
           })
         : t("clientReportEvidenceBasisCollecting"),
       tone: Number.isFinite(reviewSampleCount) && reviewSampleCount > 0 ? "ready" : "pending",
+    },
+    {
+      label: t("clientReportEvidenceBasisReviewScale"),
+      value: Number.isFinite(reviewTotalCount)
+        ? copyWithValues(t("clientReportEvidenceBasisTotalCount"), {
+            count: formatCompactCount(reviewTotalCount),
+          })
+        : t("clientReportEvidenceBasisCollecting"),
+      tone: Number.isFinite(reviewTotalCount) && !hasReviewScaleCaution ? "ready" : "pending",
     },
     {
       label: t("clientReportEvidenceBasisCompetitor"),
@@ -5732,6 +5761,9 @@ function buildClientReportEvidencePack(result) {
   if (!Number.isFinite(reviewSampleCount) || reviewSampleCount <= 0) {
     missing.push(t("clientReportEvidenceBasisReviews"));
   }
+  if (hasReviewScaleCaution || !Number.isFinite(reviewTotalCount)) {
+    missing.push(t("clientReportEvidenceBasisReviewScale"));
+  }
   if (!hasCompetitor) missing.push(t("clientReportEvidenceBasisCompetitor"));
   if (!hasGoogleSignal) missing.push(t("clientReportEvidenceBasisGoogle"));
   if (!isSteadySignal) missing.push(t("clientReportEvidenceBasisDepth"));
@@ -5739,7 +5771,7 @@ function buildClientReportEvidencePack(result) {
   const readyCount = basisItems.filter((item) => item.tone === "ready").length;
   const readyThreshold = basisItems.length >= 5 ? 4 : 3;
   const verdict =
-    readyCount >= readyThreshold
+    readyCount >= readyThreshold && !hasReviewScaleCaution
       ? {
           tone: "ready",
           title: t("clientReportEvidenceVerdictReadyTitle"),
@@ -5769,6 +5801,14 @@ function buildClientReportEvidencePack(result) {
     );
   } else {
     items.push(t("clientReportEvidenceReviewCollecting"));
+  }
+
+  if (reviewScaleCautionMessage) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceReviewScaleCaution"), {
+        message: reviewScaleCautionMessage,
+      })
+    );
   }
 
   const axes =
@@ -5884,6 +5924,13 @@ function buildClientReportEvidencePack(result) {
     title: t("clientReportEvidenceTitle"),
     subtitle: t("clientReportEvidenceSubtitle"),
     verdict,
+    reviewScaleCaution: reviewScaleCautionMessage
+      ? {
+          ...reviewScaleCaution,
+          message: reviewScaleCautionMessage,
+          nextProof: sentence(reviewScaleCaution?.nextProof || ""),
+        }
+      : null,
     basisItems,
     items: uniqueStrings(items.map(sentence)).slice(0, 7),
   };
@@ -5961,6 +6008,7 @@ function buildClientReportSendChecklist(task, evidencePack, competitorConfirmati
 function buildClientReportConfidenceFrame(evidencePack, readinessVerdict) {
   const evidenceTone = evidencePack?.verdict?.tone || "collecting";
   const readinessTone = readinessVerdict?.tone || "baseline";
+  const reviewScaleCaution = evidencePack?.reviewScaleCaution || null;
   let tone = "partial";
 
   if (evidenceTone === "ready" && readinessTone === "ready") {
@@ -5989,11 +6037,11 @@ function buildClientReportConfidenceFrame(evidencePack, readinessVerdict) {
     items: [
       {
         label: t("clientReportConfidenceActionLabel"),
-        body: t(actionKey),
+        body: reviewScaleCaution?.message || t(actionKey),
       },
       {
         label: t("clientReportConfidenceNextProofLabel"),
-        body: t(nextProofKey),
+        body: reviewScaleCaution?.nextProof || t(nextProofKey),
       },
     ],
   };

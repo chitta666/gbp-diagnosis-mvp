@@ -253,6 +253,7 @@ function localizeStoredSnapshot(snapshot, lang = "en") {
       lang,
       8
     ),
+    reviewScaleCaution: localizedString(snapshot.reviewScaleCaution, lang),
     priorityAction: localizedString(snapshot.priorityAction, lang),
   };
 }
@@ -469,6 +470,10 @@ export function buildStoredReviewThemeSnapshot({
     competitorChoiceEdges: localizedListPair(
       reviewCluesEn?.competitorChoiceEdges,
       reviewCluesJa?.competitorChoiceEdges
+    ),
+    reviewScaleCaution: localizedPair(
+      reviewCluesEn?.reviewScaleCaution?.message,
+      reviewCluesJa?.reviewScaleCaution?.message
     ),
     priorityAction: localizedPair(
       reviewCluesEn?.priorityAction,

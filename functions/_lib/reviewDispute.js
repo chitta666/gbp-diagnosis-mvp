@@ -48,14 +48,14 @@ const EVIDENCE_LABELS = {
 
 const ACTION_LABELS = {
   en: {
-    flagged_in_gbp: "flagged in GBP",
+    flagged_in_gbp: "flagged in Google Business Profile",
     submitted_removal_request: "submitted a removal request",
     submitted_appeal: "submitted an appeal",
     posted_help_community: "posted in the Help Community",
     drafting_public_reply: "prepared a public reply",
   },
   ja: {
-    flagged_in_gbp: "GBP 上で報告済み",
+    flagged_in_gbp: "Googleビジネスプロフィール上で報告済み",
     submitted_removal_request: "削除申請を送信済み",
     submitted_appeal: "再審査を申請済み",
     posted_help_community: "Help Community に投稿済み",

@@ -666,6 +666,55 @@ body.client-share-view .print-cover__meta-value {
   line-height: 1.45;
 }
 
+.product-faq {
+  border-color: rgba(15, 23, 42, 0.1);
+  background:
+    linear-gradient(145deg, rgba(248, 250, 252, 0.92), rgba(239, 246, 255, 0.58)),
+    #fff;
+}
+
+.product-faq__eyebrow {
+  color: #475569;
+  font-size: var(--fs-1);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.product-faq__subtitle {
+  margin: 6px 0 0;
+}
+
+.product-faq__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.product-faq__item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.product-faq__item strong {
+  display: block;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.product-faq__item p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+
 .print-cover {
   display: none;
 }
@@ -3833,6 +3882,10 @@ body.client-share-view .print-cover__meta-value {
   }
 
   .operator-workflow__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-faq__grid {
     grid-template-columns: 1fr;
   }
 

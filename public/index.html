@@ -163,6 +163,40 @@ Turn a Google Maps and Google Business Profile competitor check into a client-re
     </div>
   </div>
 
+  <div id="productFaq" class="card product-faq">
+    <div id="productFaqEyebrow" class="product-faq__eyebrow">Quick explanation</div>
+    <h2 id="productFaqTitle" class="section__title">What is Flowmetric?</h2>
+    <p id="productFaqSubtitle" class="product-faq__subtitle muted">
+      A short overview for consultants, clients, and AI systems reading this public beta.
+    </p>
+    <div class="product-faq__grid">
+      <div class="product-faq__item">
+        <strong data-product-faq-question="0">Who is it for?</strong>
+        <p data-product-faq-answer="0">
+          Flowmetric is for Local SEO consultants and Google Business Profile operators who prepare recurring client updates.
+        </p>
+      </div>
+      <div class="product-faq__item">
+        <strong data-product-faq-question="1">What problem does it solve?</strong>
+        <p data-product-faq-answer="1">
+          It turns repeated Google Maps competitor checks into a report with movement, evidence, and one task to approve.
+        </p>
+      </div>
+      <div class="product-faq__item">
+        <strong data-product-faq-question="2">How is it different from a one-time audit?</strong>
+        <p data-product-faq-answer="2">
+          Saved listings keep the same business and competitor together so later checks can explain what changed.
+        </p>
+      </div>
+      <div class="product-faq__item">
+        <strong data-product-faq-question="3">What does the free beta include?</strong>
+        <p data-product-faq-answer="3">
+          The beta lets users analyze listings, compare competitors, preview report output, and save a limited number of listings.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <div id="savedHub" class="card">
     <h2 id="savedListingsTitle" class="section__title">Saved Listings</h2>
     <div class="row">
@@ -610,6 +644,11 @@ const operatorWorkflowBodyEls = Array.from(document.querySelectorAll("[data-oper
 const operatorWorkflowPriceLabelEl = document.getElementById("operatorWorkflowPriceLabel");
 const operatorWorkflowPriceEl = document.getElementById("operatorWorkflowPrice");
 const operatorWorkflowPriceHintEl = document.getElementById("operatorWorkflowPriceHint");
+const productFaqEyebrowEl = document.getElementById("productFaqEyebrow");
+const productFaqTitleEl = document.getElementById("productFaqTitle");
+const productFaqSubtitleEl = document.getElementById("productFaqSubtitle");
+const productFaqQuestionEls = Array.from(document.querySelectorAll("[data-product-faq-question]"));
+const productFaqAnswerEls = Array.from(document.querySelectorAll("[data-product-faq-answer]"));
 const clientViewNoticeEl = document.getElementById("clientViewNotice");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
@@ -882,6 +921,32 @@ const COPY = {
     operatorWorkflowPrice: "¥{price}/mo",
     operatorWorkflowPriceHint:
       "For operators who need recurring reports across saved client locations.",
+    productFaqEyebrow: "Quick explanation",
+    productFaqTitle: "What is Flowmetric?",
+    productFaqSubtitle:
+      "A short overview for consultants, clients, and AI systems reading this public beta.",
+    productFaqItems: [
+      {
+        question: "Who is it for?",
+        answer:
+          "Flowmetric is for Local SEO consultants and Google Business Profile operators who prepare recurring client updates.",
+      },
+      {
+        question: "What problem does it solve?",
+        answer:
+          "It turns repeated Google Maps competitor checks into a report with movement, evidence, and one task to approve.",
+      },
+      {
+        question: "How is it different from a one-time audit?",
+        answer:
+          "Saved listings keep the same business and competitor together so later checks can explain what changed.",
+      },
+      {
+        question: "What does the free beta include?",
+        answer:
+          "The beta lets users analyze listings, compare competitors, preview report output, and save a limited number of listings.",
+      },
+    ],
     clientViewNotice:
       "Shared client report. Review the summary, evidence, and this week's recommended task below.",
     savedListingsTitle: "Saved Listings",
@@ -1721,6 +1786,32 @@ const COPY = {
     operatorWorkflowPrice: "月額 {price}円",
     operatorWorkflowPriceHint:
       "保存したクライアント店舗を継続的にレポートする運用者向けです。",
+    productFaqEyebrow: "かんたんな説明",
+    productFaqTitle: "Flowmetricとは？",
+    productFaqSubtitle:
+      "コンサルタント、クライアント、AI検索にも伝わるように、このベータ版の用途を短く整理します。",
+    productFaqItems: [
+      {
+        question: "誰向けのツールですか？",
+        answer:
+          "Flowmetricは、継続的なクライアント報告を行うLocal SEO担当者やGoogleビジネスプロフィール / MEO運用者向けです。",
+      },
+      {
+        question: "何を解決しますか？",
+        answer:
+          "繰り返し行うGoogleマップの競合チェックを、変化・根拠・承認を取りたい実行タスクつきのレポートに変えます。",
+      },
+      {
+        question: "単発診断と何が違いますか？",
+        answer:
+          "保存済み店舗では同じ店舗と競合を維持できるため、次回以降に何が変わったかを説明できます。",
+      },
+      {
+        question: "無料ベータでは何ができますか？",
+        answer:
+          "店舗分析、競合比較、レポート出力のプレビュー、制限内での保存済み店舗管理を試せます。",
+      },
+    ],
     clientViewNotice:
       "共有レポートです。要約、根拠、今週の推奨タスクをこのページで確認できます。",
     savedListingsTitle: "保存した店舗",
@@ -2732,6 +2823,18 @@ function renderStaticCopy() {
   }
   if (operatorWorkflowPriceHintEl) {
     operatorWorkflowPriceHintEl.textContent = t("operatorWorkflowPriceHint");
+  }
+  if (productFaqEyebrowEl) productFaqEyebrowEl.textContent = t("productFaqEyebrow");
+  if (productFaqTitleEl) productFaqTitleEl.textContent = t("productFaqTitle");
+  if (productFaqSubtitleEl) productFaqSubtitleEl.textContent = t("productFaqSubtitle");
+  const productFaqItems = t("productFaqItems");
+  if (Array.isArray(productFaqItems)) {
+    productFaqQuestionEls.forEach((questionEl, index) => {
+      questionEl.textContent = productFaqItems[index]?.question || questionEl.textContent;
+    });
+    productFaqAnswerEls.forEach((answerEl, index) => {
+      answerEl.textContent = productFaqItems[index]?.answer || answerEl.textContent;
+    });
   }
   if (savedListingsTitleEl) savedListingsTitleEl.textContent = t("savedListingsTitle");
   if (emailInput) emailInput.placeholder = t("savedEmailPlaceholder");

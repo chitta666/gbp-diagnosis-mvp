@@ -1,0 +1,39 @@
+# Flowmetric
+
+Flowmetric is a public beta web app for Local SEO consultants, Google Business Profile operators, and MEO operators.
+
+Flowmetric helps operators turn repeated Google Maps and Google Business Profile competitor checks into client-ready weekly reports.
+
+Canonical URLs:
+- https://gbp-diagnosis-mvp.pages.dev/
+- https://gbp-diagnosis-mvp.pages.dev/?lang=en
+- https://gbp-diagnosis-mvp.pages.dev/?lang=ja
+
+Primary audience:
+- Local SEO consultants
+- Google Business Profile operators
+- MEO operators
+- Small agencies or solo consultants managing recurring client reports
+
+Core capabilities:
+- Analyze a Google Maps / Google Business Profile listing
+- Compare nearby competitors
+- Preserve a selected competitor for repeat checks
+- Save a limited number of listings in the public beta
+- Show review-based win / lose axes
+- Show evidence packs and confidence caveats
+- Prepare one approval-ready task for the next client check-in
+- Separate Google profile completeness from commercial health signals
+
+What Flowmetric is not:
+- It is not an all-in-one agency operating system
+- It does not guarantee Google Maps ranking improvements
+- It does not replace operator judgment before a client report is sent
+- It is not primarily built for ordinary consumers
+
+Pricing context:
+- The public beta is free to try
+- The current Pro beta target is JPY 2,980 per month for recurring reporting workflows
+
+Best short description:
+Flowmetric turns Google Maps and Google Business Profile competitor checks into client-ready weekly reports with competitor gaps, evidence, and approval-ready tasks.

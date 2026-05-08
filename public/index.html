@@ -94,27 +94,59 @@ Turn a Google Maps and Google Business Profile competitor check into a client-re
     <p id="sampleReportSubtitle" class="sample-report-preview__subtitle muted">
       Before you analyze a listing, preview the three outputs designed for recurring client reporting.
     </p>
-    <div class="sample-report-preview__grid">
-      <div class="sample-report-preview__item">
-        <span class="sample-report-preview__label" data-sample-card-label="0">Weekly diff</span>
-        <strong data-sample-card-title="0">What changed against the same competitor</strong>
-        <p data-sample-card-body="0">
-          Review totals, momentum, photos, and visible Google profile signals are framed as report-ready movement.
-        </p>
+    <div class="sample-report-preview__showcase">
+      <div class="sample-report-preview__mockup" aria-label="Client report preview">
+        <div class="sample-report-preview__mockup-top">
+          <span data-sample-mockup="eyebrow">Weekly client update</span>
+          <strong data-sample-mockup="status">Ready for review</strong>
+        </div>
+        <div class="sample-report-preview__mockup-title" data-sample-mockup="title">
+          What changed this week
+        </div>
+        <div class="sample-report-preview__mockup-body">
+          <div class="sample-report-preview__mockup-row">
+            <span data-sample-mockup="reviewLabel">Review momentum</span>
+            <strong data-sample-mockup="reviewValue">+8 recent signals</strong>
+          </div>
+          <div class="sample-report-preview__mockup-row">
+            <span data-sample-mockup="proofLabel">Visible proof gap</span>
+            <strong data-sample-mockup="proofValue">Photos still trail</strong>
+          </div>
+          <div class="sample-report-preview__mockup-row">
+            <span data-sample-mockup="confidenceLabel">Evidence confidence</span>
+            <strong data-sample-mockup="confidenceValue">Client-safe</strong>
+          </div>
+        </div>
+        <div class="sample-report-preview__mockup-task">
+          <span data-sample-mockup="taskLabel">This week's task</span>
+          <strong data-sample-mockup="taskTitle">Add proof photos before the next check-in</strong>
+          <p data-sample-mockup="taskBody">
+            Give the client one concrete approval item, backed by the weekly diff and evidence pack.
+          </p>
+        </div>
       </div>
-      <div class="sample-report-preview__item">
-        <span class="sample-report-preview__label" data-sample-card-label="1">Evidence pack</span>
-        <strong data-sample-card-title="1">Why this recommendation is credible</strong>
-        <p data-sample-card-body="1">
-          Review text depth, competitor choice, Google-side proof, and signal strength are separated from the recommendation.
-        </p>
-      </div>
-      <div class="sample-report-preview__item">
-        <span class="sample-report-preview__label" data-sample-card-label="2">Recommended task</span>
-        <strong data-sample-card-title="2">What to ask the client to approve</strong>
-        <p data-sample-card-body="2">
-          The report ends with the task, why it matters now, and the approval request for the next check.
-        </p>
+      <div class="sample-report-preview__grid">
+        <div class="sample-report-preview__item">
+          <span class="sample-report-preview__label" data-sample-card-label="0">Weekly diff</span>
+          <strong data-sample-card-title="0">What changed against the same competitor</strong>
+          <p data-sample-card-body="0">
+            Review totals, momentum, photos, and visible Google profile signals are framed as report-ready movement.
+          </p>
+        </div>
+        <div class="sample-report-preview__item">
+          <span class="sample-report-preview__label" data-sample-card-label="1">Evidence pack</span>
+          <strong data-sample-card-title="1">Why this recommendation is credible</strong>
+          <p data-sample-card-body="1">
+            Review text depth, competitor choice, Google-side proof, and signal strength are separated from the recommendation.
+          </p>
+        </div>
+        <div class="sample-report-preview__item">
+          <span class="sample-report-preview__label" data-sample-card-label="2">Recommended task</span>
+          <strong data-sample-card-title="2">What to ask the client to approve</strong>
+          <p data-sample-card-body="2">
+            The report ends with the task, why it matters now, and the approval request for the next check.
+          </p>
+        </div>
       </div>
     </div>
     <div class="sample-report-preview__actions">
@@ -630,6 +662,7 @@ const sampleReportLinkEl = document.getElementById("sampleReportLink");
 const sampleReportEyebrowEl = document.getElementById("sampleReportEyebrow");
 const sampleReportTitleEl = document.getElementById("sampleReportTitle");
 const sampleReportSubtitleEl = document.getElementById("sampleReportSubtitle");
+const sampleReportMockupEls = Array.from(document.querySelectorAll("[data-sample-mockup]"));
 const sampleReportCardLabelEls = Array.from(document.querySelectorAll("[data-sample-card-label]"));
 const sampleReportCardTitleEls = Array.from(document.querySelectorAll("[data-sample-card-title]"));
 const sampleReportCardBodyEls = Array.from(document.querySelectorAll("[data-sample-card-body]"));
@@ -879,6 +912,21 @@ const COPY = {
       "Sample report is ready. Review the client summary, evidence, and recommended task below.",
     sampleReportDemoNote: "Uses Blue Bottle Coffee Shibuya Tokyo as a public sample.",
     sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
+    sampleReportMockup: {
+      eyebrow: "Weekly client update",
+      status: "Ready for review",
+      title: "What changed this week",
+      reviewLabel: "Review momentum",
+      reviewValue: "+8 recent signals",
+      proofLabel: "Visible proof gap",
+      proofValue: "Photos still trail",
+      confidenceLabel: "Evidence confidence",
+      confidenceValue: "Client-safe",
+      taskLabel: "This week's task",
+      taskTitle: "Add proof photos before the next check-in",
+      taskBody:
+        "Give the client one concrete approval item, backed by the weekly diff and evidence pack.",
+    },
     sampleReportCards: [
       {
         label: "Weekly diff",
@@ -1744,6 +1792,21 @@ const COPY = {
       "サンプルレポートを表示しました。下のクライアント要約、根拠、推奨タスクを確認してください。",
     sampleReportDemoNote: "公開サンプルとして Blue Bottle Coffee Shibuya Tokyo を使います。",
     sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
+    sampleReportMockup: {
+      eyebrow: "週次クライアント報告",
+      status: "確認準備OK",
+      title: "今週変わったこと",
+      reviewLabel: "レビューの勢い",
+      reviewValue: "直近シグナル +8",
+      proofLabel: "見える根拠の差",
+      proofValue: "写真はまだ不足",
+      confidenceLabel: "根拠の信頼度",
+      confidenceValue: "提出可能",
+      taskLabel: "今週の実行案",
+      taskTitle: "次回定例までに根拠写真を追加する",
+      taskBody:
+        "週次差分と根拠パックを添えて、クライアントに承認してもらう実行案を1つに絞ります。",
+    },
     sampleReportCards: [
       {
         label: "週次差分",
@@ -2786,6 +2849,13 @@ function renderStaticCopy() {
   if (sampleReportSubtitleEl) sampleReportSubtitleEl.textContent = t("sampleReportSubtitle");
   updateSampleReportRunButton(btn?.disabled === true);
   if (sampleReportDemoNoteEl) sampleReportDemoNoteEl.textContent = t("sampleReportDemoNote");
+  const sampleReportMockup = t("sampleReportMockup");
+  if (sampleReportMockup && typeof sampleReportMockup === "object") {
+    sampleReportMockupEls.forEach((mockupEl) => {
+      const key = mockupEl.dataset.sampleMockup;
+      if (key && sampleReportMockup[key]) mockupEl.textContent = sampleReportMockup[key];
+    });
+  }
   const sampleCards = t("sampleReportCards");
   if (Array.isArray(sampleCards)) {
     sampleReportCardLabelEls.forEach((labelEl, index) => {

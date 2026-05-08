@@ -490,6 +490,14 @@ body.client-share-view .print-cover__meta-value {
   overflow-wrap: anywhere;
 }
 
+.saved-hub--prioritized {
+  border-color: rgba(4, 120, 87, 0.2);
+  background:
+    linear-gradient(145deg, rgba(236, 253, 245, 0.7), rgba(255, 255, 255, 0.92)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(4, 120, 87, 0.08);
+}
+
 .sample-report-preview {
   border-color: rgba(37, 99, 235, 0.13);
   background:

@@ -229,7 +229,7 @@ Turn a Google Maps and Google Business Profile competitor check into a client-re
     </div>
   </div>
 
-  <div id="savedHub" class="card">
+  <div id="savedHub" class="card saved-hub">
     <h2 id="savedListingsTitle" class="section__title">Saved Listings</h2>
     <div class="row">
       <input id="emailInput" class="input" type="email" placeholder="Enter email to manage saved listings" />
@@ -658,6 +658,7 @@ const input = document.getElementById("urlInput");
 const appTitleEl = document.getElementById("appTitle");
 const introTextEl = document.getElementById("introText");
 const heroProofChipEls = Array.from(document.querySelectorAll("[data-proof-chip]"));
+const sampleReportPreviewEl = document.getElementById("sampleReportPreview");
 const sampleReportLinkEl = document.getElementById("sampleReportLink");
 const sampleReportEyebrowEl = document.getElementById("sampleReportEyebrow");
 const sampleReportTitleEl = document.getElementById("sampleReportTitle");
@@ -678,11 +679,13 @@ const operatorWorkflowPriceLabelEl = document.getElementById("operatorWorkflowPr
 const operatorWorkflowPriceEl = document.getElementById("operatorWorkflowPrice");
 const operatorWorkflowPriceHintEl = document.getElementById("operatorWorkflowPriceHint");
 const productFaqEyebrowEl = document.getElementById("productFaqEyebrow");
+const productFaqEl = document.getElementById("productFaq");
 const productFaqTitleEl = document.getElementById("productFaqTitle");
 const productFaqSubtitleEl = document.getElementById("productFaqSubtitle");
 const productFaqQuestionEls = Array.from(document.querySelectorAll("[data-product-faq-question]"));
 const productFaqAnswerEls = Array.from(document.querySelectorAll("[data-product-faq-answer]"));
 const clientViewNoticeEl = document.getElementById("clientViewNotice");
+const savedHubEl = document.getElementById("savedHub");
 const emailInput = document.getElementById("emailInput");
 const saveListingBtn = document.getElementById("saveListingBtn");
 const loadSavedBtn = document.getElementById("loadSavedBtn");
@@ -9028,6 +9031,25 @@ function updateSaveListingButtonState() {
     : "";
 }
 
+function updateSavedHubPlacement(listings = currentSavedListings) {
+  if (!savedHubEl) return;
+
+  const hasSavedListings = Array.isArray(listings) && listings.length > 0;
+  const hasDirectSavedReport = Boolean(currentResult?.savedListing?.id);
+  const shouldPrioritize = hasSavedListings || hasDirectSavedReport;
+
+  savedHubEl.classList.toggle("saved-hub--prioritized", shouldPrioritize);
+
+  if (shouldPrioritize && sampleReportPreviewEl?.parentNode) {
+    sampleReportPreviewEl.parentNode.insertBefore(savedHubEl, sampleReportPreviewEl);
+    return;
+  }
+
+  if (!shouldPrioritize && productFaqEl?.parentNode) {
+    productFaqEl.parentNode.insertBefore(savedHubEl, productFaqEl.nextSibling);
+  }
+}
+
 function renderSavedPlanNotice(listings = currentSavedListings) {
   if (!savedPlanNoticeEl) return;
 
@@ -10190,6 +10212,7 @@ function renderSavedListings(listings) {
   renderSavedPlanNotice(currentSavedListings);
   renderSavedWeeklyRollup(listings);
   renderSavedWorkQueue(listings);
+  updateSavedHubPlacement(currentSavedListings);
 
   if (!Array.isArray(listings) || !listings.length) {
     savedListingsEl.innerHTML = `<li class="muted">${escapeHtml(t("savedListingsEmpty"))}</li>`;

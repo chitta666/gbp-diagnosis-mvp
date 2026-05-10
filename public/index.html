@@ -4283,6 +4283,14 @@ function buildEventPayload(event, extra = {}) {
     intent: extra.intent || feedbackIntent || "",
     feedbackType: extra.feedbackType || "",
     hasFeedbackEmail: typeof extra.hasFeedbackEmail === "boolean" ? extra.hasFeedbackEmail : null,
+    hasSavedListing:
+      typeof extra.hasSavedListing === "boolean"
+        ? extra.hasSavedListing
+        : Boolean(result?.savedListing?.id),
+    hasCompetitor:
+      typeof extra.hasCompetitor === "boolean"
+        ? extra.hasCompetitor
+        : Boolean(selectedPlaceId || result?.comparison?.competitorName),
     hasPlaceId: Boolean(eventPlaceId(result)),
     hasRecommendedCompetitor: Boolean(recommendedPlaceId),
     hasSelectedCompetitor: Boolean(selectedPlaceId),

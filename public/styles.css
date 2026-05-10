@@ -762,8 +762,19 @@ body.client-share-view .print-cover__meta-value {
   border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
+.sample-report-preview__action-copy {
+  flex: 1 1 260px;
+  display: grid;
+  gap: 3px;
+}
+
+.sample-report-preview__action-copy strong {
+  color: var(--fg);
+  font-size: var(--fs-2);
+  font-weight: 900;
+}
+
 .sample-report-preview__note {
-  flex: 1 1 240px;
   font-size: var(--fs-1);
   line-height: 1.45;
 }

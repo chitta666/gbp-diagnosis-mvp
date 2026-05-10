@@ -4010,7 +4010,7 @@ body.client-share-view .print-cover__meta-value {
     width: 100%;
   }
 
-  .sample-report-link {
+  .btn.secondary.sample-report-link {
     align-self: flex-start;
     width: auto;
     min-height: 34px;
@@ -4020,9 +4020,10 @@ body.client-share-view .print-cover__meta-value {
     color: var(--primary);
     font-weight: 850;
     text-align: left;
+    box-shadow: none;
   }
 
-  .sample-report-link::after {
+  .btn.secondary.sample-report-link::after {
     content: "↓";
     margin-left: 6px;
   }

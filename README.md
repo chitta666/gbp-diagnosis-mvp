@@ -295,6 +295,22 @@ Local CLI:
 Local smoke test:
 - `npm run events:smoke`
 
+### Value summary
+
+Use the combined value summary to review feedback proof and benchmark-funnel events in one daily
+operating readout:
+
+- `FEEDBACK_ADMIN_TOKEN=... npm run value:summary -- --days 7`
+- `FEEDBACK_ADMIN_TOKEN=... npm run value:summary -- --days 7 --output tmp/value-summary.json`
+
+The command combines:
+- benchmark feedback records and estimated minutes saved from `/api/feedback-summary`
+- benchmark CTA click / submit funnel from `/api/events-summary`
+- recommended next actions for the value-validation loop
+
+Local smoke test:
+- `npm run value:smoke`
+
 ### Email alerts
 
 When mail is configured, `/api/health-check` can send alert mail for unhealthy runs.

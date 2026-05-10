@@ -1354,6 +1354,10 @@ const COPY = {
     feedbackModalTitle: "Quick Feedback",
     feedbackIntro:
       "Keep it short. Useful, confusing, missing, or buggy is enough for us to learn from.",
+    feedbackBenchmarkEyebrow: "Value benchmark",
+    feedbackBenchmarkModalTitle: "Share time-saved benchmark",
+    feedbackBenchmarkIntro:
+      "Use the template below to compare your usual prep with this Flowmetric report. Estimates are fine.",
     feedbackCtaCopy:
       "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.",
     feedbackButton: "Share Report Feedback",
@@ -1366,11 +1370,15 @@ const COPY = {
     feedbackTypeOther: "Other",
     feedbackMessageLabel: "Short note",
     feedbackMessagePlaceholder: "What felt useful, confusing, or missing?",
+    feedbackBenchmarkMessageLabel: "Benchmark notes",
+    feedbackBenchmarkMessagePlaceholder:
+      "Add prep time, Flowmetric time, reusable sentence, rewrites, and trust gaps.",
     feedbackEmailLabel: "Email for follow-up (optional)",
     feedbackOptionalPlaceholder: "Optional",
     feedbackPrivacyNote:
       "We only need enough context to understand the moment. Please avoid sensitive information.",
     feedbackSubmit: "Send Feedback",
+    feedbackBenchmarkSubmit: "Send Benchmark",
     reviewSupportButton: "Open Review Dispute Assistant",
     reviewDisputeEyebrow: "Review support utility",
     reviewDisputeTitle: "Review Dispute Assistant",
@@ -2336,6 +2344,10 @@ const COPY = {
     feedbackModalTitle: "かんたんフィードバック",
     feedbackIntro:
       "短くて大丈夫です。役立った・分かりにくい・足りない・不具合、のどれかが分かるだけでも学びになります。",
+    feedbackBenchmarkEyebrow: "価値検証",
+    feedbackBenchmarkModalTitle: "削減時間を送る",
+    feedbackBenchmarkIntro:
+      "普段の下準備とFlowmetricの出力を比べてください。概算で十分です。",
     feedbackCtaCopy:
       "レポートを見たあとに、役立った点・分かりにくかった点・足りない点を短く教えてください。現在のレポート文脈は自動で添付します。",
     feedbackButton: "レポートの感想を送る",
@@ -2348,11 +2360,15 @@ const COPY = {
     feedbackTypeOther: "その他",
     feedbackMessageLabel: "短いメモ",
     feedbackMessagePlaceholder: "役立った点、分かりにくかった点、足りない点などを書いてください",
+    feedbackBenchmarkMessageLabel: "検証メモ",
+    feedbackBenchmarkMessagePlaceholder:
+      "普段の下準備時間、Flowmetricでの作成時間、使えた一文、書き直した箇所、信頼しきれなかった点を書いてください",
     feedbackEmailLabel: "追加確認用メール（任意）",
     feedbackOptionalPlaceholder: "任意",
     feedbackPrivacyNote:
       "状況が分かる最低限の文脈だけで十分です。センシティブな情報は避けてください。",
     feedbackSubmit: "フィードバックを送信",
+    feedbackBenchmarkSubmit: "検証結果を送信",
     reviewSupportButton: "レビュー対応アシスタントを開く",
     reviewDisputeEyebrow: "レビュー対応ユーティリティ",
     reviewDisputeTitle: "レビュー対応アシスタント",
@@ -3511,17 +3527,12 @@ function renderStaticCopy() {
   if (historyTitleEl) historyTitleEl.textContent = t("historyTitle");
   if (historyHintEl) historyHintEl.textContent = t("historyHint");
   if (feedbackTitleEl) feedbackTitleEl.textContent = t("feedbackTitle");
-  if (feedbackEyebrowEl) feedbackEyebrowEl.textContent = t("feedbackEyebrow");
-  if (feedbackModalTitleEl) feedbackModalTitleEl.textContent = t("feedbackModalTitle");
-  if (feedbackIntroEl) feedbackIntroEl.textContent = t("feedbackIntro");
   if (feedbackTypeTitleEl) feedbackTypeTitleEl.textContent = t("feedbackTypeTitle");
   if (feedbackTypeUsefulLabelEl) feedbackTypeUsefulLabelEl.lastChild.textContent = ` ${t("feedbackTypeUseful")}`;
   if (feedbackTypeConfusingLabelEl) feedbackTypeConfusingLabelEl.lastChild.textContent = ` ${t("feedbackTypeConfusing")}`;
   if (feedbackTypeBugLabelEl) feedbackTypeBugLabelEl.lastChild.textContent = ` ${t("feedbackTypeBug")}`;
   if (feedbackTypeMissingLabelEl) feedbackTypeMissingLabelEl.lastChild.textContent = ` ${t("feedbackTypeMissing")}`;
   if (feedbackTypeOtherLabelEl) feedbackTypeOtherLabelEl.lastChild.textContent = ` ${t("feedbackTypeOther")}`;
-  if (feedbackMessageLabelEl) feedbackMessageLabelEl.textContent = t("feedbackMessageLabel");
-  if (feedbackMessageEl) feedbackMessageEl.placeholder = t("feedbackMessagePlaceholder");
   if (feedbackEmailLabelEl) feedbackEmailLabelEl.textContent = t("feedbackEmailLabel");
   if (feedbackEmailEl) feedbackEmailEl.placeholder = t("feedbackOptionalPlaceholder");
   if (feedbackPrivacyNoteEl) feedbackPrivacyNoteEl.textContent = t("feedbackPrivacyNote");
@@ -3530,7 +3541,7 @@ function renderStaticCopy() {
   if (reportBenchmarkFeedbackBtn) {
     reportBenchmarkFeedbackBtn.textContent = t("reportBenchmarkFeedbackButton");
   }
-  if (feedbackSubmitBtn) feedbackSubmitBtn.textContent = t("feedbackSubmit");
+  renderFeedbackModalCopy(isBenchmarkFeedbackIntent(feedbackIntent) ? "benchmark" : "default");
   if (openReviewDisputeAssistantBtn) {
     openReviewDisputeAssistantBtn.textContent = t("reviewSupportButton");
   }
@@ -4064,6 +4075,34 @@ function selectedFeedbackType() {
   );
 }
 
+function isBenchmarkFeedbackIntent(intent) {
+  return ["beta_value_benchmark", "report_value_benchmark"].includes(String(intent || "").trim());
+}
+
+function renderFeedbackModalCopy(mode = "default") {
+  const benchmarkMode = mode === "benchmark";
+  if (feedbackEyebrowEl) {
+    feedbackEyebrowEl.textContent = t(benchmarkMode ? "feedbackBenchmarkEyebrow" : "feedbackEyebrow");
+  }
+  if (feedbackModalTitleEl) {
+    feedbackModalTitleEl.textContent = t(benchmarkMode ? "feedbackBenchmarkModalTitle" : "feedbackModalTitle");
+  }
+  if (feedbackIntroEl) {
+    feedbackIntroEl.textContent = t(benchmarkMode ? "feedbackBenchmarkIntro" : "feedbackIntro");
+  }
+  if (feedbackMessageLabelEl) {
+    feedbackMessageLabelEl.textContent = t(benchmarkMode ? "feedbackBenchmarkMessageLabel" : "feedbackMessageLabel");
+  }
+  if (feedbackMessageEl) {
+    feedbackMessageEl.placeholder = t(
+      benchmarkMode ? "feedbackBenchmarkMessagePlaceholder" : "feedbackMessagePlaceholder"
+    );
+  }
+  if (feedbackSubmitBtn) {
+    feedbackSubmitBtn.textContent = t(benchmarkMode ? "feedbackBenchmarkSubmit" : "feedbackSubmit");
+  }
+}
+
 function buildFeedbackContext(result = currentResult) {
   const selectedCompetitor =
     result?.selectedCompetitor ||
@@ -4547,11 +4586,13 @@ function resetFeedbackForm() {
     feedbackEmailEl.value = getSubscriberEmail() || loadSubscriberEmail() || "";
   }
   feedbackIntent = "";
+  renderFeedbackModalCopy("default");
   renderFeedbackContextPreview(currentResult);
 }
 
 function applyFeedbackPrefill(options = {}) {
   feedbackIntent = String(options?.intent || "").trim();
+  renderFeedbackModalCopy(isBenchmarkFeedbackIntent(feedbackIntent) ? "benchmark" : "default");
 
   const type = String(options?.type || "").trim();
   if (type) {
@@ -4649,6 +4690,7 @@ function closeFeedbackAssistant() {
   feedbackAssistantEl.setAttribute("aria-hidden", "true");
   document.body.classList.remove("assistant-open");
   feedbackIntent = "";
+  renderFeedbackModalCopy("default");
   setFeedbackMessage("");
 }
 

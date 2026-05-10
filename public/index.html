@@ -221,6 +221,34 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
     </div>
   </div>
 
+  <div id="workflowReplacement" class="card workflow-replacement">
+    <div>
+      <div id="workflowReplacementEyebrow" class="workflow-replacement__eyebrow">What this replaces</div>
+      <h2 id="workflowReplacementTitle" class="section__title">Less manual checking before each client update</h2>
+      <p id="workflowReplacementSubtitle" class="workflow-replacement__subtitle muted">
+        Flowmetric is built to replace the repeated prep work behind Google Maps reporting, not your full Local SEO stack.
+      </p>
+    </div>
+    <div class="workflow-replacement__grid" aria-label="Manual workflow comparison">
+      <div class="workflow-replacement__column workflow-replacement__column--manual">
+        <span id="workflowReplacementManualLabel">Manual flow</span>
+        <ul>
+          <li data-workflow-manual-item="0">Open Google Maps and re-check the same competitors</li>
+          <li data-workflow-manual-item="1">Copy review notes, photos, and gaps into a spreadsheet</li>
+          <li data-workflow-manual-item="2">Rewrite the findings into a client-safe update</li>
+        </ul>
+      </div>
+      <div class="workflow-replacement__column workflow-replacement__column--flowmetric">
+        <span id="workflowReplacementFlowmetricLabel">With Flowmetric</span>
+        <ul>
+          <li data-workflow-flowmetric-item="0">Save the listing and competitor as a baseline</li>
+          <li data-workflow-flowmetric-item="1">Reopen the same comparison for movement and evidence</li>
+          <li data-workflow-flowmetric-item="2">Send one approval-ready task for the next check-in</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <div id="productFaq" class="card product-faq">
     <div id="productFaqEyebrow" class="product-faq__eyebrow">Quick explanation</div>
     <h2 id="productFaqTitle" class="section__title">What is Flowmetric?</h2>
@@ -708,6 +736,17 @@ const operatorWorkflowBodyEls = Array.from(document.querySelectorAll("[data-oper
 const operatorWorkflowPriceLabelEl = document.getElementById("operatorWorkflowPriceLabel");
 const operatorWorkflowPriceEl = document.getElementById("operatorWorkflowPrice");
 const operatorWorkflowPriceHintEl = document.getElementById("operatorWorkflowPriceHint");
+const workflowReplacementEyebrowEl = document.getElementById("workflowReplacementEyebrow");
+const workflowReplacementTitleEl = document.getElementById("workflowReplacementTitle");
+const workflowReplacementSubtitleEl = document.getElementById("workflowReplacementSubtitle");
+const workflowReplacementManualLabelEl = document.getElementById("workflowReplacementManualLabel");
+const workflowReplacementFlowmetricLabelEl = document.getElementById("workflowReplacementFlowmetricLabel");
+const workflowReplacementManualItemEls = Array.from(
+  document.querySelectorAll("[data-workflow-manual-item]")
+);
+const workflowReplacementFlowmetricItemEls = Array.from(
+  document.querySelectorAll("[data-workflow-flowmetric-item]")
+);
 const productFaqEyebrowEl = document.getElementById("productFaqEyebrow");
 const productFaqEl = document.getElementById("productFaq");
 const productFaqTitleEl = document.getElementById("productFaqTitle");
@@ -1021,6 +1060,22 @@ const COPY = {
     operatorWorkflowPrice: "¥{price}/mo",
     operatorWorkflowPriceHint:
       "For operators who need recurring reports across saved client locations.",
+    workflowReplacementEyebrow: "What this replaces",
+    workflowReplacementTitle: "Less manual checking before each client update",
+    workflowReplacementSubtitle:
+      "Flowmetric is built to replace the repeated prep work behind Google Maps reporting, not your full Local SEO stack.",
+    workflowReplacementManualLabel: "Manual flow",
+    workflowReplacementFlowmetricLabel: "With Flowmetric",
+    workflowReplacementManualItems: [
+      "Open Google Maps and re-check the same competitors",
+      "Copy review notes, photos, and gaps into a spreadsheet",
+      "Rewrite the findings into a client-safe update",
+    ],
+    workflowReplacementFlowmetricItems: [
+      "Save the listing and competitor as a baseline",
+      "Reopen the same comparison for movement and evidence",
+      "Send one approval-ready task for the next check-in",
+    ],
     productFaqEyebrow: "Quick explanation",
     productFaqTitle: "What is Flowmetric?",
     productFaqSubtitle:
@@ -1934,6 +1989,22 @@ const COPY = {
     operatorWorkflowPrice: "月額 {price}円",
     operatorWorkflowPriceHint:
       "保存したクライアント店舗を継続的にレポートする運用者向けです。",
+    workflowReplacementEyebrow: "置き換える作業",
+    workflowReplacementTitle: "クライアント報告前の手作業を減らす",
+    workflowReplacementSubtitle:
+      "Flowmetricは、Local SEOツール全体を置き換えるのではなく、Googleマップ報告の前に毎回発生する確認・整理・文章化を軽くします。",
+    workflowReplacementManualLabel: "手作業の場合",
+    workflowReplacementFlowmetricLabel: "Flowmetricの場合",
+    workflowReplacementManualItems: [
+      "Googleマップを開き、同じ競合を毎回確認する",
+      "レビュー、写真、差分メモをスプレッドシートに転記する",
+      "クライアントに出せる表現へ文章を整える",
+    ],
+    workflowReplacementFlowmetricItems: [
+      "店舗と競合を基準レポートとして保存する",
+      "同じ比較で、変化と根拠を開き直す",
+      "次回定例までに承認を取りたい1タスクにまとめる",
+    ],
     productFaqEyebrow: "かんたんな説明",
     productFaqTitle: "Flowmetricとは？",
     productFaqSubtitle:
@@ -3007,6 +3078,33 @@ function renderStaticCopy() {
   }
   if (operatorWorkflowPriceHintEl) {
     operatorWorkflowPriceHintEl.textContent = t("operatorWorkflowPriceHint");
+  }
+  if (workflowReplacementEyebrowEl) {
+    workflowReplacementEyebrowEl.textContent = t("workflowReplacementEyebrow");
+  }
+  if (workflowReplacementTitleEl) {
+    workflowReplacementTitleEl.textContent = t("workflowReplacementTitle");
+  }
+  if (workflowReplacementSubtitleEl) {
+    workflowReplacementSubtitleEl.textContent = t("workflowReplacementSubtitle");
+  }
+  if (workflowReplacementManualLabelEl) {
+    workflowReplacementManualLabelEl.textContent = t("workflowReplacementManualLabel");
+  }
+  if (workflowReplacementFlowmetricLabelEl) {
+    workflowReplacementFlowmetricLabelEl.textContent = t("workflowReplacementFlowmetricLabel");
+  }
+  const workflowManualItems = t("workflowReplacementManualItems");
+  if (Array.isArray(workflowManualItems)) {
+    workflowReplacementManualItemEls.forEach((itemEl, index) => {
+      itemEl.textContent = workflowManualItems[index] || itemEl.textContent;
+    });
+  }
+  const workflowFlowmetricItems = t("workflowReplacementFlowmetricItems");
+  if (Array.isArray(workflowFlowmetricItems)) {
+    workflowReplacementFlowmetricItemEls.forEach((itemEl, index) => {
+      itemEl.textContent = workflowFlowmetricItems[index] || itemEl.textContent;
+    });
   }
   if (productFaqEyebrowEl) productFaqEyebrowEl.textContent = t("productFaqEyebrow");
   if (productFaqTitleEl) productFaqTitleEl.textContent = t("productFaqTitle");

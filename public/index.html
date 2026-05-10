@@ -253,6 +253,13 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
         </ul>
       </div>
     </div>
+    <div class="workflow-replacement__estimate">
+      <span id="workflowReplacementEstimateLabel">Time-saved estimate</span>
+      <strong id="workflowReplacementEstimateValue">15-30 min manual prep -> draft in minutes</strong>
+      <p id="workflowReplacementEstimateBody">
+        Use this as a conservative planning estimate until your own reporting workflow is measured.
+      </p>
+    </div>
   </div>
 
   <div id="productFaq" class="card product-faq">
@@ -750,6 +757,9 @@ const workflowReplacementTitleEl = document.getElementById("workflowReplacementT
 const workflowReplacementSubtitleEl = document.getElementById("workflowReplacementSubtitle");
 const workflowReplacementManualLabelEl = document.getElementById("workflowReplacementManualLabel");
 const workflowReplacementFlowmetricLabelEl = document.getElementById("workflowReplacementFlowmetricLabel");
+const workflowReplacementEstimateLabelEl = document.getElementById("workflowReplacementEstimateLabel");
+const workflowReplacementEstimateValueEl = document.getElementById("workflowReplacementEstimateValue");
+const workflowReplacementEstimateBodyEl = document.getElementById("workflowReplacementEstimateBody");
 const workflowReplacementManualItemEls = Array.from(
   document.querySelectorAll("[data-workflow-manual-item]")
 );
@@ -1090,6 +1100,10 @@ const COPY = {
       "Reopen the same comparison for movement and evidence",
       "Send one approval-ready task for the next check-in",
     ],
+    workflowReplacementEstimateLabel: "Time-saved estimate",
+    workflowReplacementEstimateValue: "15-30 min manual prep -> draft in minutes",
+    workflowReplacementEstimateBody:
+      "Use this as a conservative planning estimate until your own reporting workflow is measured.",
     productFaqEyebrow: "Quick explanation",
     productFaqTitle: "What is Flowmetric?",
     productFaqSubtitle:
@@ -2023,6 +2037,10 @@ const COPY = {
       "同じ比較で、変化と根拠を開き直す",
       "次回定例までに承認を取りたい1タスクにまとめる",
     ],
+    workflowReplacementEstimateLabel: "削減時間の目安",
+    workflowReplacementEstimateValue: "手作業15〜30分の下準備を、数分の下書きへ",
+    workflowReplacementEstimateBody:
+      "実測前の控えめな目安です。実際の報告フローに合わせて、どれだけ短縮できるか確認してください。",
     productFaqEyebrow: "かんたんな説明",
     productFaqTitle: "Flowmetricとは？",
     productFaqSubtitle:
@@ -3152,6 +3170,15 @@ function renderStaticCopy() {
   }
   if (workflowReplacementFlowmetricLabelEl) {
     workflowReplacementFlowmetricLabelEl.textContent = t("workflowReplacementFlowmetricLabel");
+  }
+  if (workflowReplacementEstimateLabelEl) {
+    workflowReplacementEstimateLabelEl.textContent = t("workflowReplacementEstimateLabel");
+  }
+  if (workflowReplacementEstimateValueEl) {
+    workflowReplacementEstimateValueEl.textContent = t("workflowReplacementEstimateValue");
+  }
+  if (workflowReplacementEstimateBodyEl) {
+    workflowReplacementEstimateBodyEl.textContent = t("workflowReplacementEstimateBody");
   }
   const workflowManualItems = t("workflowReplacementManualItems");
   if (Array.isArray(workflowManualItems)) {

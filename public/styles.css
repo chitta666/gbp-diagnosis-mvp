@@ -1000,6 +1000,38 @@ body.client-share-view .print-cover__meta-value {
   background: #2563eb;
 }
 
+.workflow-replacement__estimate {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.workflow-replacement__estimate span {
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.workflow-replacement__estimate strong {
+  color: var(--fg);
+  font-size: var(--fs-3);
+  line-height: 1.25;
+  font-weight: 950;
+}
+
+.workflow-replacement__estimate p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.45;
+}
+
 .product-faq {
   border-color: rgba(15, 23, 42, 0.1);
   background:

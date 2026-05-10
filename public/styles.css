@@ -4272,11 +4272,6 @@ body.client-share-view .print-cover__meta-value {
     margin-left: 6px;
   }
 
-  .hero-proof-chips {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .hero-proof-chip {
     justify-content: center;
     min-height: 38px;

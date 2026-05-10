@@ -69,7 +69,7 @@
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
     <button id="btn" class="btn btn--primary" type="button">Analyze Listing</button>
     <a id="sampleReportLink" class="btn secondary sample-report-link" href="#sampleReportPreview">
-      View sample report
+      View full sample report
     </a>
   </div>
 
@@ -90,9 +90,9 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
     <div class="sample-report-preview__eyebrow" id="sampleReportEyebrow">
       Sample output
     </div>
-    <h2 id="sampleReportTitle" class="section__title">What the client-ready report includes</h2>
+    <h2 id="sampleReportTitle" class="section__title">Open a full sample report first</h2>
     <p id="sampleReportSubtitle" class="sample-report-preview__subtitle muted">
-      Before you analyze a listing, preview the three outputs designed for recurring client reporting.
+      Before you analyze your own listing, see the client summary, evidence, and recommended task in a public sample.
     </p>
     <div class="sample-report-preview__showcase">
       <div class="sample-report-preview__mockup" aria-label="Client report preview">
@@ -130,21 +130,21 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
           <span class="sample-report-preview__label" data-sample-card-label="0">Weekly diff</span>
           <strong data-sample-card-title="0">What changed against the same competitor</strong>
           <p data-sample-card-body="0">
-            Review totals, momentum, photos, and visible Google profile signals are framed as report-ready movement.
+            Stable comparison, report-ready movement.
           </p>
         </div>
         <div class="sample-report-preview__item">
           <span class="sample-report-preview__label" data-sample-card-label="1">Evidence pack</span>
           <strong data-sample-card-title="1">Why this recommendation is credible</strong>
           <p data-sample-card-body="1">
-            Review text depth, competitor choice, Google-side proof, and signal strength are separated from the recommendation.
+            Proof depth separated from the recommendation.
           </p>
         </div>
         <div class="sample-report-preview__item">
           <span class="sample-report-preview__label" data-sample-card-label="2">Recommended task</span>
           <strong data-sample-card-title="2">What to ask the client to approve</strong>
           <p data-sample-card-body="2">
-            The report ends with the task, why it matters now, and the approval request for the next check.
+            One client ask before the next check.
           </p>
         </div>
       </div>
@@ -173,12 +173,15 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
       </div>
     </div>
     <div class="sample-report-preview__actions">
+      <div class="sample-report-preview__action-copy">
+        <strong id="sampleReportActionTitle">Full report sample</strong>
+        <span id="sampleReportDemoNote" class="sample-report-preview__note muted">
+          Runs Blue Bottle Coffee Shibuya Tokyo and opens the generated report below.
+        </span>
+      </div>
       <button id="sampleReportRunBtn" class="btn btn--primary" type="button">
-        Analyze sample listing
+        Open full sample report
       </button>
-      <span id="sampleReportDemoNote" class="sample-report-preview__note muted">
-        Uses Blue Bottle Coffee Shibuya Tokyo as a public sample.
-      </span>
     </div>
   </div>
 
@@ -694,6 +697,7 @@ const sampleReportCaseTypeEls = Array.from(document.querySelectorAll("[data-samp
 const sampleReportCaseTitleEls = Array.from(document.querySelectorAll("[data-sample-case-title]"));
 const sampleReportCaseBodyEls = Array.from(document.querySelectorAll("[data-sample-case-body]"));
 const sampleReportRunBtn = document.getElementById("sampleReportRunBtn");
+const sampleReportActionTitleEl = document.getElementById("sampleReportActionTitle");
 const sampleReportDemoNoteEl = document.getElementById("sampleReportDemoNote");
 const operatorWorkflowEyebrowEl = document.getElementById("operatorWorkflowEyebrow");
 const operatorWorkflowTitleEl = document.getElementById("operatorWorkflowTitle");
@@ -922,7 +926,7 @@ const COPY = {
     appTitle: "Client-ready Google Business Profile weekly reports",
     analyzePlaceholder: "Enter business name and address",
     analyzeButton: "Analyze Listing",
-    sampleReportCta: "View sample report",
+    sampleReportCta: "View full sample report",
     introText:
       "Flowmetric turns a Google Maps and Google Business Profile competitor check into a weekly client update for Local SEO and Google Business Profile (GBP) operators. Use it to show competitor gaps, evidence, what changed, why it matters, and what to do next.",
     heroProofChips: [
@@ -932,14 +936,16 @@ const COPY = {
       "Approval-ready task",
     ],
     sampleReportEyebrow: "Sample report",
-    sampleReportTitle: "Preview the output before you analyze a listing",
+    sampleReportTitle: "Open a full sample report first",
     sampleReportSubtitle:
-      "The paid value is the recurring reporting workflow: movement, proof, and a client-ready task in one place.",
-    sampleReportRunCta: "Analyze sample listing",
-    sampleReportRunningCta: "Analyzing sample...",
+      "Before you analyze your own listing, see the client summary, evidence, and recommended task in a public sample.",
+    sampleReportActionTitle: "Full report sample",
+    sampleReportRunCta: "Open full sample report",
+    sampleReportRunningCta: "Opening sample report...",
     sampleReportComplete:
-      "Sample report is ready. Review the client summary, evidence, and recommended task below.",
-    sampleReportDemoNote: "Uses Blue Bottle Coffee Shibuya Tokyo as a public sample.",
+      "Full sample report is ready. Review the client summary, evidence, and recommended task below.",
+    sampleReportDemoNote:
+      "Runs Blue Bottle Coffee Shibuya Tokyo and opens the generated report below.",
     sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
     sampleReportMockup: {
       eyebrow: "Weekly client update",
@@ -1833,7 +1839,7 @@ const COPY = {
     appTitle: "Googleマップ・MEOの週次報告をすばやく作る",
     analyzePlaceholder: "店舗名と住所を入力",
     analyzeButton: "店舗を分析",
-    sampleReportCta: "サンプルレポートを見る",
+    sampleReportCta: "提出サンプルを見る",
     introText:
       "Flowmetricは、GoogleマップやGoogleビジネスプロフィールの競合チェックを、クライアントに出せる週次更新に変えるツールです。競合差分、根拠、何が変わったか、なぜ重要か、次に何を進めるかを1ページで整理します。",
     heroProofChips: [
@@ -1843,14 +1849,16 @@ const COPY = {
       "承認を取りやすい実行案",
     ],
     sampleReportEyebrow: "サンプル出力",
-    sampleReportTitle: "分析前に、提出レポートの中身を確認できます",
+    sampleReportTitle: "まず提出サンプルを確認できます",
     sampleReportSubtitle:
-      "有料価値の中心は、継続レポート業務です。変化、根拠、クライアントに承認を取る実行案を1つの流れで出します。",
-    sampleReportRunCta: "サンプル店舗で分析する",
-    sampleReportRunningCta: "サンプルを分析中...",
+      "自分の店舗を分析する前に、クライアント要約、根拠、推奨タスクまで含む公開サンプルを確認できます。",
+    sampleReportActionTitle: "提出用フルサンプル",
+    sampleReportRunCta: "提出サンプルを開く",
+    sampleReportRunningCta: "サンプルを開いています...",
     sampleReportComplete:
-      "サンプルレポートを表示しました。下のクライアント要約、根拠、推奨タスクを確認してください。",
-    sampleReportDemoNote: "公開サンプルとして Blue Bottle Coffee Shibuya Tokyo を使います。",
+      "提出サンプルを表示しました。下のクライアント要約、根拠、推奨タスクを確認してください。",
+    sampleReportDemoNote:
+      "Blue Bottle Coffee Shibuya Tokyo を公開サンプルとして実行し、下に生成レポートを表示します。",
     sampleReportDemoQuery: "Blue Bottle Coffee Shibuya Tokyo",
     sampleReportMockup: {
       eyebrow: "週次クライアント報告",
@@ -2939,6 +2947,9 @@ function renderStaticCopy() {
   if (sampleReportTitleEl) sampleReportTitleEl.textContent = t("sampleReportTitle");
   if (sampleReportSubtitleEl) sampleReportSubtitleEl.textContent = t("sampleReportSubtitle");
   updateSampleReportRunButton(btn?.disabled === true);
+  if (sampleReportActionTitleEl) {
+    sampleReportActionTitleEl.textContent = t("sampleReportActionTitle");
+  }
   if (sampleReportDemoNoteEl) sampleReportDemoNoteEl.textContent = t("sampleReportDemoNote");
   const sampleReportMockup = t("sampleReportMockup");
   if (sampleReportMockup && typeof sampleReportMockup === "object") {

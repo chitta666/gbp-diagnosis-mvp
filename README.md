@@ -265,6 +265,10 @@ Useful benchmark filters:
 - `/api/feedback-summary?intent=report_value_benchmark`
 - `/api/feedback-summary?intent=beta_value_benchmark`
 
+Local CLI:
+- `FEEDBACK_ADMIN_TOKEN=... npm run feedback:summary -- --tag value_benchmark`
+- `FEEDBACK_ADMIN_TOKEN=... npm run feedback:summary -- --intent report_value_benchmark --limit 20`
+
 ### Email alerts
 
 When mail is configured, `/api/health-check` can send alert mail for unhealthy runs.

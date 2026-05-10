@@ -87,6 +87,21 @@ async function assertBenchmarkSummary() {
   assert.equal(payload.returned, 1);
   assert.equal(payload.counts.byTag.value_benchmark, 1);
   assert.equal(payload.counts.byIntent.report_value_benchmark, 1);
+  assert.equal(payload.benchmarkStats.records, 1);
+  assert.equal(payload.benchmarkStats.withUsualPrepTime, 1);
+  assert.equal(payload.benchmarkStats.withFlowmetricTime, 1);
+  assert.equal(payload.benchmarkStats.withEstimatedMinutesSaved, 1);
+  assert.equal(payload.benchmarkStats.withReusableClientSentence, 1);
+  assert.equal(payload.benchmarkStats.withRewriteNeeds, 1);
+  assert.equal(payload.benchmarkStats.withTrustGaps, 1);
+  assert.deepEqual(payload.benchmarkStats.estimatedMinutesSaved, {
+    count: 1,
+    total: 33,
+    average: 33,
+    median: 33,
+    min: 33,
+    max: 33,
+  });
 
   const [record] = payload.recent;
   assert.equal(record.email, "o***@example.com");
@@ -108,6 +123,7 @@ async function assertIntentFilter() {
 
   assert.equal(response.status, 200);
   assert.equal(payload.returned, 1);
+  assert.equal(payload.benchmarkStats.records, 0);
   assert.equal(payload.recent[0].intent, "general_feedback");
   assert.equal(payload.recent[0].benchmark, null);
   assert.equal(payload.recent[0].email, "c***@example.com");

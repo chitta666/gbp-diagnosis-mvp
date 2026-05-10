@@ -269,6 +269,9 @@ Local CLI:
 - `FEEDBACK_ADMIN_TOKEN=... npm run feedback:summary -- --tag value_benchmark`
 - `FEEDBACK_ADMIN_TOKEN=... npm run feedback:summary -- --intent report_value_benchmark --limit 20`
 
+The response includes `benchmarkStats` for beta value checks, including records with usable
+prep-time fields and estimated minutes saved totals / averages.
+
 Local smoke test:
 - `npm run feedback:smoke`
 

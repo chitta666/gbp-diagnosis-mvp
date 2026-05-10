@@ -43,6 +43,10 @@ function compactText(value, max = 240) {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
+function roundNumber(value) {
+  return Math.round(value * 10) / 10;
+}
+
 function maskEmail(email) {
   const clean = String(email || "").trim().toLowerCase();
   if (!clean || !clean.includes("@")) return null;
@@ -98,11 +102,114 @@ function parseBenchmarkFields(message) {
   return fields;
 }
 
+function isBenchmarkRecord(record) {
+  const context = record?.context || {};
+  return (
+    record?.tags?.includes("value_benchmark") ||
+    ["beta_value_benchmark", "report_value_benchmark"].includes(context.intent)
+  );
+}
+
+function parseMinutes(value) {
+  const text = String(value || "").trim().toLowerCase().replace(/,/g, "");
+  if (!text) return null;
+
+  let total = 0;
+  let matchedUnit = false;
+  const hourPattern = /(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours|時間)/g;
+  const minutePattern = /(\d+(?:\.\d+)?)\s*(?:m|min|mins|minute|minutes|分)/g;
+
+  for (const match of text.matchAll(hourPattern)) {
+    total += Number(match[1]) * 60;
+    matchedUnit = true;
+  }
+
+  for (const match of text.matchAll(minutePattern)) {
+    total += Number(match[1]);
+    matchedUnit = true;
+  }
+
+  if (matchedUnit) return roundNumber(total);
+
+  const firstNumber = text.match(/(\d+(?:\.\d+)?)/);
+  return firstNumber ? roundNumber(Number(firstNumber[1])) : null;
+}
+
+function numberStats(values) {
+  const cleanValues = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+  if (!cleanValues.length) {
+    return {
+      count: 0,
+      total: 0,
+      average: null,
+      median: null,
+      min: null,
+      max: null,
+    };
+  }
+
+  const total = cleanValues.reduce((sum, value) => sum + value, 0);
+  const middle = Math.floor(cleanValues.length / 2);
+  const median =
+    cleanValues.length % 2 === 0
+      ? (cleanValues[middle - 1] + cleanValues[middle]) / 2
+      : cleanValues[middle];
+
+  return {
+    count: cleanValues.length,
+    total: roundNumber(total),
+    average: roundNumber(total / cleanValues.length),
+    median: roundNumber(median),
+    min: roundNumber(cleanValues[0]),
+    max: roundNumber(cleanValues[cleanValues.length - 1]),
+  };
+}
+
+function buildBenchmarkStats(records) {
+  const minutesSavedValues = [];
+  const stats = {
+    records: 0,
+    withUsualPrepTime: 0,
+    withFlowmetricTime: 0,
+    withEstimatedMinutesSaved: 0,
+    withReusableClientSentence: 0,
+    withRewriteNeeds: 0,
+    withTrustGaps: 0,
+  };
+
+  for (const record of records) {
+    if (!isBenchmarkRecord(record)) continue;
+    stats.records += 1;
+
+    const fields = parseBenchmarkFields(record.message);
+    const usualPrepTime = parseMinutes(fields.usualPrepTime);
+    const flowmetricTime = parseMinutes(fields.flowmetricTime);
+    const explicitMinutesSaved = parseMinutes(fields.estimatedMinutesSaved);
+    const derivedMinutesSaved =
+      explicitMinutesSaved == null && usualPrepTime != null && flowmetricTime != null
+        ? Math.max(0, usualPrepTime - flowmetricTime)
+        : null;
+    const minutesSaved = explicitMinutesSaved ?? derivedMinutesSaved;
+
+    if (usualPrepTime != null) stats.withUsualPrepTime += 1;
+    if (flowmetricTime != null) stats.withFlowmetricTime += 1;
+    if (minutesSaved != null) {
+      stats.withEstimatedMinutesSaved += 1;
+      minutesSavedValues.push(minutesSaved);
+    }
+    if (fields.reusableClientSentence) stats.withReusableClientSentence += 1;
+    if (fields.rewriteNeeds) stats.withRewriteNeeds += 1;
+    if (fields.trustGaps) stats.withTrustGaps += 1;
+  }
+
+  return {
+    ...stats,
+    estimatedMinutesSaved: numberStats(minutesSavedValues),
+  };
+}
+
 function summarizeRecord(record) {
   const context = record?.context || {};
-  const isBenchmark =
-    record?.tags?.includes("value_benchmark") ||
-    ["beta_value_benchmark", "report_value_benchmark"].includes(context.intent);
 
   return {
     id: record.id,
@@ -112,7 +219,7 @@ function summarizeRecord(record) {
     tags: Array.isArray(record.tags) ? record.tags : [],
     intent: context.intent || null,
     message: compactText(record.message, 700),
-    benchmark: isBenchmark ? parseBenchmarkFields(record.message) : null,
+    benchmark: isBenchmarkRecord(record) ? parseBenchmarkFields(record.message) : null,
     email: maskEmail(record.email),
     context: {
       page: context.page || null,
@@ -202,6 +309,7 @@ export async function onRequest({ request, env }) {
     scanned: rawRecords.length,
     returned: filtered.length,
     counts: buildCounts(filtered),
+    benchmarkStats: buildBenchmarkStats(filtered),
     recent: filtered.map(summarizeRecord),
   });
 }

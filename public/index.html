@@ -68,7 +68,7 @@
   <div id="analysisControls" class="row">
     <input id="urlInput" class="input" placeholder="Enter business name and address" />
     <button id="btn" class="btn btn--primary" type="button">Analyze Listing</button>
-    <a id="sampleReportLink" class="btn secondary sample-report-link" href="#sampleReportPreview">
+    <a id="sampleReportLink" class="btn secondary sample-report-link" href="/?lang=en&amp;sample=report">
       View full sample report
     </a>
   </div>
@@ -967,6 +967,7 @@ const DEFAULT_LANGUAGE = "en";
 const FREE_SAVED_LISTING_LIMIT = 3;
 const PRO_SAVED_LISTING_TARGET = 25;
 const PRO_MONTHLY_PRICE_JPY = 2980;
+const SAMPLE_REPORT_PARAM_VALUE = "report";
 
 const COPY = {
   en: {
@@ -2977,6 +2978,35 @@ function setUrlLanguage(lang) {
   window.history.replaceState({}, "", url.toString());
 }
 
+function isSampleReportRequest() {
+  const url = new URL(window.location.href);
+  return (
+    url.searchParams.get("sample") === SAMPLE_REPORT_PARAM_VALUE ||
+    url.searchParams.get("sampleReport") === "1"
+  );
+}
+
+function sampleReportUrl(lang = currentLanguage) {
+  const url = new URL(window.location.href);
+  url.pathname = "/";
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("lang", normalizeLanguage(lang));
+  url.searchParams.set("sample", SAMPLE_REPORT_PARAM_VALUE);
+  return url.toString();
+}
+
+function setUrlSampleReportParam(enabled) {
+  const url = new URL(window.location.href);
+  if (enabled) {
+    url.searchParams.set("sample", SAMPLE_REPORT_PARAM_VALUE);
+  } else {
+    url.searchParams.delete("sample");
+    url.searchParams.delete("sampleReport");
+  }
+  window.history.replaceState({}, "", url.toString());
+}
+
 function isClientShareView() {
   const url = new URL(window.location.href);
   return url.searchParams.get("view") === "client" || url.searchParams.get("client") === "1";
@@ -3020,7 +3050,10 @@ function renderStaticCopy() {
   if (appTitleEl) appTitleEl.textContent = t("appTitle");
   if (input) input.placeholder = t("analyzePlaceholder");
   if (btn) btn.textContent = t("analyzeButton");
-  if (sampleReportLinkEl) sampleReportLinkEl.textContent = t("sampleReportCta");
+  if (sampleReportLinkEl) {
+    sampleReportLinkEl.textContent = t("sampleReportCta");
+    sampleReportLinkEl.href = sampleReportUrl(currentLanguage);
+  }
   if (introTextEl) introTextEl.textContent = t("introText");
   if (clientViewNoticeEl && !clientViewNoticeEl.classList.contains("hidden")) {
     clientViewNoticeEl.textContent = t("clientViewNotice");
@@ -11389,6 +11422,7 @@ if (langToggleJa) {
 async function analyzeCurrentInput(options = {}) {
   const shouldFocusReport = options.focusReport === true;
   const completeMessageKey = options.completeMessageKey || "analysisComplete";
+  const isSampleReport = options.sampleReport === true;
 
   resetUI();
 
@@ -11397,6 +11431,10 @@ async function analyzeCurrentInput(options = {}) {
     hideCard();
     msg.textContent = t("missingQuery");
     return;
+  }
+
+  if (!isSampleReport) {
+    setUrlSampleReportParam(false);
   }
 
   setLoading(true);
@@ -11439,9 +11477,18 @@ async function analyzeCurrentInput(options = {}) {
 
 if (sampleReportRunBtn) {
   sampleReportRunBtn.addEventListener("click", async () => {
+    await openSampleReport({ syncUrl: true });
+  });
+}
+
+async function openSampleReport(options = {}) {
     if (sampleReportRunBusy) return;
     sampleReportRunBusy = true;
     updateSampleReportRunButton(true);
+
+    if (options.syncUrl) {
+      setUrlSampleReportParam(true);
+    }
 
     if (input) {
       input.value = t("sampleReportDemoQuery");
@@ -11451,12 +11498,12 @@ if (sampleReportRunBtn) {
       await analyzeCurrentInput({
         focusReport: true,
         completeMessageKey: "sampleReportComplete",
+        sampleReport: true,
       });
     } finally {
       sampleReportRunBusy = false;
       updateSampleReportRunButton(false);
     }
-  });
 }
 
 btn.addEventListener("click", analyzeCurrentInput);
@@ -11471,13 +11518,17 @@ renderSavedListings([]);
 (async () => {
   await detectInitialLanguage();
 
-  const savedId = new URL(window.location.href).searchParams.get("saved");
+  const initialUrl = new URL(window.location.href);
+  const savedId = initialUrl.searchParams.get("saved");
+  const shouldOpenSampleReport = isSampleReportRequest();
 
   if (savedId) {
     await openSavedListing(savedId, {
       pushState: false,
       ensureSavedListingVisible: true,
     });
+  } else if (shouldOpenSampleReport) {
+    await openSampleReport();
   }
 
   if (isLikelyEmail(getSubscriberEmail())) {

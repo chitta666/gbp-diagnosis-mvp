@@ -218,6 +218,28 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
         <p data-operator-workflow-body="2">Turn the analysis into a concrete client ask before the next check-in.</p>
       </div>
     </div>
+    <div class="operator-workflow__revisit" aria-labelledby="operatorWorkflowRevisitTitle">
+      <div class="operator-workflow__revisit-copy">
+        <span id="operatorWorkflowRevisitLabel" class="operator-workflow__revisit-label">Saved baseline -> next check</span>
+        <strong id="operatorWorkflowRevisitTitle">Show what changes after the first saved report</strong>
+        <p id="operatorWorkflowRevisitBody">
+          The first save becomes the baseline. The next visit reopens the same listing and competitor so the report can show movement, evidence quality, and one approval request.
+        </p>
+      </div>
+      <div class="operator-workflow__revisit-flow">
+        <div class="operator-workflow__revisit-card">
+          <span data-operator-revisit-card-kicker="0">Today</span>
+          <strong data-operator-revisit-card-title="0">Baseline report</strong>
+          <p data-operator-revisit-card-body="0">Save competitor, proof gaps, review signals, and first task.</p>
+        </div>
+        <span class="operator-workflow__revisit-arrow">→</span>
+        <div class="operator-workflow__revisit-card operator-workflow__revisit-card--next">
+          <span data-operator-revisit-card-kicker="1">Next week</span>
+          <strong data-operator-revisit-card-title="1">Weekly diff</strong>
+          <p data-operator-revisit-card-body="1">Show what moved and what to ask the client to approve.</p>
+        </div>
+      </div>
+    </div>
     <div class="operator-workflow__price-row">
       <span id="operatorWorkflowPriceLabel" class="operator-workflow__price-label">Pro beta target</span>
       <strong id="operatorWorkflowPrice" class="operator-workflow__price">¥2,980/mo</strong>
@@ -749,6 +771,18 @@ const operatorWorkflowSubtitleEl = document.getElementById("operatorWorkflowSubt
 const operatorWorkflowStepEls = Array.from(document.querySelectorAll("[data-operator-workflow-step]"));
 const operatorWorkflowTitleEls = Array.from(document.querySelectorAll("[data-operator-workflow-title]"));
 const operatorWorkflowBodyEls = Array.from(document.querySelectorAll("[data-operator-workflow-body]"));
+const operatorWorkflowRevisitLabelEl = document.getElementById("operatorWorkflowRevisitLabel");
+const operatorWorkflowRevisitTitleEl = document.getElementById("operatorWorkflowRevisitTitle");
+const operatorWorkflowRevisitBodyEl = document.getElementById("operatorWorkflowRevisitBody");
+const operatorWorkflowRevisitCardKickerEls = Array.from(
+  document.querySelectorAll("[data-operator-revisit-card-kicker]")
+);
+const operatorWorkflowRevisitCardTitleEls = Array.from(
+  document.querySelectorAll("[data-operator-revisit-card-title]")
+);
+const operatorWorkflowRevisitCardBodyEls = Array.from(
+  document.querySelectorAll("[data-operator-revisit-card-body]")
+);
 const operatorWorkflowPriceLabelEl = document.getElementById("operatorWorkflowPriceLabel");
 const operatorWorkflowPriceEl = document.getElementById("operatorWorkflowPrice");
 const operatorWorkflowPriceHintEl = document.getElementById("operatorWorkflowPriceHint");
@@ -1084,6 +1118,22 @@ const COPY = {
     operatorWorkflowPrice: "¥{price}/mo",
     operatorWorkflowPriceHint:
       "For operators who need recurring reports across saved client locations.",
+    operatorWorkflowRevisitLabel: "Saved baseline -> next check",
+    operatorWorkflowRevisitTitle: "Show what changes after the first saved report",
+    operatorWorkflowRevisitBody:
+      "The first save becomes the baseline. The next visit reopens the same listing and competitor so the report can show movement, evidence quality, and one approval request.",
+    operatorWorkflowRevisitCards: [
+      {
+        kicker: "Today",
+        title: "Baseline report",
+        body: "Save competitor, proof gaps, review signals, and first task.",
+      },
+      {
+        kicker: "Next week",
+        title: "Weekly diff",
+        body: "Show what moved and what to ask the client to approve.",
+      },
+    ],
     workflowReplacementEyebrow: "What this replaces",
     workflowReplacementTitle: "Less manual checking before each client update",
     workflowReplacementSubtitle:
@@ -2021,6 +2071,22 @@ const COPY = {
     operatorWorkflowPrice: "月額 {price}円",
     operatorWorkflowPriceHint:
       "保存したクライアント店舗を継続的にレポートする運用者向けです。",
+    operatorWorkflowRevisitLabel: "基準保存 -> 次回チェック",
+    operatorWorkflowRevisitTitle: "初回保存のあと、翌週に何が変わるかを見せる",
+    operatorWorkflowRevisitBody:
+      "初回保存を基準にし、次回は同じ店舗と競合で差分・根拠・承認依頼を確認できます。",
+    operatorWorkflowRevisitCards: [
+      {
+        kicker: "今日",
+        title: "基準レポート",
+        body: "競合、根拠の差、レビュー傾向、最初の実行案を保存。",
+      },
+      {
+        kicker: "翌週",
+        title: "週次差分",
+        body: "同じ比較で何が動いたか、次に何を承認してもらうかを確認。",
+      },
+    ],
     workflowReplacementEyebrow: "置き換える作業",
     workflowReplacementTitle: "クライアント報告前の手作業を減らす",
     workflowReplacementSubtitle:
@@ -3155,6 +3221,27 @@ function renderStaticCopy() {
   }
   if (operatorWorkflowPriceHintEl) {
     operatorWorkflowPriceHintEl.textContent = t("operatorWorkflowPriceHint");
+  }
+  if (operatorWorkflowRevisitLabelEl) {
+    operatorWorkflowRevisitLabelEl.textContent = t("operatorWorkflowRevisitLabel");
+  }
+  if (operatorWorkflowRevisitTitleEl) {
+    operatorWorkflowRevisitTitleEl.textContent = t("operatorWorkflowRevisitTitle");
+  }
+  if (operatorWorkflowRevisitBodyEl) {
+    operatorWorkflowRevisitBodyEl.textContent = t("operatorWorkflowRevisitBody");
+  }
+  const operatorWorkflowRevisitCards = t("operatorWorkflowRevisitCards");
+  if (Array.isArray(operatorWorkflowRevisitCards)) {
+    operatorWorkflowRevisitCardKickerEls.forEach((kickerEl, index) => {
+      kickerEl.textContent = operatorWorkflowRevisitCards[index]?.kicker || kickerEl.textContent;
+    });
+    operatorWorkflowRevisitCardTitleEls.forEach((titleEl, index) => {
+      titleEl.textContent = operatorWorkflowRevisitCards[index]?.title || titleEl.textContent;
+    });
+    operatorWorkflowRevisitCardBodyEls.forEach((bodyEl, index) => {
+      bodyEl.textContent = operatorWorkflowRevisitCards[index]?.body || bodyEl.textContent;
+    });
   }
   if (workflowReplacementEyebrowEl) {
     workflowReplacementEyebrowEl.textContent = t("workflowReplacementEyebrow");

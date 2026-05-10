@@ -879,6 +879,112 @@ body.client-share-view .print-cover__meta-value {
   line-height: 1.5;
 }
 
+.operator-workflow__revisit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 1.25fr);
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(4, 120, 87, 0.13);
+  border-radius: var(--r-1);
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.11), transparent 38%),
+    rgba(255, 255, 255, 0.78);
+}
+
+.operator-workflow__revisit-copy {
+  min-width: 0;
+}
+
+.operator-workflow__revisit-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid rgba(4, 120, 87, 0.16);
+  border-radius: 999px;
+  background: rgba(236, 253, 245, 0.82);
+  color: #047857;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.operator-workflow__revisit-copy strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.operator-workflow__revisit-copy p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+
+.operator-workflow__revisit-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.operator-workflow__revisit-card {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.operator-workflow__revisit-card--next {
+  border-color: rgba(4, 120, 87, 0.18);
+  background: rgba(236, 253, 245, 0.9);
+}
+
+.operator-workflow__revisit-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.operator-workflow__revisit-card strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.operator-workflow__revisit-card p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.operator-workflow__revisit-arrow {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #047857;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .operator-workflow__price-row {
   display: flex;
   flex-wrap: wrap;
@@ -4341,6 +4447,19 @@ body.client-share-view .print-cover__meta-value {
 
   .operator-workflow__grid {
     grid-template-columns: 1fr;
+  }
+
+  .operator-workflow__revisit {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-workflow__revisit-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-workflow__revisit-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
   }
 
   .workflow-replacement__grid {

@@ -172,6 +172,13 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
         </p>
       </div>
     </div>
+    <div class="sample-report-preview__guardrail">
+      <span id="sampleReportGuardrailLabel">Evidence guardrail</span>
+      <strong id="sampleReportGuardrailTitle">Thin review evidence is labeled before it becomes a recommendation</strong>
+      <p id="sampleReportGuardrailBody">
+        When recent visible reviews are limited, Flowmetric avoids overclaiming the trend and turns the report into the next proof to collect.
+      </p>
+    </div>
     <div class="sample-report-preview__actions">
       <div class="sample-report-preview__action-copy">
         <strong id="sampleReportActionTitle">Full report sample</strong>
@@ -724,6 +731,9 @@ const sampleReportCardBodyEls = Array.from(document.querySelectorAll("[data-samp
 const sampleReportCaseTypeEls = Array.from(document.querySelectorAll("[data-sample-case-type]"));
 const sampleReportCaseTitleEls = Array.from(document.querySelectorAll("[data-sample-case-title]"));
 const sampleReportCaseBodyEls = Array.from(document.querySelectorAll("[data-sample-case-body]"));
+const sampleReportGuardrailLabelEl = document.getElementById("sampleReportGuardrailLabel");
+const sampleReportGuardrailTitleEl = document.getElementById("sampleReportGuardrailTitle");
+const sampleReportGuardrailBodyEl = document.getElementById("sampleReportGuardrailBody");
 const sampleReportRunBtn = document.getElementById("sampleReportRunBtn");
 const sampleReportActionTitleEl = document.getElementById("sampleReportActionTitle");
 const sampleReportDemoNoteEl = document.getElementById("sampleReportDemoNote");
@@ -1035,6 +1045,11 @@ const COPY = {
         body: "Flag low-signal cases clearly and suggest the next proof to collect before overclaiming a trend.",
       },
     ],
+    sampleReportGuardrailLabel: "Evidence guardrail",
+    sampleReportGuardrailTitle:
+      "Thin review evidence is labeled before it becomes a recommendation",
+    sampleReportGuardrailBody:
+      "When recent visible reviews are limited, Flowmetric avoids overclaiming the trend and turns the report into the next proof to collect.",
     operatorWorkflowEyebrow: "Built for weekly client reporting",
     operatorWorkflowTitle: "Best fit: consultants managing 5-20 client listings",
     operatorWorkflowSubtitle:
@@ -1964,6 +1979,11 @@ const COPY = {
         body: "レビュー本文が少ないケースでは、傾向を過度に断定せず、次回までに集めるべき根拠を明確にします。",
       },
     ],
+    sampleReportGuardrailLabel: "根拠のガードレール",
+    sampleReportGuardrailTitle:
+      "レビュー根拠が薄いときは、提案前に明示します",
+    sampleReportGuardrailBody:
+      "直近で見えているレビュー本文が少ない場合、傾向を言い切らず、次回までに集めるべき根拠へ落とします。",
     operatorWorkflowEyebrow: "週次のクライアント報告向け",
     operatorWorkflowTitle: "最も合うのは、5〜20件のクライアント店舗を運用するGoogleマップ・MEO担当者",
     operatorWorkflowSubtitle:
@@ -3052,6 +3072,15 @@ function renderStaticCopy() {
     sampleReportCaseBodyEls.forEach((bodyEl, index) => {
       bodyEl.textContent = sampleCases[index]?.body || bodyEl.textContent;
     });
+  }
+  if (sampleReportGuardrailLabelEl) {
+    sampleReportGuardrailLabelEl.textContent = t("sampleReportGuardrailLabel");
+  }
+  if (sampleReportGuardrailTitleEl) {
+    sampleReportGuardrailTitleEl.textContent = t("sampleReportGuardrailTitle");
+  }
+  if (sampleReportGuardrailBodyEl) {
+    sampleReportGuardrailBodyEl.textContent = t("sampleReportGuardrailBody");
   }
   if (operatorWorkflowEyebrowEl) operatorWorkflowEyebrowEl.textContent = t("operatorWorkflowEyebrow");
   if (operatorWorkflowTitleEl) operatorWorkflowTitleEl.textContent = t("operatorWorkflowTitle");

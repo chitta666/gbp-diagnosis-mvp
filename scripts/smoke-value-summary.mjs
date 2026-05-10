@@ -80,6 +80,11 @@ const summary = buildValueSummary({
 });
 
 assert.equal(summary.signal, "early");
+assert.equal(summary.decision.status, "collecting");
+assert.equal(summary.decision.metrics.benchmarkRecords, 2);
+assert.equal(summary.decision.metrics.averageSavedMinutes, 27.5);
+assert.equal(summary.decision.metrics.submittedPerClick, 0.5);
+assert.match(summary.decision.blockers.join("\n"), /Need 1 more structured benchmark/);
 assert.equal(summary.events.benchmarkFunnel.total.clicked, 4);
 assert.equal(summary.events.benchmarkFunnel.total.submitted, 2);
 assert.equal(summary.events.benchmarkFunnel.total.submittedPerClick, 0.5);
@@ -92,6 +97,7 @@ assert.match(summary.recommendations.join("\n"), /Keep collecting benchmark resp
 
 const rendered = formatValueSummary(summary);
 assert.match(rendered, /value proof: early/);
+assert.match(rendered, /value decision: collecting/);
 assert.match(rendered, /benchmark funnel: clicked=4 submitted=2 rate=50%/);
 assert.match(rendered, /saved=count:2, total:55m/);
 assert.match(rendered, /Coffee Sample vs Nearby Cafe/);
@@ -116,6 +122,44 @@ const emptySummary = buildValueSummary({
 });
 
 assert.equal(emptySummary.signal, "thin");
+assert.equal(emptySummary.decision.status, "not_enough_signal");
 assert.match(emptySummary.recommendations.join("\n"), /Drive 3-5 report viewers/);
+
+const strongSummary = buildValueSummary({
+  feedbackPayload: {
+    benchmarkStats: {
+      records: 5,
+      withUsualPrepTime: 5,
+      withFlowmetricTime: 5,
+      withEstimatedMinutesSaved: 5,
+      withReusableClientSentence: 4,
+      withRewriteNeeds: 0,
+      withTrustGaps: 0,
+      estimatedMinutesSaved: {
+        count: 5,
+        total: 165,
+        average: 33,
+        median: 30,
+        min: 25,
+        max: 45,
+      },
+    },
+    recent: [],
+  },
+  eventsPayload: {
+    benchmarkFunnel: {
+      total: {
+        clicked: 8,
+        submitted: 4,
+        submittedPerClick: 0.5,
+      },
+    },
+  },
+  generatedAt: "2026-05-10T12:00:00.000Z",
+});
+
+assert.equal(strongSummary.signal, "measurable");
+assert.equal(strongSummary.decision.status, "strong");
+assert.equal(strongSummary.decision.blockers.length, 0);
 
 console.log("value-summary smoke passed");

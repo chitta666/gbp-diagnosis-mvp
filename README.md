@@ -308,6 +308,15 @@ The command combines:
 - benchmark CTA click / submit funnel from `/api/events-summary`
 - recommended next actions for the value-validation loop
 
+It also prints an internal value decision for the `¥2,980/mo` Pro beta hypothesis:
+- `not_enough_signal`: no meaningful CTA / feedback signal yet
+- `collecting`: some clicks or records exist, but the sample is too thin
+- `needs_proof_copy`: time-saved signal exists, but reusable client-language proof is still thin
+- `promising`: minimum benchmark sample, time-saved signal, and CTA submit rate are acceptable
+- `strong`: stronger sample and saved-time signal are present
+
+These thresholds are internal operating guidance, not public marketing claims.
+
 Local smoke test:
 - `npm run value:smoke`
 

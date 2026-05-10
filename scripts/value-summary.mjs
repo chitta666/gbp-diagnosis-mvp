@@ -99,6 +99,101 @@ function collectBenchmarkNotes(records = [], field, limit = 3) {
     }));
 }
 
+function buildValueDecision({ benchmarkRecords, savedStats, totalFunnel, fieldCoverage }) {
+  const savedCount = numberOrZero(savedStats.count);
+  const averageSavedMinutes = numberOrZero(savedStats.average);
+  const submittedPerClick = Number(totalFunnel.submittedPerClick);
+  const reusableSentences = numberOrZero(fieldCoverage.withReusableClientSentence);
+  const clicked = numberOrZero(totalFunnel.clicked);
+  const submitted = numberOrZero(totalFunnel.submitted);
+  const hasSubmitRate = Number.isFinite(submittedPerClick);
+
+  const targets = {
+    minimumBenchmarkRecords: 3,
+    minimumAverageSavedMinutes: 20,
+    strongBenchmarkRecords: 5,
+    strongAverageSavedMinutes: 30,
+    minimumSubmittedPerClick: 0.35,
+    minimumReusableClientSentences: 3,
+  };
+
+  const blockers = [];
+  const strengths = [];
+
+  if (benchmarkRecords < targets.minimumBenchmarkRecords) {
+    blockers.push(
+      `Need ${targets.minimumBenchmarkRecords - benchmarkRecords} more structured benchmark record(s).`
+    );
+  } else {
+    strengths.push("Minimum structured benchmark sample reached.");
+  }
+
+  if (savedCount < targets.minimumBenchmarkRecords) {
+    blockers.push(`Need ${targets.minimumBenchmarkRecords - savedCount} more usable time-saved record(s).`);
+  } else if (averageSavedMinutes < targets.minimumAverageSavedMinutes) {
+    blockers.push(`Average saved time is ${averageSavedMinutes}m; target is at least ${targets.minimumAverageSavedMinutes}m.`);
+  } else {
+    strengths.push(`Average saved time is ${averageSavedMinutes}m.`);
+  }
+
+  if (clicked === 0) {
+    blockers.push("No benchmark CTA clicks yet.");
+  } else if (submitted === 0) {
+    blockers.push("Benchmark CTA has clicks but no submissions yet.");
+  } else if (hasSubmitRate && submittedPerClick < targets.minimumSubmittedPerClick) {
+    blockers.push(
+      `Benchmark submit rate is ${formatRate(submittedPerClick)}; target is at least ${formatRate(
+        targets.minimumSubmittedPerClick
+      )}.`
+    );
+  } else {
+    strengths.push(`Benchmark submit rate is ${formatRate(submittedPerClick)}.`);
+  }
+
+  if (reusableSentences < targets.minimumReusableClientSentences) {
+    blockers.push(
+      `Need ${targets.minimumReusableClientSentences - reusableSentences} more reusable client sentence(s).`
+    );
+  } else {
+    strengths.push("Enough reusable client-language proof exists.");
+  }
+
+  let status = "not_enough_signal";
+  if (
+    benchmarkRecords >= targets.strongBenchmarkRecords &&
+    savedCount >= targets.strongBenchmarkRecords &&
+    averageSavedMinutes >= targets.strongAverageSavedMinutes &&
+    (!hasSubmitRate || submittedPerClick >= targets.minimumSubmittedPerClick) &&
+    reusableSentences >= targets.minimumReusableClientSentences
+  ) {
+    status = "strong";
+  } else if (
+    benchmarkRecords >= targets.minimumBenchmarkRecords &&
+    savedCount >= targets.minimumBenchmarkRecords &&
+    averageSavedMinutes >= targets.minimumAverageSavedMinutes &&
+    (!hasSubmitRate || submittedPerClick >= targets.minimumSubmittedPerClick)
+  ) {
+    status = reusableSentences >= targets.minimumReusableClientSentences ? "promising" : "needs_proof_copy";
+  } else if (benchmarkRecords > 0 || submitted > 0 || clicked > 0) {
+    status = "collecting";
+  }
+
+  return {
+    target: "¥2,980/mo Pro beta value",
+    status,
+    targets,
+    metrics: {
+      benchmarkRecords,
+      savedCount,
+      averageSavedMinutes,
+      submittedPerClick: roundedRate(submittedPerClick),
+      reusableClientSentences: reusableSentences,
+    },
+    blockers,
+    strengths,
+  };
+}
+
 function buildRecommendationList({ benchmarkRecords, savedStats, totalFunnel, fieldCoverage }) {
   const clicked = numberOrZero(totalFunnel.clicked);
   const submitted = numberOrZero(totalFunnel.submitted);
@@ -206,6 +301,13 @@ export function buildValueSummary({ feedbackPayload = {}, eventsPayload = {}, ge
     },
   };
 
+  summary.decision = buildValueDecision({
+    benchmarkRecords,
+    savedStats,
+    totalFunnel: summary.events.benchmarkFunnel.total,
+    fieldCoverage,
+  });
+
   summary.recommendations = buildRecommendationList({
     benchmarkRecords,
     savedStats,
@@ -218,9 +320,16 @@ export function buildValueSummary({ feedbackPayload = {}, eventsPayload = {}, ge
 
 export function formatValueSummary(summary) {
   const total = summary.events.benchmarkFunnel.total;
+  const decision = summary.decision || {};
+  const decisionMetrics = decision.metrics || {};
   const lines = [
     `value summary generatedAt=${summary.generatedAt}`,
     `value proof: ${summary.signal}`,
+    `value decision: ${decision.status || "unknown"} (${decision.target || "value target"}; records ${
+      decisionMetrics.benchmarkRecords || 0
+    }/${decision.targets?.minimumBenchmarkRecords || 3}; avgSaved=${decisionMetrics.averageSavedMinutes || 0}m; submitRate=${formatRate(
+      decisionMetrics.submittedPerClick
+    )})`,
     `benchmark funnel: clicked=${total.clicked || 0} submitted=${total.submitted || 0} rate=${formatRate(
       total.submittedPerClick
     )}`,
@@ -241,6 +350,11 @@ export function formatValueSummary(summary) {
   summary.recommendations.forEach((item, index) => {
     lines.push(`${index + 1}. ${item}`);
   });
+
+  if (Array.isArray(decision.blockers) && decision.blockers.length) {
+    lines.push("", "decision gaps:");
+    decision.blockers.forEach((item) => lines.push(`- ${item}`));
+  }
 
   if (summary.recentProof.length) {
     lines.push("", "recent proof:");

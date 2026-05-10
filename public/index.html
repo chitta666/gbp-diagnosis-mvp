@@ -149,6 +149,29 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
         </div>
       </div>
     </div>
+    <div class="sample-report-preview__cases" aria-label="Sample report cases">
+      <div class="sample-report-preview__case">
+        <span data-sample-case-type="0">Cafe / retail</span>
+        <strong data-sample-case-title="0">Show why nearby shoppers should choose this listing</strong>
+        <p data-sample-case-body="0">
+          Compare review momentum, visible photos, and the strongest customer-choice gap against a direct nearby competitor.
+        </p>
+      </div>
+      <div class="sample-report-preview__case">
+        <span data-sample-case-type="1">Beauty / salon</span>
+        <strong data-sample-case-title="1">Turn review themes into a client-safe proof task</strong>
+        <p data-sample-case-body="1">
+          Separate technique, service, atmosphere, and price signals so the next task matches what customers actually mention.
+        </p>
+      </div>
+      <div class="sample-report-preview__case">
+        <span data-sample-case-type="2">Hotel / local service</span>
+        <strong data-sample-case-title="2">Use caution when review evidence is thin</strong>
+        <p data-sample-case-body="2">
+          Flag low-signal cases clearly and suggest the next proof to collect before overclaiming a trend.
+        </p>
+      </div>
+    </div>
     <div class="sample-report-preview__actions">
       <button id="sampleReportRunBtn" class="btn btn--primary" type="button">
         Analyze sample listing
@@ -667,6 +690,9 @@ const sampleReportMockupEls = Array.from(document.querySelectorAll("[data-sample
 const sampleReportCardLabelEls = Array.from(document.querySelectorAll("[data-sample-card-label]"));
 const sampleReportCardTitleEls = Array.from(document.querySelectorAll("[data-sample-card-title]"));
 const sampleReportCardBodyEls = Array.from(document.querySelectorAll("[data-sample-card-body]"));
+const sampleReportCaseTypeEls = Array.from(document.querySelectorAll("[data-sample-case-type]"));
+const sampleReportCaseTitleEls = Array.from(document.querySelectorAll("[data-sample-case-title]"));
+const sampleReportCaseBodyEls = Array.from(document.querySelectorAll("[data-sample-case-body]"));
 const sampleReportRunBtn = document.getElementById("sampleReportRunBtn");
 const sampleReportDemoNoteEl = document.getElementById("sampleReportDemoNote");
 const operatorWorkflowEyebrowEl = document.getElementById("operatorWorkflowEyebrow");
@@ -945,6 +971,23 @@ const COPY = {
         label: "Recommended task",
         title: "What to ask the client to approve",
         body: "The report ends with the task, why it matters now, and the approval request for the next check.",
+      },
+    ],
+    sampleReportCases: [
+      {
+        type: "Cafe / retail",
+        title: "Show why nearby shoppers should choose this listing",
+        body: "Compare review momentum, visible photos, and the strongest customer-choice gap against a direct nearby competitor.",
+      },
+      {
+        type: "Beauty / salon",
+        title: "Turn review themes into a client-safe proof task",
+        body: "Separate technique, service, atmosphere, and price signals so the next task matches what customers actually mention.",
+      },
+      {
+        type: "Hotel / local service",
+        title: "Use caution when review evidence is thin",
+        body: "Flag low-signal cases clearly and suggest the next proof to collect before overclaiming a trend.",
       },
     ],
     operatorWorkflowEyebrow: "Built for weekly client reporting",
@@ -1837,6 +1880,23 @@ const COPY = {
         label: "今週の推奨タスク",
         title: "クライアントに何を承認してもらうか",
         body: "実行案、今やる理由、次回チェックまでに進める承認事項をまとめます。",
+      },
+    ],
+    sampleReportCases: [
+      {
+        type: "カフェ / 小売",
+        title: "近くの候補と比べて、なぜ選ばれるべきかを見せる",
+        body: "レビューの勢い、見える写真、来店前に伝わる強みの差を、直接比較しやすい近隣競合と比べます。",
+      },
+      {
+        type: "美容 / サロン",
+        title: "レビュー傾向を、クライアントに出せる実行案に変える",
+        body: "技術、接客、雰囲気、価格の声を分けて、実際に顧客が触れている内容に合わせた次のタスクへ落とします。",
+      },
+      {
+        type: "宿泊 / ローカルサービス",
+        title: "根拠が薄いときは、言い切らずに次の根拠を集める",
+        body: "レビュー本文が少ないケースでは、傾向を過度に断定せず、次回までに集めるべき根拠を明確にします。",
       },
     ],
     operatorWorkflowEyebrow: "週次のクライアント報告向け",
@@ -2893,6 +2953,18 @@ function renderStaticCopy() {
     });
     sampleReportCardBodyEls.forEach((bodyEl, index) => {
       bodyEl.textContent = sampleCards[index]?.body || bodyEl.textContent;
+    });
+  }
+  const sampleCases = t("sampleReportCases");
+  if (Array.isArray(sampleCases)) {
+    sampleReportCaseTypeEls.forEach((typeEl, index) => {
+      typeEl.textContent = sampleCases[index]?.type || typeEl.textContent;
+    });
+    sampleReportCaseTitleEls.forEach((titleEl, index) => {
+      titleEl.textContent = sampleCases[index]?.title || titleEl.textContent;
+    });
+    sampleReportCaseBodyEls.forEach((bodyEl, index) => {
+      bodyEl.textContent = sampleCases[index]?.body || bodyEl.textContent;
     });
   }
   if (operatorWorkflowEyebrowEl) operatorWorkflowEyebrowEl.textContent = t("operatorWorkflowEyebrow");

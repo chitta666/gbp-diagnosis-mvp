@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildValueSummary, formatValueSummary } from "./value-summary.mjs";
+import { buildValueSummary, formatValueSummary, formatValueSummaryMarkdown } from "./value-summary.mjs";
 
 const feedbackPayload = {
   returned: 2,
@@ -101,6 +101,13 @@ assert.match(rendered, /value decision: collecting/);
 assert.match(rendered, /benchmark funnel: clicked=4 submitted=2 rate=50%/);
 assert.match(rendered, /saved=count:2, total:55m/);
 assert.match(rendered, /Coffee Sample vs Nearby Cafe/);
+
+const renderedMarkdown = formatValueSummaryMarkdown(summary);
+assert.match(renderedMarkdown, /# Flowmetric Value Summary/);
+assert.match(renderedMarkdown, /\| Decision status \| collecting \|/);
+assert.match(renderedMarkdown, /\| Submitted per click \| 50% \|/);
+assert.match(renderedMarkdown, /## Decision Gaps/);
+assert.match(renderedMarkdown, /Coffee Sample vs Nearby Cafe: saved 35分/);
 
 const emptySummary = buildValueSummary({
   feedbackPayload: {

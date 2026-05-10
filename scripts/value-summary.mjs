@@ -66,6 +66,11 @@ function formatMinuteStats(stats = {}) {
   ].join(", ");
 }
 
+function normalizeFormat(value) {
+  const format = String(value || "").trim().toLowerCase();
+  return ["text", "markdown", "json"].includes(format) ? format : "text";
+}
+
 function compactText(value, max = 180) {
   const text = String(value || "").replace(/\s+/g, " ").trim();
   if (text.length <= max) return text;
@@ -381,6 +386,97 @@ export function formatValueSummary(summary) {
   return lines.join("\n");
 }
 
+function markdownCell(value) {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .replace(/\|/g, "\\|")
+    .trim();
+}
+
+function markdownList(items = [], fallback = "- none") {
+  if (!Array.isArray(items) || !items.length) return fallback;
+  return items.map((item) => `- ${item}`).join("\n");
+}
+
+export function formatValueSummaryMarkdown(summary) {
+  const total = summary.events.benchmarkFunnel.total;
+  const decision = summary.decision || {};
+  const metrics = decision.metrics || {};
+  const lines = [
+    `# Flowmetric Value Summary`,
+    "",
+    `Generated: ${summary.generatedAt}`,
+    "",
+    `## Decision`,
+    "",
+    `| Field | Value |`,
+    `| --- | --- |`,
+    `| Value proof | ${markdownCell(summary.signal)} |`,
+    `| Decision status | ${markdownCell(decision.status || "unknown")} |`,
+    `| Target | ${markdownCell(decision.target || "value target")} |`,
+    `| Benchmark records | ${markdownCell(`${metrics.benchmarkRecords || 0}/${decision.targets?.minimumBenchmarkRecords || 3}`)} |`,
+    `| Average saved time | ${markdownCell(`${metrics.averageSavedMinutes || 0}m`)} |`,
+    `| Benchmark submit rate | ${markdownCell(formatRate(metrics.submittedPerClick))} |`,
+    `| Reusable client sentences | ${markdownCell(metrics.reusableClientSentences || 0)} |`,
+    "",
+    `## Funnel`,
+    "",
+    `| Metric | Value |`,
+    `| --- | --- |`,
+    `| Clicked | ${markdownCell(total.clicked || 0)} |`,
+    `| Submitted | ${markdownCell(total.submitted || 0)} |`,
+    `| Submitted per click | ${markdownCell(formatRate(total.submittedPerClick))} |`,
+    "",
+    `## Feedback`,
+    "",
+    `| Metric | Value |`,
+    `| --- | --- |`,
+    `| Benchmark records | ${markdownCell(summary.feedback.benchmarkRecords || 0)} |`,
+    `| Estimated minutes saved | ${markdownCell(formatMinuteStats(summary.feedback.estimatedMinutesSaved))} |`,
+    `| Usual prep fields | ${markdownCell(summary.feedback.fieldCoverage.withUsualPrepTime || 0)} |`,
+    `| Flowmetric time fields | ${markdownCell(summary.feedback.fieldCoverage.withFlowmetricTime || 0)} |`,
+    `| Reusable sentence fields | ${markdownCell(summary.feedback.fieldCoverage.withReusableClientSentence || 0)} |`,
+    `| Rewrite needs fields | ${markdownCell(summary.feedback.fieldCoverage.withRewriteNeeds || 0)} |`,
+    `| Trust gaps fields | ${markdownCell(summary.feedback.fieldCoverage.withTrustGaps || 0)} |`,
+    "",
+    `## Next Actions`,
+    "",
+    markdownList(summary.recommendations),
+  ];
+
+  if (Array.isArray(decision.blockers) && decision.blockers.length) {
+    lines.push("", "## Decision Gaps", "", markdownList(decision.blockers));
+  }
+
+  if (Array.isArray(decision.strengths) && decision.strengths.length) {
+    lines.push("", "## Strengths", "", markdownList(decision.strengths));
+  }
+
+  if (summary.recentProof.length) {
+    lines.push("", "## Recent Proof", "");
+    summary.recentProof.forEach((record) => {
+      const context = [record.placeName, record.competitorName ? `vs ${record.competitorName}` : ""]
+        .filter(Boolean)
+        .join(" ");
+      lines.push(`- ${context || record.intent || "benchmark record"}: saved ${record.estimatedMinutesSaved}`);
+      if (record.reusableClientSentence) lines.push(`  - reusable: ${record.reusableClientSentence}`);
+    });
+  }
+
+  const gaps = [...summary.openQuestions.trustGaps, ...summary.openQuestions.rewriteNeeds].slice(0, 5);
+  if (gaps.length) {
+    lines.push("", "## Open Questions", "");
+    gaps.forEach((item) => {
+      const context = [item.placeName, item.competitorName ? `vs ${item.competitorName}` : ""]
+        .filter(Boolean)
+        .join(" ");
+      lines.push(`- ${context || item.createdAt || "benchmark"}: ${item.value}`);
+    });
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
 async function fetchJsonEndpoint({ origin, token, endpoint, params = {} }) {
   const url = new URL(`${origin}${endpoint}`);
   Object.entries(params).forEach(([key, value]) => addParam(url, key, value));
@@ -415,6 +511,13 @@ async function writeOutputIfRequested(outputPath, payload) {
   await fs.writeFile(fullPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
+async function writeTextOutputIfRequested(outputPath, text) {
+  if (!outputPath) return;
+  const fullPath = path.resolve(outputPath);
+  await fs.mkdir(path.dirname(fullPath), { recursive: true });
+  await fs.writeFile(fullPath, text.endsWith("\n") ? text : `${text}\n`, "utf8");
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const origin = normalizeOrigin(
@@ -422,6 +525,10 @@ async function main() {
   );
   const token = String(args.token || process.env.FEEDBACK_ADMIN_TOKEN || "").trim();
   const outputPath = String(args.output || process.env.VALUE_SUMMARY_OUTPUT || "").trim();
+  const markdownOutputPath = String(
+    args["markdown-output"] || process.env.VALUE_SUMMARY_MARKDOWN_OUTPUT || ""
+  ).trim();
+  const format = normalizeFormat(args.format || process.env.VALUE_SUMMARY_FORMAT || "text");
 
   if (!origin) {
     throw new Error("Set --origin or VALUE_SUMMARY_ORIGIN before running value summary.");
@@ -456,7 +563,15 @@ async function main() {
 
   const summary = buildValueSummary({ feedbackPayload, eventsPayload });
   await writeOutputIfRequested(outputPath, summary);
-  console.log(formatValueSummary(summary));
+  await writeTextOutputIfRequested(markdownOutputPath, formatValueSummaryMarkdown(summary));
+
+  if (format === "json") {
+    console.log(JSON.stringify(summary, null, 2));
+  } else if (format === "markdown") {
+    console.log(formatValueSummaryMarkdown(summary).trimEnd());
+  } else {
+    console.log(formatValueSummary(summary));
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

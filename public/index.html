@@ -319,6 +319,9 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
       <a id="betaValidationSampleLink" class="btn secondary sample-report-link" href="/?lang=en&amp;sample=report">
         Open sample report
       </a>
+      <button id="betaValidationFeedbackBtn" class="btn" type="button">
+        Share benchmark feedback
+      </button>
     </div>
   </div>
 
@@ -853,6 +856,7 @@ const betaValidationBodyEls = Array.from(
 const betaValidationNoteLabelEl = document.getElementById("betaValidationNoteLabel");
 const betaValidationNoteBodyEl = document.getElementById("betaValidationNoteBody");
 const betaValidationSampleLinkEl = document.getElementById("betaValidationSampleLink");
+const betaValidationFeedbackBtn = document.getElementById("betaValidationFeedbackBtn");
 const productFaqEyebrowEl = document.getElementById("productFaqEyebrow");
 const productFaqEl = document.getElementById("productFaq");
 const productFaqTitleEl = document.getElementById("productFaqTitle");
@@ -1232,6 +1236,9 @@ const COPY = {
     betaValidationNoteBody:
       "Best signal: estimated minutes saved, one client sentence you would use, and one place the report was not trusted.",
     betaValidationSampleCta: "Open sample report",
+    betaValidationFeedbackCta: "Share benchmark feedback",
+    betaValidationFeedbackPrefill:
+      "Usual prep time:\nFlowmetric time:\nEstimated minutes saved:\nReusable client sentence:\nWhat still needed rewriting:\nWhat I did not trust yet:",
     productFaqEyebrow: "Quick explanation",
     productFaqTitle: "What is Flowmetric?",
     productFaqSubtitle:
@@ -2210,6 +2217,9 @@ const COPY = {
     betaValidationNoteBody:
       "一番ほしいのは、削減できた目安時間・そのまま使える一文・信頼しきれなかった箇所です。",
     betaValidationSampleCta: "サンプルレポートを開く",
+    betaValidationFeedbackCta: "検証結果を送る",
+    betaValidationFeedbackPrefill:
+      "普段の下準備時間:\nFlowmetricでの作成時間:\n削減できた目安:\nそのまま使えた一文:\n書き直した箇所:\nまだ信頼しきれなかった点:",
     productFaqEyebrow: "かんたんな説明",
     productFaqTitle: "Flowmetricとは？",
     productFaqSubtitle:
@@ -3244,6 +3254,9 @@ function renderStaticCopy() {
   if (betaValidationSampleLinkEl) {
     betaValidationSampleLinkEl.textContent = t("betaValidationSampleCta");
     betaValidationSampleLinkEl.href = sampleReportUrl(currentLanguage);
+  }
+  if (betaValidationFeedbackBtn) {
+    betaValidationFeedbackBtn.textContent = t("betaValidationFeedbackCta");
   }
   if (introTextEl) introTextEl.textContent = t("introText");
   if (clientViewNoticeEl && !clientViewNoticeEl.classList.contains("hidden")) {
@@ -11220,6 +11233,20 @@ if (openReviewDisputeAssistantBtn) {
 if (openFeedbackBtn) {
   openFeedbackBtn.addEventListener("click", () => {
     openFeedbackAssistant();
+  });
+}
+
+if (betaValidationFeedbackBtn) {
+  betaValidationFeedbackBtn.addEventListener("click", () => {
+    trackEvent("beta_benchmark_feedback_clicked", {
+      source: "beta_validation",
+      language: currentLanguage,
+    });
+    openFeedbackAssistant({
+      type: "useful_result",
+      intent: "beta_value_benchmark",
+      message: t("betaValidationFeedbackPrefill"),
+    });
   });
 }
 

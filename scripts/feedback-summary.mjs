@@ -46,6 +46,18 @@ function formatCounts(counts = {}) {
     .join(", ");
 }
 
+function formatMinuteStats(stats = {}) {
+  if (!stats.count) return "none";
+  return [
+    `count:${stats.count}`,
+    `total:${stats.total}m`,
+    `avg:${stats.average}m`,
+    `median:${stats.median}m`,
+    `min:${stats.min}m`,
+    `max:${stats.max}m`,
+  ].join(", ");
+}
+
 function formatRecord(record) {
   const bits = [
     record.createdAt,
@@ -129,6 +141,24 @@ async function main() {
   console.log(`byType: ${formatCounts(payload.counts?.byType) || "none"}`);
   console.log(`byIntent: ${formatCounts(payload.counts?.byIntent) || "none"}`);
   console.log(`byTag: ${formatCounts(payload.counts?.byTag) || "none"}`);
+
+  if (payload.benchmarkStats) {
+    const benchmarkStats = payload.benchmarkStats;
+    console.log(
+      `benchmark: records=${benchmarkStats.records || 0} saved=${formatMinuteStats(
+        benchmarkStats.estimatedMinutesSaved
+      )}`
+    );
+    console.log(
+      [
+        `benchmarkFields: usualPrep=${benchmarkStats.withUsualPrepTime || 0}`,
+        `flowmetricTime=${benchmarkStats.withFlowmetricTime || 0}`,
+        `reusableSentence=${benchmarkStats.withReusableClientSentence || 0}`,
+        `rewriteNeeds=${benchmarkStats.withRewriteNeeds || 0}`,
+        `trustGaps=${benchmarkStats.withTrustGaps || 0}`,
+      ].join(", ")
+    );
+  }
 
   if (Array.isArray(payload.recent) && payload.recent.length) {
     console.log("\nrecent:");

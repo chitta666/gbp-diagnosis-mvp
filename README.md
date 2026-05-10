@@ -269,6 +269,9 @@ Local CLI:
 - `FEEDBACK_ADMIN_TOKEN=... npm run feedback:summary -- --tag value_benchmark`
 - `FEEDBACK_ADMIN_TOKEN=... npm run feedback:summary -- --intent report_value_benchmark --limit 20`
 
+Local smoke test:
+- `npm run feedback:smoke`
+
 ### Email alerts
 
 When mail is configured, `/api/health-check` can send alert mail for unhealthy runs.

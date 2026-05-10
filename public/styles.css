@@ -153,6 +153,7 @@ body.client-share-view #introText,
 body.client-share-view #heroProofChips,
 body.client-share-view #sampleReportPreview,
 body.client-share-view #operatorWorkflow,
+body.client-share-view #betaValidation,
 body.client-share-view #savedHub,
 body.client-share-view #msg,
 body.client-share-view #reportTitle,
@@ -1133,6 +1134,92 @@ body.client-share-view .print-cover__meta-value {
 
 .workflow-replacement__estimate p {
   margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.45;
+}
+
+.beta-validation {
+  border-color: rgba(245, 158, 11, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(245, 158, 11, 0.1), transparent 34%),
+    linear-gradient(145deg, rgba(255, 251, 235, 0.8), rgba(255, 255, 255, 0.92)),
+    #fff;
+}
+
+.beta-validation__eyebrow {
+  color: #b45309;
+  font-size: var(--fs-1);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.beta-validation__subtitle {
+  margin: 6px 0 0;
+}
+
+.beta-validation__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.beta-validation__item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.beta-validation__item span,
+.beta-validation__note-copy span {
+  display: block;
+  color: #b45309;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.beta-validation__item strong {
+  display: block;
+  margin-top: 7px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.beta-validation__item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.45;
+}
+
+.beta-validation__note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.beta-validation__note-copy {
+  flex: 1 1 300px;
+}
+
+.beta-validation__note-copy p {
+  margin: 5px 0 0;
   color: var(--muted);
   font-size: var(--fs-1);
   line-height: 1.45;
@@ -4466,6 +4553,15 @@ body.client-share-view .print-cover__meta-value {
     grid-template-columns: 1fr;
   }
 
+  .beta-validation__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .beta-validation__note {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .product-faq__grid {
     grid-template-columns: 1fr;
   }
@@ -4720,6 +4816,7 @@ body.client-share-view .print-cover__meta-value {
   #heroProofChips,
   #sampleReportPreview,
   #operatorWorkflow,
+  #betaValidation,
   #urlInput,
   #btn,
   #pdfBtn,

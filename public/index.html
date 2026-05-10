@@ -284,6 +284,44 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
     </div>
   </div>
 
+  <div id="betaValidation" class="card beta-validation">
+    <div>
+      <div id="betaValidationEyebrow" class="beta-validation__eyebrow">Beta benchmark</div>
+      <h2 id="betaValidationTitle" class="section__title">Test the reporting value in one real run</h2>
+      <p id="betaValidationSubtitle" class="beta-validation__subtitle muted">
+        We are collecting measured beta benchmarks before making a public time-saved claim. Use one client listing, compare it with your usual prep, and tell us what was send-ready or still needed rewriting.
+      </p>
+    </div>
+    <div class="beta-validation__grid">
+      <div class="beta-validation__item">
+        <span data-beta-validation-kicker="0">Before</span>
+        <strong data-beta-validation-title="0">Time your usual prep</strong>
+        <p data-beta-validation-body="0">How long would Maps checks, notes, and client-safe rewriting normally take?</p>
+      </div>
+      <div class="beta-validation__item">
+        <span data-beta-validation-kicker="1">During</span>
+        <strong data-beta-validation-title="1">Generate and save the baseline</strong>
+        <p data-beta-validation-body="1">Run Flowmetric, keep the selected competitor, and use the report as the first client-update draft.</p>
+      </div>
+      <div class="beta-validation__item">
+        <span data-beta-validation-kicker="2">After</span>
+        <strong data-beta-validation-title="2">Send concrete feedback</strong>
+        <p data-beta-validation-body="2">Share minutes saved, what you reused, and what you had to rewrite.</p>
+      </div>
+    </div>
+    <div class="beta-validation__note">
+      <div class="beta-validation__note-copy">
+        <span id="betaValidationNoteLabel">Useful feedback</span>
+        <p id="betaValidationNoteBody">
+          Best signal: estimated minutes saved, one client sentence you would use, and one place the report was not trusted.
+        </p>
+      </div>
+      <a id="betaValidationSampleLink" class="btn secondary sample-report-link" href="/?lang=en&amp;sample=report">
+        Open sample report
+      </a>
+    </div>
+  </div>
+
   <div id="productFaq" class="card product-faq">
     <div id="productFaqEyebrow" class="product-faq__eyebrow">Quick explanation</div>
     <h2 id="productFaqTitle" class="section__title">What is Flowmetric?</h2>
@@ -800,6 +838,21 @@ const workflowReplacementManualItemEls = Array.from(
 const workflowReplacementFlowmetricItemEls = Array.from(
   document.querySelectorAll("[data-workflow-flowmetric-item]")
 );
+const betaValidationEyebrowEl = document.getElementById("betaValidationEyebrow");
+const betaValidationTitleEl = document.getElementById("betaValidationTitle");
+const betaValidationSubtitleEl = document.getElementById("betaValidationSubtitle");
+const betaValidationKickerEls = Array.from(
+  document.querySelectorAll("[data-beta-validation-kicker]")
+);
+const betaValidationTitleEls = Array.from(
+  document.querySelectorAll("[data-beta-validation-title]")
+);
+const betaValidationBodyEls = Array.from(
+  document.querySelectorAll("[data-beta-validation-body]")
+);
+const betaValidationNoteLabelEl = document.getElementById("betaValidationNoteLabel");
+const betaValidationNoteBodyEl = document.getElementById("betaValidationNoteBody");
+const betaValidationSampleLinkEl = document.getElementById("betaValidationSampleLink");
 const productFaqEyebrowEl = document.getElementById("productFaqEyebrow");
 const productFaqEl = document.getElementById("productFaq");
 const productFaqTitleEl = document.getElementById("productFaqTitle");
@@ -1154,6 +1207,31 @@ const COPY = {
     workflowReplacementEstimateValue: "15-30 min manual prep -> draft in minutes",
     workflowReplacementEstimateBody:
       "Use this as a conservative planning estimate until your own reporting workflow is measured.",
+    betaValidationEyebrow: "Beta benchmark",
+    betaValidationTitle: "Test the reporting value in one real run",
+    betaValidationSubtitle:
+      "We are collecting measured beta benchmarks before making a public time-saved claim. Use one client listing, compare it with your usual prep, and tell us what was send-ready or still needed rewriting.",
+    betaValidationSteps: [
+      {
+        kicker: "Before",
+        title: "Time your usual prep",
+        body: "How long would Maps checks, notes, and client-safe rewriting normally take?",
+      },
+      {
+        kicker: "During",
+        title: "Generate and save the baseline",
+        body: "Run Flowmetric, keep the selected competitor, and use the report as the first client-update draft.",
+      },
+      {
+        kicker: "After",
+        title: "Send concrete feedback",
+        body: "Share minutes saved, what you reused, and what you had to rewrite.",
+      },
+    ],
+    betaValidationNoteLabel: "Useful feedback",
+    betaValidationNoteBody:
+      "Best signal: estimated minutes saved, one client sentence you would use, and one place the report was not trusted.",
+    betaValidationSampleCta: "Open sample report",
     productFaqEyebrow: "Quick explanation",
     productFaqTitle: "What is Flowmetric?",
     productFaqSubtitle:
@@ -2107,6 +2185,31 @@ const COPY = {
     workflowReplacementEstimateValue: "手作業15〜30分の下準備を、数分の下書きへ",
     workflowReplacementEstimateBody:
       "実測前の控えめな目安です。実際の報告フローに合わせて、どれだけ短縮できるか確認してください。",
+    betaValidationEyebrow: "ベータ検証",
+    betaValidationTitle: "1回の実務レポートで価値を測る",
+    betaValidationSubtitle:
+      "公開する削減実績は、実測が集まってから出します。実際のクライアント店舗で、普段の下準備と比べて、どこがそのまま使えたか・どこを書き直したかを教えてください。",
+    betaValidationSteps: [
+      {
+        kicker: "事前",
+        title: "普段の下準備時間を測る",
+        body: "Googleマップ確認、メモ、クライアント向け文章化に通常どれくらいかかるかを見ます。",
+      },
+      {
+        kicker: "実行",
+        title: "基準レポートを作って保存",
+        body: "Flowmetricで分析し、選んだ競合と一緒に保存して初回レポート下書きにします。",
+      },
+      {
+        kicker: "事後",
+        title: "具体的にフィードバック",
+        body: "削減できた分数、そのまま使えた文、書き直した箇所を送ってください。",
+      },
+    ],
+    betaValidationNoteLabel: "欲しいフィードバック",
+    betaValidationNoteBody:
+      "一番ほしいのは、削減できた目安時間・そのまま使える一文・信頼しきれなかった箇所です。",
+    betaValidationSampleCta: "サンプルレポートを開く",
     productFaqEyebrow: "かんたんな説明",
     productFaqTitle: "Flowmetricとは？",
     productFaqSubtitle:
@@ -3138,6 +3241,10 @@ function renderStaticCopy() {
     sampleReportLinkEl.textContent = t("sampleReportCta");
     sampleReportLinkEl.href = sampleReportUrl(currentLanguage);
   }
+  if (betaValidationSampleLinkEl) {
+    betaValidationSampleLinkEl.textContent = t("betaValidationSampleCta");
+    betaValidationSampleLinkEl.href = sampleReportUrl(currentLanguage);
+  }
   if (introTextEl) introTextEl.textContent = t("introText");
   if (clientViewNoticeEl && !clientViewNoticeEl.classList.contains("hidden")) {
     clientViewNoticeEl.textContent = t("clientViewNotice");
@@ -3278,6 +3385,33 @@ function renderStaticCopy() {
     workflowReplacementFlowmetricItemEls.forEach((itemEl, index) => {
       itemEl.textContent = workflowFlowmetricItems[index] || itemEl.textContent;
     });
+  }
+  if (betaValidationEyebrowEl) {
+    betaValidationEyebrowEl.textContent = t("betaValidationEyebrow");
+  }
+  if (betaValidationTitleEl) {
+    betaValidationTitleEl.textContent = t("betaValidationTitle");
+  }
+  if (betaValidationSubtitleEl) {
+    betaValidationSubtitleEl.textContent = t("betaValidationSubtitle");
+  }
+  const betaValidationSteps = t("betaValidationSteps");
+  if (Array.isArray(betaValidationSteps)) {
+    betaValidationKickerEls.forEach((kickerEl, index) => {
+      kickerEl.textContent = betaValidationSteps[index]?.kicker || kickerEl.textContent;
+    });
+    betaValidationTitleEls.forEach((titleEl, index) => {
+      titleEl.textContent = betaValidationSteps[index]?.title || titleEl.textContent;
+    });
+    betaValidationBodyEls.forEach((bodyEl, index) => {
+      bodyEl.textContent = betaValidationSteps[index]?.body || bodyEl.textContent;
+    });
+  }
+  if (betaValidationNoteLabelEl) {
+    betaValidationNoteLabelEl.textContent = t("betaValidationNoteLabel");
+  }
+  if (betaValidationNoteBodyEl) {
+    betaValidationNoteBodyEl.textContent = t("betaValidationNoteBody");
   }
   if (productFaqEyebrowEl) productFaqEyebrowEl.textContent = t("productFaqEyebrow");
   if (productFaqTitleEl) productFaqTitleEl.textContent = t("productFaqTitle");

@@ -259,10 +259,10 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
       <button id="loadSavedBtn" class="btn" type="button">Load Saved Listings</button>
     </div>
     <div class="row">
-      <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save Current Listing</button>
+      <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save as Baseline</button>
     </div>
     <div id="savedMsg" class="muted" data-i18n-key="savedMsgDefault">
-      Analyze a listing, then save it so you can reopen the latest report quickly from this app.
+      Analyze a listing, then save it with the selected competitor as the baseline for next week.
     </div>
     <div id="savedPlanNotice" class="saved-plan"></div>
     <div id="savedWeeklyRollup" class="saved-weekly-rollup hidden"></div>
@@ -960,17 +960,17 @@ const COPY = {
       {
         label: "Weekly diff",
         title: "What changed against the same competitor",
-        body: "Review totals, momentum, photos, and visible Google profile signals are framed as report-ready movement.",
+        body: "Stable comparison, report-ready movement.",
       },
       {
         label: "Evidence pack",
         title: "Why this recommendation is credible",
-        body: "Review text depth, competitor choice, Google-side proof, and signal strength are separated from the recommendation.",
+        body: "Proof depth separated from the recommendation.",
       },
       {
         label: "Recommended task",
         title: "What to ask the client to approve",
-        body: "The report ends with the task, why it matters now, and the approval request for the next check.",
+        body: "One client ask before the next check.",
       },
     ],
     sampleReportCases: [
@@ -1046,9 +1046,9 @@ const COPY = {
     savedListingsTitle: "Saved Listings",
     savedEmailPlaceholder: "Enter email to manage saved listings",
     loadSaved: "Load Saved Listings",
-    saveCurrent: "Save Current Listing",
+    saveCurrent: "Save as Baseline",
     savedMsgDefault:
-      "Analyze a listing, then save it so you can reopen the latest report quickly from this app.",
+      "Analyze a listing, then save it with the selected competitor as the baseline for next week.",
     reportTitle: "Google Maps Analysis Report",
     printCoverEyebrow: "Client report",
     printCoverTitle: "Google Business Profile competitor update",
@@ -1282,7 +1282,7 @@ const COPY = {
     competitorSearchReviewMatch: "Review the match, then use it as the competitor.",
     competitorUpdated: "Competitor updated for this report.",
     competitorUpdatedSaved:
-      "Competitor updated. Save Current Listing to keep this selection.",
+      "Competitor updated. Save as Baseline to keep this competitor for the next weekly report.",
     loadingListing: "Analyzing listing...",
     loadingHeadline: "Summarizing what matters first...",
     loadingSummary: "Checking foundation, customer choice, and competitor context.",
@@ -1869,17 +1869,17 @@ const COPY = {
       {
         label: "週次差分",
         title: "同じ競合に対して何が変わったか",
-        body: "レビュー総数、増加ペース、写真、Googleプロフィール上の見える根拠を、報告しやすい変化として整理します。",
+        body: "固定比較で、報告しやすい変化を出します。",
       },
       {
         label: "根拠パック",
         title: "なぜその提案をするのか",
-        body: "レビュー本文の厚み、競合選定、Google側の見える根拠、シグナルの強さを提案から切り分けて見せます。",
+        body: "提案と根拠の厚みを分けて見せます。",
       },
       {
         label: "今週の推奨タスク",
         title: "クライアントに何を承認してもらうか",
-        body: "実行案、今やる理由、次回チェックまでに進める承認事項をまとめます。",
+        body: "次回チェックまでの依頼を1つに絞ります。",
       },
     ],
     sampleReportCases: [
@@ -1955,9 +1955,9 @@ const COPY = {
     savedListingsTitle: "保存した店舗",
     savedEmailPlaceholder: "保存した店舗を管理するメールアドレス",
     loadSaved: "保存済みを読み込む",
-    saveCurrent: "現在の店舗を保存",
+    saveCurrent: "基準レポートとして保存",
     savedMsgDefault:
-      "分析後に保存すると、このアプリから最新レポートをすぐ開き直せます。",
+      "店舗を分析し、選んだ競合と一緒に基準レポートとして保存してください。次回チェックで差分を出せます。",
     reportTitle: "Googleマップ分析レポート",
     printCoverEyebrow: "クライアント提出レポート",
     printCoverTitle: "Googleビジネスプロフィール競合比較アップデート",
@@ -2191,7 +2191,7 @@ const COPY = {
     competitorSearchReviewMatch: "一致内容を確認してから競合に設定してください。",
     competitorUpdated: "このレポートの競合を更新しました。",
     competitorUpdatedSaved:
-      "競合を更新しました。この選択を残すには現在の店舗を保存してください。",
+      "競合を更新しました。この競合で次回差分を見るには、基準レポートとして保存してください。",
     loadingListing: "店舗を分析しています...",
     loadingHeadline: "まず重要なポイントを整理しています...",
     loadingSummary: "Google基本情報・顧客視点・競合文脈を確認しています。",

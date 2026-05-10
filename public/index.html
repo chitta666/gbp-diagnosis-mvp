@@ -504,7 +504,12 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
       <div id="feedbackCtaCopy" class="feedback-cta__copy muted">
         After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.
       </div>
-      <button id="openFeedbackBtn" class="btn" type="button">Share Report Feedback</button>
+      <div class="feedback-cta__actions">
+        <button id="openFeedbackBtn" class="btn" type="button">Share Report Feedback</button>
+        <button id="reportBenchmarkFeedbackBtn" class="btn secondary" type="button">
+          Share time-saved benchmark
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1038,6 +1043,7 @@ const reviewDisputePublicResponseEl = document.getElementById("reviewDisputePubl
 const feedbackCtaEl = document.getElementById("feedbackCta");
 const feedbackCtaCopyEl = document.getElementById("feedbackCtaCopy");
 const openFeedbackBtn = document.getElementById("openFeedbackBtn");
+const reportBenchmarkFeedbackBtn = document.getElementById("reportBenchmarkFeedbackBtn");
 const feedbackAssistantEl = document.getElementById("feedbackAssistant");
 const feedbackBackdropEl = document.getElementById("feedbackBackdrop");
 const closeFeedbackBtn = document.getElementById("closeFeedbackBtn");
@@ -1351,6 +1357,7 @@ const COPY = {
     feedbackCtaCopy:
       "After you review the report, tell us what felt useful, confusing, or missing. We'll attach the current report context automatically.",
     feedbackButton: "Share Report Feedback",
+    reportBenchmarkFeedbackButton: "Share time-saved benchmark",
     feedbackTypeTitle: "What kind of feedback is this?",
     feedbackTypeUseful: "Useful result",
     feedbackTypeConfusing: "Confusing output",
@@ -2332,6 +2339,7 @@ const COPY = {
     feedbackCtaCopy:
       "レポートを見たあとに、役立った点・分かりにくかった点・足りない点を短く教えてください。現在のレポート文脈は自動で添付します。",
     feedbackButton: "レポートの感想を送る",
+    reportBenchmarkFeedbackButton: "削減時間を送る",
     feedbackTypeTitle: "どの種類のフィードバックですか？",
     feedbackTypeUseful: "役立つ結果だった",
     feedbackTypeConfusing: "出力が分かりにくい",
@@ -3519,6 +3527,9 @@ function renderStaticCopy() {
   if (feedbackPrivacyNoteEl) feedbackPrivacyNoteEl.textContent = t("feedbackPrivacyNote");
   if (feedbackCtaCopyEl) feedbackCtaCopyEl.textContent = t("feedbackCtaCopy");
   if (openFeedbackBtn) openFeedbackBtn.textContent = t("feedbackButton");
+  if (reportBenchmarkFeedbackBtn) {
+    reportBenchmarkFeedbackBtn.textContent = t("reportBenchmarkFeedbackButton");
+  }
   if (feedbackSubmitBtn) feedbackSubmitBtn.textContent = t("feedbackSubmit");
   if (openReviewDisputeAssistantBtn) {
     openReviewDisputeAssistantBtn.textContent = t("reviewSupportButton");
@@ -11233,6 +11244,22 @@ if (openReviewDisputeAssistantBtn) {
 if (openFeedbackBtn) {
   openFeedbackBtn.addEventListener("click", () => {
     openFeedbackAssistant();
+  });
+}
+
+if (reportBenchmarkFeedbackBtn) {
+  reportBenchmarkFeedbackBtn.addEventListener("click", () => {
+    trackEvent("report_benchmark_feedback_clicked", {
+      source: "report_feedback_cta",
+      language: currentLanguage,
+      hasSavedListing: Boolean(currentResult?.savedListing?.id),
+      hasCompetitor: Boolean(currentResult?.comparison?.competitorName),
+    });
+    openFeedbackAssistant({
+      type: "useful_result",
+      intent: "report_value_benchmark",
+      message: t("betaValidationFeedbackPrefill"),
+    });
   });
 }
 

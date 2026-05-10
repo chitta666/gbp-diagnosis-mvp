@@ -3998,6 +3998,12 @@ body.client-share-view .print-cover__meta-value {
   margin-bottom: 10px;
 }
 
+.feedback-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .feedback-context {
   margin-top: 8px;
   padding: 10px 12px;

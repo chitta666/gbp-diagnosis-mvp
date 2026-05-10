@@ -275,6 +275,26 @@ prep-time fields and estimated minutes saved totals / averages.
 Local smoke test:
 - `npm run feedback:smoke`
 
+### Events summary
+
+Analytics events are stored in KV with a short retention window and can be summarized from:
+- `GET /api/events-summary`
+
+This endpoint requires:
+- `Authorization: Bearer <FEEDBACK_ADMIN_TOKEN>`
+
+Useful benchmark filters:
+- `/api/events-summary?days=7`
+- `/api/events-summary?event=report_benchmark_feedback_submitted`
+- `/api/events-summary?intent=report_value_benchmark`
+
+Local CLI:
+- `FEEDBACK_ADMIN_TOKEN=... npm run events:summary -- --days 7`
+- `FEEDBACK_ADMIN_TOKEN=... npm run events:summary -- --event report_benchmark_feedback_submitted`
+
+Local smoke test:
+- `npm run events:smoke`
+
 ### Email alerts
 
 When mail is configured, `/api/health-check` can send alert mail for unhealthy runs.

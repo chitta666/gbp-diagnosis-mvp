@@ -6,6 +6,8 @@
     "dev": "wrangler pages dev public --compatibility-date=2025-01-01 --local",
     "deploy": "wrangler pages deploy public",
     "smoke": "node scripts/post-deploy-smoke.cjs",
+    "value:summary": "node scripts/value-summary.mjs",
+    "value:smoke": "node scripts/smoke-value-summary.mjs",
     "events:summary": "node scripts/events-summary.mjs",
     "events:smoke": "node scripts/smoke-events-summary.mjs",
     "feedback:summary": "node scripts/feedback-summary.mjs",

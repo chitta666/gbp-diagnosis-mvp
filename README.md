@@ -252,6 +252,19 @@ The latest health result is stored in KV and can be read from:
 This endpoint also requires:
 - `Authorization: Bearer <HEALTHCHECK_SECRET>`
 
+### Feedback summary
+
+Beta feedback is stored in KV and can be summarized from:
+- `GET /api/feedback-summary`
+
+This endpoint requires:
+- `Authorization: Bearer <FEEDBACK_ADMIN_TOKEN>`
+
+Useful benchmark filters:
+- `/api/feedback-summary?tag=value_benchmark`
+- `/api/feedback-summary?intent=report_value_benchmark`
+- `/api/feedback-summary?intent=beta_value_benchmark`
+
 ### Email alerts
 
 When mail is configured, `/api/health-check` can send alert mail for unhealthy runs.

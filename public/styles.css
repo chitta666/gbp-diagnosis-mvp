@@ -752,6 +752,43 @@ body.client-share-view .print-cover__meta-value {
   line-height: 1.5;
 }
 
+.sample-report-preview__guardrail {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  border-radius: var(--r-1);
+  background:
+    linear-gradient(145deg, rgba(255, 251, 235, 0.86), rgba(255, 255, 255, 0.9)),
+    #fff;
+}
+
+.sample-report-preview__guardrail span {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.sample-report-preview__guardrail strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  font-weight: 950;
+}
+
+.sample-report-preview__guardrail p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+
 .sample-report-preview__actions {
   display: flex;
   flex-wrap: wrap;

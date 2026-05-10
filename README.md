@@ -302,11 +302,14 @@ operating readout:
 
 - `FEEDBACK_ADMIN_TOKEN=... npm run value:summary -- --days 7`
 - `FEEDBACK_ADMIN_TOKEN=... npm run value:summary -- --days 7 --output tmp/value-summary.json`
+- `FEEDBACK_ADMIN_TOKEN=... npm run value:summary -- --days 7 --format markdown`
+- `FEEDBACK_ADMIN_TOKEN=... npm run value:summary -- --days 7 --markdown-output tmp/value-summary.md`
 
 The command combines:
 - benchmark feedback records and estimated minutes saved from `/api/feedback-summary`
 - benchmark CTA click / submit funnel from `/api/events-summary`
 - recommended next actions for the value-validation loop
+- optional Markdown output for operating logs or internal sharing
 
 It also prints an internal value decision for the `¥2,980/mo` Pro beta hypothesis:
 - `not_enough_signal`: no meaningful CTA / feedback signal yet

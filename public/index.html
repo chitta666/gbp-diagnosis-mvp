@@ -1267,6 +1267,18 @@ const COPY = {
       "One-page summary is ready to paste into the client update.",
       "Next check shows what changed against the same competitor.",
     ],
+    savedPlanBridge: [
+      {
+        label: "Baseline now",
+        title: "Save the selected competitor with today's report",
+        body: "Use the first report as the client baseline: competitor choice, visible proof gaps, review signals, and the first approval-ready task.",
+      },
+      {
+        label: "Next check",
+        title: "Reopen it next week to show movement",
+        body: "The next report compares the same pair and explains what changed, why it matters, and what the client should approve next.",
+      },
+    ],
     savedPlanLimitReached:
       "Free beta limit reached. You can still reopen or update existing saved listings.",
     savedPlanUpgradeHint:
@@ -2146,6 +2158,18 @@ const COPY = {
       "保存クライアントごとに週次差分と実行履歴が残ります。",
       "1ページ要約をそのままクライアント報告に貼れます。",
       "次回チェックで同じ競合との差が広がったか縮まったかを見ます。",
+    ],
+    savedPlanBridge: [
+      {
+        label: "初回は基準レポート",
+        title: "今日のレポートと選んだ競合を一緒に保存します",
+        body: "初回レポートを、競合選定・見える根拠の差・レビュー傾向・最初の承認依頼タスクの基準として使えます。",
+      },
+      {
+        label: "次回は差分レポート",
+        title: "翌週に開き直して変化を説明します",
+        body: "次回レポートでは同じ比較対象で、何が変わったか・なぜ重要か・次に何を承認してもらうかを整理できます。",
+      },
     ],
     savedPlanLimitReached:
       "Free ベータの保存上限に達しています。既存の保存済み店舗は引き続き開く・更新できます。",
@@ -9069,6 +9093,7 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
   const valueBullets = Array.isArray(t("savedPlanValueBullets"))
     ? t("savedPlanValueBullets")
     : [];
+  const bridgeItems = Array.isArray(t("savedPlanBridge")) ? t("savedPlanBridge") : [];
   const limitCopy = isAtLimit
     ? `<div class="saved-plan__limit">${escapeHtml(t("savedPlanLimitReached"))}</div>`
     : "";
@@ -9089,6 +9114,23 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
         ? `<ul class="saved-plan__value-list">
             ${valueBullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
           </ul>`
+        : ""
+    }
+    ${
+      bridgeItems.length
+        ? `<div class="saved-plan__bridge" aria-label="${escapeAttr(valueTarget)}">
+            ${bridgeItems
+              .map(
+                (item) => `
+                  <div class="saved-plan__bridge-item">
+                    <span>${escapeHtml(item?.label || "")}</span>
+                    <strong>${escapeHtml(item?.title || "")}</strong>
+                    <p>${escapeHtml(item?.body || "")}</p>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>`
         : ""
     }
     ${limitCopy}

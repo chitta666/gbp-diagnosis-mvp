@@ -11487,6 +11487,22 @@ if (feedbackFormEl) {
         });
       }
 
+      if (isBenchmarkFeedbackIntent(payload.intent)) {
+        trackEvent(
+          payload.intent === "report_value_benchmark"
+            ? "report_benchmark_feedback_submitted"
+            : "beta_benchmark_feedback_submitted",
+          {
+            source: "feedback_modal",
+            intent: payload.intent,
+            feedbackType: payload.type,
+            hasFeedbackEmail: Boolean(payload.email),
+            hasSavedListing: Boolean(payload.context?.savedListingId),
+            hasCompetitor: Boolean(payload.context?.competitorPlaceId || payload.context?.competitorName),
+          }
+        );
+      }
+
       resetFeedbackForm();
       setFeedbackMessage(t("feedbackSent"));
     } catch (error) {

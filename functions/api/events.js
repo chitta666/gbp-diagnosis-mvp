@@ -11,6 +11,8 @@ const ALLOWED_EVENTS = new Set([
   "pro_interest_feedback_submitted",
   "beta_benchmark_feedback_clicked",
   "report_benchmark_feedback_clicked",
+  "beta_benchmark_feedback_submitted",
+  "report_benchmark_feedback_submitted",
   "client_report_copied",
   "saved_report_link_copied",
 ]);

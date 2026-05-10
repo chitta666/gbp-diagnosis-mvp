@@ -35,6 +35,18 @@ const FEEDBACK_TAG_RULES = [
     keywords: ["pro", "upgrade", "paid", "saved limit", "client reporting"],
   },
   {
+    tag: "value_benchmark",
+    keywords: ["benchmark", "time saved", "minutes saved", "flowmetric time", "usual prep time"],
+  },
+  {
+    tag: "rewrite_needed",
+    keywords: ["rewrite", "rewriting", "書き直し", "書き直した"],
+  },
+  {
+    tag: "trust_gap",
+    keywords: ["did not trust", "not trusted", "信頼しきれ", "信頼でき"],
+  },
+  {
     tag: "report_copy",
     keywords: ["headline", "summary", "wording", "copy", "readability", "confusing"],
   },
@@ -132,6 +144,11 @@ function inferFeedbackTags({ type, message, context }) {
   if (type === "confusing_output") tags.add("report_copy");
   if (type === "missing_feature") tags.add("feature_gap");
   if (type === "useful_result") tags.add("positive_signal");
+
+  if (["beta_value_benchmark", "report_value_benchmark"].includes(context?.intent)) {
+    tags.add("value_benchmark");
+    tags.add("time_saved");
+  }
 
   if (context?.savedListingId || context?.page === "saved_listing" || String(context?.href || "").includes("saved=")) {
     tags.add("saved_workflow");

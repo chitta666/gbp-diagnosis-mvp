@@ -36,7 +36,16 @@ const FEEDBACK_TAG_RULES = [
   },
   {
     tag: "value_benchmark",
-    keywords: ["benchmark", "time saved", "minutes saved", "flowmetric time", "usual prep time"],
+    keywords: [
+      "benchmark",
+      "time saved",
+      "minutes saved",
+      "flowmetric time",
+      "usual prep time",
+      "普段の下準備時間",
+      "削減できた目安",
+      "作成時間",
+    ],
   },
   {
     tag: "rewrite_needed",

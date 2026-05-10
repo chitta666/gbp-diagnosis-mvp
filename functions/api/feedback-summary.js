@@ -91,12 +91,13 @@ function parseBenchmarkFields(message) {
   String(message || "")
     .split(/\r?\n/)
     .forEach((line) => {
-      const [rawLabel, ...rest] = line.split(":");
-      if (!rest.length) return;
+      const match = line.match(/^([^:：]+)[:：](.*)$/);
+      if (!match) return;
+      const rawLabel = match[1];
       const label = rawLabel.trim().toLowerCase();
       const key = labelMap.get(label) || labelMap.get(rawLabel.trim());
       if (!key) return;
-      fields[key] = compactText(rest.join(":").trim(), 300);
+      fields[key] = compactText(match[2].trim(), 300);
     });
 
   return fields;

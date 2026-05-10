@@ -41,6 +41,22 @@ function feedbackRecord(id, overrides = {}) {
 
 function makeEnv() {
   const primary = feedbackRecord("benchmark-1");
+  const derived = feedbackRecord("benchmark-derived", {
+    email: "derived@example.com",
+    message: [
+      "普段の下準備時間：1時間30分",
+      "Flowmetricでの作成時間：25分",
+      "削減できた目安：",
+      "そのまま使えた一文：次回チェックで変化を確認します。",
+      "書き直した箇所：",
+      "まだ信頼しきれなかった点：",
+    ].join("\n"),
+    tags: ["value_benchmark"],
+    context: {
+      intent: "beta_value_benchmark",
+      placeName: "Derived Cafe",
+    },
+  });
   const secondary = feedbackRecord("benchmark-2", {
     type: "confusing",
     email: "client@example.com",
@@ -55,8 +71,9 @@ function makeEnv() {
   return {
     FEEDBACK_ADMIN_TOKEN: TOKEN,
     KV: makeKv({
-      "feedback:index": JSON.stringify([primary.id, secondary.id]),
+      "feedback:index": JSON.stringify([primary.id, derived.id, secondary.id]),
       [`feedback:${primary.id}`]: JSON.stringify(primary),
+      [`feedback:${derived.id}`]: JSON.stringify(derived),
       [`feedback:${secondary.id}`]: JSON.stringify(secondary),
     }),
   };
@@ -84,23 +101,24 @@ async function assertBenchmarkSummary() {
 
   assert.equal(response.status, 200);
   assert.equal(payload.ok, true);
-  assert.equal(payload.returned, 1);
-  assert.equal(payload.counts.byTag.value_benchmark, 1);
+  assert.equal(payload.returned, 2);
+  assert.equal(payload.counts.byTag.value_benchmark, 2);
   assert.equal(payload.counts.byIntent.report_value_benchmark, 1);
-  assert.equal(payload.benchmarkStats.records, 1);
-  assert.equal(payload.benchmarkStats.withUsualPrepTime, 1);
-  assert.equal(payload.benchmarkStats.withFlowmetricTime, 1);
-  assert.equal(payload.benchmarkStats.withEstimatedMinutesSaved, 1);
-  assert.equal(payload.benchmarkStats.withReusableClientSentence, 1);
+  assert.equal(payload.counts.byIntent.beta_value_benchmark, 1);
+  assert.equal(payload.benchmarkStats.records, 2);
+  assert.equal(payload.benchmarkStats.withUsualPrepTime, 2);
+  assert.equal(payload.benchmarkStats.withFlowmetricTime, 2);
+  assert.equal(payload.benchmarkStats.withEstimatedMinutesSaved, 2);
+  assert.equal(payload.benchmarkStats.withReusableClientSentence, 2);
   assert.equal(payload.benchmarkStats.withRewriteNeeds, 1);
   assert.equal(payload.benchmarkStats.withTrustGaps, 1);
   assert.deepEqual(payload.benchmarkStats.estimatedMinutesSaved, {
-    count: 1,
-    total: 33,
-    average: 33,
-    median: 33,
+    count: 2,
+    total: 98,
+    average: 49,
+    median: 49,
     min: 33,
-    max: 33,
+    max: 65,
   });
 
   const [record] = payload.recent;
@@ -113,6 +131,10 @@ async function assertBenchmarkSummary() {
   assert.match(record.benchmark.reusableClientSentence, /競合との差分/);
   assert.match(record.benchmark.rewriteNeeds, /写真改善/);
   assert.match(record.benchmark.trustGaps, /レビュー根拠/);
+
+  const derivedRecord = payload.recent.find((item) => item.id === "benchmark-derived");
+  assert.equal(derivedRecord.benchmark.usualPrepTime, "1時間30分");
+  assert.equal(derivedRecord.benchmark.flowmetricTime, "25分");
 }
 
 async function assertIntentFilter() {

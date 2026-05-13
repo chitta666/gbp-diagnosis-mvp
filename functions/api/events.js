@@ -15,6 +15,8 @@ const ALLOWED_EVENTS = new Set([
   "report_benchmark_feedback_submitted",
   "client_report_copied",
   "saved_report_link_copied",
+  "customer_choice_feedback_clicked",
+  "customer_choice_feedback_submitted",
 ]);
 
 const ALLOWED_PAGES = new Set(["home", "report", "saved_report", "unknown"]);
@@ -30,6 +32,7 @@ const ALLOWED_SOURCES = new Set([
   "saved_listing_card",
   "saved_report_share",
   "client_report_summary",
+  "customer_choice",
   "beta_validation",
   "report_feedback_cta",
   "feedback_modal",

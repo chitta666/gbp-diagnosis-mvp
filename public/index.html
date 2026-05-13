@@ -1338,6 +1338,15 @@ const COPY = {
     comparisonFocusStatusClose: "Close",
     comparisonFocusStatusNoSignal: "No clear signal",
     customerChoiceTitle: "Customer Choice",
+    customerChoiceFeedbackTitle: "Validate this insight",
+    customerChoiceFeedbackCopy:
+      "Did Customer Choice reveal something you would use in a client report?",
+    customerChoiceFeedbackUseful: "Useful / non-obvious",
+    customerChoiceFeedbackConfusing: "Too obvious / unclear",
+    customerChoiceFeedbackUsefulPrefill:
+      "Customer Choice was useful because:",
+    customerChoiceFeedbackConfusingPrefill:
+      "Customer Choice felt too obvious or unclear because:",
     googleBasicsTitle: "Google Basics Check",
     foundationEyebrow: "Google basics",
     weeklyReportTitle: "Weekly Report",
@@ -2340,6 +2349,15 @@ const COPY = {
     comparisonFocusStatusClose: "接近",
     comparisonFocusStatusNoSignal: "シグナル不足",
     customerChoiceTitle: "顧客視点",
+    customerChoiceFeedbackTitle: "この見立てを検証",
+    customerChoiceFeedbackCopy:
+      "この顧客視点は、クライアント報告に使える気づきでしたか？",
+    customerChoiceFeedbackUseful: "役立つ / 自分では気づきにくい",
+    customerChoiceFeedbackConfusing: "当たり前 / 分かりにくい",
+    customerChoiceFeedbackUsefulPrefill:
+      "顧客視点が役立った理由:",
+    customerChoiceFeedbackConfusingPrefill:
+      "顧客視点が当たり前、または分かりにくいと感じた理由:",
     googleBasicsTitle: "Google基本情報チェック",
     foundationEyebrow: "Google基本情報",
     weeklyReportTitle: "週間レポート",
@@ -4105,6 +4123,10 @@ function isBenchmarkFeedbackIntent(intent) {
   return ["beta_value_benchmark", "report_value_benchmark"].includes(String(intent || "").trim());
 }
 
+function isCustomerChoiceFeedbackIntent(intent) {
+  return String(intent || "").trim() === "customer_choice_validation";
+}
+
 function renderFeedbackModalCopy(mode = "default") {
   const benchmarkMode = mode === "benchmark";
   if (feedbackEyebrowEl) {
@@ -4138,6 +4160,15 @@ function buildFeedbackContext(result = currentResult) {
           name: result.savedListing.competitorName || "",
         }
       : null);
+  const reviewClues = result?.reviewClues || {};
+  const customerChoiceSummary =
+    customerChoiceEl?.querySelector(".customer-choice-card__summary")?.textContent?.trim() ||
+    reviewClues?.summary ||
+    "";
+  const customerChoicePriorityAction =
+    customerChoiceEl?.querySelector(".customer-choice-card__priority div")?.textContent?.trim() ||
+    reviewClues?.priorityAction ||
+    "";
 
   return {
     page:
@@ -4176,6 +4207,12 @@ function buildFeedbackContext(result = currentResult) {
     freeLimitReached: freeSavedListingLimitReached(),
     intent: feedbackIntent || null,
     diagnosisHeadline: diagnosisHeadlineEl?.textContent?.trim() || "",
+    customerChoiceSummary,
+    customerChoicePriorityAction,
+    reviewClueConfidence: reviewClues?.confidence || null,
+    reviewSampleCount: Number.isFinite(Number(reviewClues?.reviewCountInSample))
+      ? Number(reviewClues.reviewCountInSample)
+      : null,
     path: window.location.pathname || "/",
     href: window.location.href,
     reportGeneratedAt: result?.generatedAt || null,
@@ -8668,6 +8705,20 @@ function renderCustomerChoiceView(view) {
           ? `<div class="customer-choice-card__note muted">${escapeHtml(note)}</div>`
           : ""
       }
+      <div class="customer-choice-card__feedback">
+        <div>
+          <strong>${escapeHtml(t("customerChoiceFeedbackTitle"))}</strong>
+          <span>${escapeHtml(t("customerChoiceFeedbackCopy"))}</span>
+        </div>
+        <div class="customer-choice-card__feedback-actions">
+          <button class="btn secondary" type="button" data-customer-choice-feedback="useful">
+            ${escapeHtml(t("customerChoiceFeedbackUseful"))}
+          </button>
+          <button class="btn secondary" type="button" data-customer-choice-feedback="confusing">
+            ${escapeHtml(t("customerChoiceFeedbackConfusing"))}
+          </button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -11560,6 +11611,35 @@ if (openFeedbackBtn) {
   });
 }
 
+if (customerChoiceEl) {
+  customerChoiceEl.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-customer-choice-feedback]");
+    if (!button) return;
+
+    const value = button.dataset.customerChoiceFeedback || "";
+    const useful = value === "useful";
+    const feedbackType = useful ? "useful_result" : "confusing_output";
+    trackEvent("customer_choice_feedback_clicked", {
+      source: "customer_choice",
+      intent: "customer_choice_validation",
+      feedbackType,
+      hasSavedListing: Boolean(currentResult?.savedListing?.id),
+      hasCompetitor: Boolean(
+        currentResult?.selectedCompetitor?.placeId ||
+          currentResult?.savedListing?.competitorPlaceId ||
+          currentResult?.comparison?.competitorName
+      ),
+    });
+    openFeedbackAssistant({
+      type: feedbackType,
+      intent: "customer_choice_validation",
+      message: useful
+        ? t("customerChoiceFeedbackUsefulPrefill")
+        : t("customerChoiceFeedbackConfusingPrefill"),
+    });
+  });
+}
+
 if (reportBenchmarkFeedbackBtn) {
   reportBenchmarkFeedbackBtn.addEventListener("click", () => {
     trackEvent("report_benchmark_feedback_clicked", {
@@ -11764,6 +11844,17 @@ if (feedbackFormEl) {
             hasCompetitor: Boolean(payload.context?.competitorPlaceId || payload.context?.competitorName),
           }
         );
+      }
+
+      if (isCustomerChoiceFeedbackIntent(payload.intent)) {
+        trackEvent("customer_choice_feedback_submitted", {
+          source: "feedback_modal",
+          intent: payload.intent,
+          feedbackType: payload.type,
+          hasFeedbackEmail: Boolean(payload.email),
+          hasSavedListing: Boolean(payload.context?.savedListingId),
+          hasCompetitor: Boolean(payload.context?.competitorPlaceId || payload.context?.competitorName),
+        });
       }
 
       resetFeedbackForm();

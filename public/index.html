@@ -1889,6 +1889,18 @@ const COPY = {
       "Completed action is now tied to this week's visible movement. Use this as the follow-up note in the client report.",
     actionOutcomeSkipped:
       "Skipped action is documented. Keep the next report focused on the new task and the reason priorities changed.",
+    actionOutcomeReviewLoopTitle: "Action-to-review loop",
+    actionOutcomeReviewLoopAction: "Tracked action",
+    actionOutcomeReviewLoopMovement: "Review movement",
+    actionOutcomeReviewLoopFollowUp: "Client follow-up",
+    actionOutcomeReviewLoopDonePositive:
+      "Treat this as early evidence that the completed action may be helping. Keep the same cadence and re-check next cycle.",
+    actionOutcomeReviewLoopDoneWarning:
+      "The completed action has not removed the review pressure yet. Keep the action in the client report and tighten the next task.",
+    actionOutcomeReviewLoopDoneNeutral:
+      "No decisive review movement yet. Report the action as completed and keep monitoring the same theme.",
+    actionOutcomeReviewLoopSkipped:
+      "Because the previous action was skipped, use this movement to explain why the next task should change.",
     actionOutcomeQueueDone: "Confirm outcome of completed action",
     actionOutcomeQueueSkipped: "Review next task after skipped action",
     actionBriefTitle: "Execution brief",
@@ -2879,6 +2891,18 @@ const COPY = {
       "完了済みアクションと今週の見える変化を紐づけられます。クライアント報告のフォローアップとして使えます。",
     actionOutcomeSkipped:
       "スキップしたアクションを記録しました。次回レポートでは、新しいタスクと優先順位を変えた理由に絞って説明します。",
+    actionOutcomeReviewLoopTitle: "アクションとレビュー変化",
+    actionOutcomeReviewLoopAction: "追跡中のアクション",
+    actionOutcomeReviewLoopMovement: "レビュー上の動き",
+    actionOutcomeReviewLoopFollowUp: "クライアントへの次の説明",
+    actionOutcomeReviewLoopDonePositive:
+      "完了したアクションが効き始めている可能性があります。同じ実行ペースを維持し、次回も確認してください。",
+    actionOutcomeReviewLoopDoneWarning:
+      "完了したアクションだけでは、レビュー上の圧力はまだ解消していません。実施内容を報告に残し、次タスクを具体化してください。",
+    actionOutcomeReviewLoopDoneNeutral:
+      "レビュー上の変化はまだ決定的ではありません。実施済みとして報告し、同じテーマを継続監視してください。",
+    actionOutcomeReviewLoopSkipped:
+      "前回アクションを見送ったため、この変化を使って次タスクへ優先順位を変える理由を説明してください。",
     actionOutcomeQueueDone: "完了済みアクションの成果確認",
     actionOutcomeQueueSkipped: "スキップ後の次タスク確認",
     actionBriefTitle: "実行ブリーフ",
@@ -10177,7 +10201,80 @@ function buildSavedMonitoringMovementBlock(monitoring) {
   return movement;
 }
 
-function buildSavedListingMonitoringBlock(monitoring) {
+function reviewMonitoringOutcomeTone(monitoring) {
+  const trend = String(monitoring?.trend || "");
+  const gapDirection = String(monitoring?.gapDirection || "");
+  const movementItems = savedMonitoringMovementItems(monitoring);
+  const hasPositive =
+    trend === "improving" ||
+    gapDirection === "narrowing" ||
+    movementItems.some((item) => item?.tone === "accent");
+  const hasWarning =
+    trend === "worsening" ||
+    gapDirection === "widening" ||
+    movementItems.some((item) => item?.tone === "warning");
+
+  if (hasPositive) return "positive";
+  if (hasWarning) return "warning";
+  return "neutral";
+}
+
+function buildSavedMonitoringActionLoopBlock(monitoring, item = null) {
+  const latestAction = item?.latestAction || null;
+  const actionStatus = latestAction?.status || "";
+  if (!monitoring || monitoring.status !== "ready" || !["done", "skipped"].includes(actionStatus)) {
+    return null;
+  }
+
+  const actionCopy = [latestAction.label, latestAction.body].filter(Boolean).join(": ");
+  const movementCopy = sentence(
+    buildReviewThemeMovementCopy(monitoring) ||
+      monitoring?.beforeAfter?.latest ||
+      monitoring?.nextAction ||
+      ""
+  );
+  if (!actionCopy || !movementCopy) return null;
+
+  const tone =
+    actionStatus === "skipped"
+      ? "skipped"
+      : reviewMonitoringOutcomeTone(monitoring);
+  const followUp =
+    actionStatus === "skipped"
+      ? t("actionOutcomeReviewLoopSkipped")
+      : tone === "positive"
+        ? t("actionOutcomeReviewLoopDonePositive")
+        : tone === "warning"
+          ? t("actionOutcomeReviewLoopDoneWarning")
+          : t("actionOutcomeReviewLoopDoneNeutral");
+
+  const block = document.createElement("div");
+  block.className = `saved__monitoring-action-loop saved__monitoring-action-loop--${escapeAttr(
+    tone
+  )}`;
+  block.innerHTML = `
+    <div class="saved__monitoring-action-loop-title">${escapeHtml(
+      t("actionOutcomeReviewLoopTitle")
+    )}</div>
+    <div class="saved__monitoring-action-loop-grid">
+      <div class="saved__monitoring-action-loop-item">
+        <span>${escapeHtml(t("actionOutcomeReviewLoopAction"))}</span>
+        <strong>${escapeHtml(actionCopy)}</strong>
+      </div>
+      <div class="saved__monitoring-action-loop-item">
+        <span>${escapeHtml(t("actionOutcomeReviewLoopMovement"))}</span>
+        <strong>${escapeHtml(movementCopy)}</strong>
+      </div>
+      <div class="saved__monitoring-action-loop-item">
+        <span>${escapeHtml(t("actionOutcomeReviewLoopFollowUp"))}</span>
+        <strong>${escapeHtml(followUp)}</strong>
+      </div>
+    </div>
+  `;
+  return block;
+}
+
+function buildSavedListingMonitoringBlock(monitoring, item = null) {
   if (!monitoring?.status) return null;
 
   const block = document.createElement("div");
@@ -10254,6 +10351,9 @@ function buildSavedListingMonitoringBlock(monitoring) {
 
   const movementBlock = buildSavedMonitoringMovementBlock(monitoring);
   if (movementBlock) block.appendChild(movementBlock);
+
+  const actionLoopBlock = buildSavedMonitoringActionLoopBlock(monitoring, item);
+  if (actionLoopBlock) block.appendChild(actionLoopBlock);
 
   const basisCopy = buildReviewMonitoringBasisCopy(monitoring);
   if (basisCopy) {
@@ -11084,7 +11184,7 @@ function renderSavedListings(listings) {
     if (revisitBlock) content.appendChild(revisitBlock);
     const milestoneBlock = buildSavedListingMilestoneBlock(item?.ratingMilestoneProgress);
     if (milestoneBlock) content.appendChild(milestoneBlock);
-    const monitoringBlock = buildSavedListingMonitoringBlock(item?.reviewThemeMonitoring);
+    const monitoringBlock = buildSavedListingMonitoringBlock(item?.reviewThemeMonitoring, item);
     if (monitoringBlock) content.appendChild(monitoringBlock);
     content.appendChild(changeSummary);
 

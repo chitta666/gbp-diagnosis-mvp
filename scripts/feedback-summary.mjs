@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { adminTokenMissingHelp, printCliError } from "./_admin-token-help.mjs";
 
 function parseArgs(argv) {
   const args = {};
@@ -104,7 +105,12 @@ async function main() {
   }
 
   if (!token) {
-    throw new Error("Set --token or FEEDBACK_ADMIN_TOKEN before running feedback summary.");
+    throw new Error(
+      adminTokenMissingHelp(
+        "feedback summary",
+        "npm run feedback:summary -- --tag value_benchmark"
+      )
+    );
   }
 
   const url = new URL(`${origin}/api/feedback-summary`);
@@ -167,6 +173,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error?.stack || String(error));
+  printCliError(error);
   process.exit(1);
 });

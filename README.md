@@ -260,6 +260,10 @@ Beta feedback is stored in KV and can be summarized from:
 This endpoint requires:
 - `Authorization: Bearer <FEEDBACK_ADMIN_TOKEN>`
 
+Set `FEEDBACK_ADMIN_TOKEN` in the Cloudflare Pages production environment before using the
+protected summary endpoints. For local checks, pass it only as a one-off shell variable or with
+`--token`; do not commit it to README, logs, PR descriptions, screenshots, or shared shell output.
+
 Useful benchmark filters:
 - `/api/feedback-summary?tag=value_benchmark`
 - `/api/feedback-summary?intent=report_value_benchmark`

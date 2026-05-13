@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { adminTokenMissingHelp, printCliError } from "./_admin-token-help.mjs";
 
 function parseArgs(argv) {
   const args = {};
@@ -535,7 +536,12 @@ async function main() {
   }
 
   if (!token) {
-    throw new Error("Set --token or FEEDBACK_ADMIN_TOKEN before running value summary.");
+    throw new Error(
+      adminTokenMissingHelp(
+        "value summary",
+        "npm run value:summary -- --days 7"
+      )
+    );
   }
 
   const days = args.days || "7";
@@ -576,7 +582,7 @@ async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
-    console.error(error?.stack || String(error));
+    printCliError(error);
     process.exit(1);
   });
 }

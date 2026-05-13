@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { adminTokenMissingHelp, printCliError } from "./_admin-token-help.mjs";
 
 function parseArgs(argv) {
   const args = {};
@@ -86,7 +87,12 @@ async function main() {
   }
 
   if (!token) {
-    throw new Error("Set --token or FEEDBACK_ADMIN_TOKEN before running events summary.");
+    throw new Error(
+      adminTokenMissingHelp(
+        "events summary",
+        "npm run events:summary -- --days 7"
+      )
+    );
   }
 
   const url = new URL(`${origin}/api/events-summary`);
@@ -137,6 +143,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error?.stack || String(error));
+  printCliError(error);
   process.exit(1);
 });

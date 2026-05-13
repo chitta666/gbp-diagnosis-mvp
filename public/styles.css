@@ -2703,6 +2703,74 @@ body.client-share-view .print-cover__meta-value {
   color: var(--fg);
 }
 
+.revisit-plan {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: var(--r-2);
+  background:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(37, 99, 235, 0.045)),
+    var(--surface);
+}
+
+.revisit-plan__header {
+  display: grid;
+  gap: 4px;
+}
+
+.revisit-plan__title {
+  color: var(--fg);
+  font-size: var(--fs-2);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.revisit-plan__summary {
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+
+.revisit-plan__items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.revisit-plan__item {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-1);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.revisit-plan__label {
+  width: max-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.revisit-plan__item-title {
+  color: var(--fg);
+  font-size: var(--fs-2);
+  line-height: 1.35;
+}
+
+.revisit-plan__body {
+  color: var(--muted);
+  font-size: var(--fs-1);
+  line-height: 1.5;
+}
+
 .customer-choice-card {
   padding: 14px 16px;
   border: 1px solid rgba(37, 99, 235, 0.16);
@@ -4598,6 +4666,10 @@ body.client-share-view .print-cover__meta-value {
 
   .priority-pill {
     width: 100%;
+  }
+
+  .revisit-plan__items {
+    grid-template-columns: 1fr;
   }
 
   .comparison-focus-grid {

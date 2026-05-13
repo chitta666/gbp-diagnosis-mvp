@@ -399,6 +399,7 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
 
     <div class="section">
       <h2 id="nextActionsTitle" class="section__title">Next Actions</h2>
+      <div id="revisitPlan" class="revisit-plan hidden"></div>
       <ul id="primaryActionsList" class="list"></ul>
     </div>
 
@@ -911,6 +912,7 @@ const clientReportSummaryEl = document.getElementById("clientReportSummary");
 const reportSharePanelEl = document.getElementById("reportSharePanel");
 const actionHistoryPanelEl = document.getElementById("actionHistoryPanel");
 const priorityRowEl = document.getElementById("priorityRow");
+const revisitPlanEl = document.getElementById("revisitPlan");
 const primaryActionsListEl = document.getElementById("primaryActionsList");
 const comparisonFocusEl = document.getElementById("comparisonFocus");
 const customerChoiceEl = document.getElementById("customerChoice");
@@ -4833,6 +4835,7 @@ function resetUI() {
   renderClientReportSummary([]);
   renderReportSharePanel(null);
   renderActionHistoryPanel(null);
+  renderRevisitPlan(null);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) primaryActionsListEl.innerHTML = "";
   if (comparisonFocusEl) comparisonFocusEl.textContent = "";
@@ -4929,6 +4932,7 @@ function setLoading(isLoading) {
     renderClientReportSummary([]);
     renderReportSharePanel(null);
     renderActionHistoryPanel(null);
+    renderRevisitPlan(null);
     if (priorityRowEl) priorityRowEl.innerHTML = "";
     if (primaryActionsListEl) {
       primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("loadingPriority"))}</li>`;
@@ -4966,6 +4970,7 @@ function showError(message) {
   renderClientReportSummary([]);
   renderReportSharePanel(null);
   renderActionHistoryPanel(null);
+  renderRevisitPlan(null);
   if (priorityRowEl) priorityRowEl.innerHTML = "";
   if (primaryActionsListEl) {
     primaryActionsListEl.innerHTML = `<li>${escapeHtml(t("retryMoreSpecific"))}</li>`;
@@ -6200,6 +6205,130 @@ function buildFoundationStatusView(context) {
   };
 }
 
+function buildRevisitPlan(context) {
+  if (!context) return null;
+
+  const competitorName =
+    context.competitorName ||
+    langText("the selected competitor", "選択中の競合");
+  const sameCompetitor =
+    currentLanguage === "ja"
+      ? `${competitorName} と同じ条件で見て`
+      : `against ${competitorName}`;
+
+  let summary = langText(
+    "Use the same competitor to separate short-term movement from structural gaps.",
+    "同じ競合を基準に、短期の変化と構造的な差分を分けて見ます。"
+  );
+  let items = [];
+
+  if (context.primaryPriority === "foundation") {
+    summary = langText(
+      "First remove profile basics as a blocker, then read the competitor gap again.",
+      "まず基本情報の不足を取り除き、そのあとで競合差を読み直します。"
+    );
+    items = [
+      {
+        label: langText("This week", "今週"),
+        title: langText("Confirm basics no longer block trust", "基本情報が信頼を止めていないか確認"),
+        body: langText(
+          "After fixing photos, website, phone, or business details, reopen this report before over-reading competitor gaps.",
+          "写真・Webサイト・電話番号・基本情報を直したあと、競合差を読み込みすぎる前にこのレポートを再確認します。"
+        ),
+      },
+      {
+        label: langText("This month", "今月"),
+        title: langText("Move from setup check to competitor story", "初期整備から競合差の説明へ移る"),
+        body: currentLanguage === "ja"
+          ? `基本が整った状態で、${sameCompetitor}、レビュー・写真・選ばれる理由の差がまだ残るか確認します。`
+          : `Once basics are fixed, re-check ${sameCompetitor} to see whether review, photo, and choice gaps remain.`,
+      },
+    ];
+  } else if (context.materialReviewDrop) {
+    summary = langText(
+      "A trust drop is only actionable if it persists or changes the competitor story.",
+      "信頼低下は、継続するか競合比較に影響したときに実行判断へつながります。"
+    );
+    items = [
+      {
+        label: langText("This week", "今週"),
+        title: langText("Verify the trust drop", "信頼低下が続くか確認"),
+        body: langText(
+          "Check whether the lower review count persists before changing the client story or action plan.",
+          "レビュー数の低下が続くかを確認してから、クライアント説明や実行計画を変えます。"
+        ),
+      },
+      {
+        label: langText("This month", "今月"),
+        title: langText("Show recovery or continued risk", "回復または継続リスクとして示す"),
+        body: currentLanguage === "ja"
+          ? `${sameCompetitor}、回復したか、まだ見た目の信頼差が広がっているかを報告材料にします。`
+          : `Use the same competitor set to show whether visible trust recovered or the gap kept widening.`,
+      },
+    ];
+  } else if (context.primaryPriority === "competitive_gap") {
+    items = [
+      {
+        label: langText("This week", "今週"),
+        title: langText("Check movement against the same competitor", "同じ競合で動きを確認"),
+        body: currentLanguage === "ja"
+          ? `${sameCompetitor}、レビューの増え方、写真の見え方、第一印象の差が少しでも縮んだか見ます。`
+          : `Re-check ${sameCompetitor} to see whether review momentum, photo proof, or first-impression gaps narrowed.`,
+      },
+      {
+        label: langText("This month", "今月"),
+        title: langText("Confirm the structural gap narrowed", "構造的な差が縮んだか確認"),
+        body: langText(
+          "If the same gap repeats, treat it as a reporting theme and turn it into a client-facing improvement backlog.",
+          "同じ差が繰り返し出るなら、報告テーマとして扱い、クライアント向けの改善バックログに入れます。"
+        ),
+      },
+    ];
+  } else if (context.primaryPriority === "customer_choice") {
+    items = [
+      {
+        label: langText("This week", "今週"),
+        title: langText("Check whether choice signals improved", "選ばれる理由が見えやすくなったか確認"),
+        body: langText(
+          "After changing photos, replies, or profile copy, verify whether the first few seconds now explain why to choose this listing.",
+          "写真・返信・説明文を変えたあと、最初の数秒で選ぶ理由が伝わるようになったか確認します。"
+        ),
+      },
+      {
+        label: langText("This month", "今月"),
+        title: langText("See whether the same weakness repeats", "同じ弱点が繰り返し出るか見る"),
+        body: currentLanguage === "ja"
+          ? `${sameCompetitor}、接客・雰囲気・商品/サービス・価格・清潔感のどこが残課題かを固定化します。`
+          : `Compare ${sameCompetitor} again and pin down which choice axis still needs work: service, atmosphere, offer, price, or cleanliness.`,
+      },
+    ];
+  } else {
+    items = [
+      {
+        label: langText("This week", "今週"),
+        title: langText("Watch for momentum slowdown", "勢いが落ちていないか確認"),
+        body: langText(
+          "A healthy listing still needs proof to stay fresh: watch review pace, photo freshness, and competitor movement.",
+          "健全な店舗情報でも、レビューの勢い・写真の新しさ・競合の動きが鈍っていないか見ます。"
+        ),
+      },
+      {
+        label: langText("This month", "今月"),
+        title: langText("Keep the advantage visible", "優位を見え続けさせる"),
+        body: currentLanguage === "ja"
+          ? `${sameCompetitor}、優位が維持されているかを確認し、定例報告では守るべき強みとして扱います。`
+          : `Re-check ${sameCompetitor} and treat sustained strengths as the proof to protect in recurring reports.`,
+      },
+    ];
+  }
+
+  return {
+    title: langText("Why revisit this report", "このレポートに戻る理由"),
+    summary,
+    items,
+  };
+}
+
 function buildDiagnosisFirstView(data) {
   const context = getDiagnosisContext(data);
 
@@ -6376,6 +6505,7 @@ function buildDiagnosisFirstView(data) {
     summaryLines: summaryLines.map((line) => sentence(line)).filter(Boolean),
     meta: competitorMeta,
     priorityItems,
+    revisitPlan: buildRevisitPlan(context),
     actions: buildPrimaryActions(context, data),
     customerChoice: buildCustomerChoiceView(data),
     foundation: buildFoundationStatusView(context),
@@ -6440,6 +6570,38 @@ function renderActionTaskList(listEl, items) {
     `;
     listEl.appendChild(li);
   });
+}
+
+function renderRevisitPlan(plan) {
+  if (!revisitPlanEl) return;
+
+  const items = Array.isArray(plan?.items) ? plan.items.filter((item) => item?.body) : [];
+  if (!plan || !items.length) {
+    revisitPlanEl.classList.add("hidden");
+    revisitPlanEl.innerHTML = "";
+    return;
+  }
+
+  revisitPlanEl.classList.remove("hidden");
+  revisitPlanEl.innerHTML = `
+    <div class="revisit-plan__header">
+      <div class="revisit-plan__title">${escapeHtml(plan.title)}</div>
+      <div class="revisit-plan__summary">${escapeHtml(plan.summary)}</div>
+    </div>
+    <div class="revisit-plan__items">
+      ${items
+        .map(
+          (item) => `
+            <div class="revisit-plan__item">
+              <span class="revisit-plan__label">${escapeHtml(item.label)}</span>
+              <strong class="revisit-plan__item-title">${escapeHtml(item.title)}</strong>
+              <span class="revisit-plan__body">${escapeHtml(item.body)}</span>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function buildClientReportEvidencePack(result) {
@@ -8606,6 +8768,7 @@ function renderInsight(data) {
   renderReportSharePanel(data);
   renderActionHistoryPanel(data, firstView);
   renderPriorityRow(firstView.priorityItems);
+  renderRevisitPlan(firstView.revisitPlan);
   renderActionTaskList(primaryActionsListEl, firstView.actions);
   renderComparisonFocusView(comparisonFocus);
   renderCustomerChoiceView(firstView.customerChoice);

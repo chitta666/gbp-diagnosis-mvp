@@ -297,12 +297,43 @@ export function buildWeeklyDiffSummary(
 
   const clientSummary = uniqueStrings([
     notableChange,
+    Number.isFinite(totalReviewGap)
+      ? totalReviewGap < 0
+        ? text(
+            lang,
+            "Total review count is the trust-depth gap; this competitor still looks more established at a glance.",
+            "総レビュー数は信頼の厚みの差です。ひと目では、競合の方がまだ実績豊富に見えます。"
+          )
+        : totalReviewGap > 0
+          ? text(
+              lang,
+              "Total review count is the trust-depth signal; this listing still looks more established at a glance.",
+              "総レビュー数は信頼の厚みの根拠です。ひと目では、この店舗の方が実績豊富に見えます。"
+            )
+          : text(
+              lang,
+              "Total review count is close, so recent review momentum matters more this week.",
+              "総レビュー数は近いため、今週は直近のレビュー増加ペースがより重要です。"
+            )
+      : null,
     Number.isFinite(weeklyMomentumGap)
       ? weeklyMomentumGap < 0
-        ? text(lang, "Competitor review momentum is stronger right now.", "現時点では競合のレビュー増加ペースが強めです。")
+        ? text(
+            lang,
+            "Review velocity is the momentum signal; the competitor is gaining fresh proof faster right now.",
+            "レビュー速度は勢いの根拠です。現時点では競合の方が新しい根拠を増やすペースで上回っています。"
+          )
         : weeklyMomentumGap > 0
-          ? text(lang, "This listing is gaining reviews faster than the competitor.", "この店舗は競合よりレビュー増加ペースで上回っています。")
-          : text(lang, "Weekly review momentum is close to the competitor.", "週間レビュー増加ペースは競合とほぼ同水準です。")
+          ? text(
+              lang,
+              "Review velocity is the momentum signal; this listing is gaining fresh proof faster than the competitor.",
+              "レビュー速度は勢いの根拠です。この店舗は競合より新しい根拠を増やすペースで上回っています。"
+            )
+          : text(
+              lang,
+              "Review velocity is the momentum signal, and this week's pace is close to the competitor.",
+              "レビュー速度は勢いの根拠で、今週の増加ペースは競合とほぼ同水準です。"
+            )
       : null,
     reviewThemeMonitoring?.status === "ready" && reviewThemeMonitoring?.notableShift
       ? reviewThemeMonitoring.notableShift

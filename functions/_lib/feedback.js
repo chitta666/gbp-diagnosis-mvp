@@ -123,6 +123,10 @@ function compactContext(context) {
     freeLimitReached: Boolean(context?.freeLimitReached),
     intent: compactText(context?.intent, 40) || null,
     diagnosisHeadline: compactText(context?.diagnosisHeadline, 200) || null,
+    customerChoiceSummary: compactText(context?.customerChoiceSummary, 240) || null,
+    customerChoicePriorityAction: compactText(context?.customerChoicePriorityAction, 240) || null,
+    reviewClueConfidence: compactText(context?.reviewClueConfidence, 40) || null,
+    reviewSampleCount: compactText(context?.reviewSampleCount, 20) || null,
     path: compactText(context?.path, 120) || null,
     href: compactText(context?.href, 300) || null,
     reportGeneratedAt: compactText(context?.reportGeneratedAt, 80) || null,
@@ -138,6 +142,9 @@ function buildFeedbackSearchText({ type, message, context }) {
     context?.placeName,
     context?.competitorName,
     context?.diagnosisHeadline,
+    context?.customerChoiceSummary,
+    context?.customerChoicePriorityAction,
+    context?.intent,
     context?.path,
   ]
     .filter(Boolean)
@@ -157,6 +164,11 @@ function inferFeedbackTags({ type, message, context }) {
   if (["beta_value_benchmark", "report_value_benchmark"].includes(context?.intent)) {
     tags.add("value_benchmark");
     tags.add("time_saved");
+  }
+
+  if (context?.intent === "customer_choice_validation") {
+    tags.add("customer_choice");
+    tags.add("validation_signal");
   }
 
   if (context?.savedListingId || context?.page === "saved_listing" || String(context?.href || "").includes("saved=")) {

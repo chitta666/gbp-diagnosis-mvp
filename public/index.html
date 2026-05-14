@@ -2370,7 +2370,7 @@ const COPY = {
     exportPdf: "PDFを書き出す",
     historyTitle: "履歴",
     clearHistory: "履歴を消去",
-    historyHint: "履歴をクリックするとAPIを使わずに結果を再表示できます",
+    historyHint: "履歴をクリックすると再検索せずに結果を再表示できます",
     feedbackTitle: "かんたんフィードバック",
     feedbackEyebrow: "ベータ版フィードバック",
     feedbackModalTitle: "かんたんフィードバック",
@@ -2409,7 +2409,7 @@ const COPY = {
     reviewDisputeClose: "閉じる",
     reviewDisputeSnapshotTitle: "レビュー概要",
     reviewDisputeBusinessNameLabel: "店舗名",
-    reviewDisputeBusinessNamePlaceholder: "例: Example Dental",
+    reviewDisputeBusinessNamePlaceholder: "例: さくら歯科",
     reviewDisputeReviewerNameLabel: "レビュアー名",
     reviewDisputeReviewDateLabel: "レビュー日",
     reviewDisputeReviewRatingLabel: "星評価",
@@ -2559,7 +2559,7 @@ const COPY = {
     loadingSavedListing: "保存した店舗を読み込み中...",
     savedListingLoaded: "保存した店舗を読み込みました。",
     savedListingsEmpty: "保存した店舗はまだありません",
-    savedPlanLabel: "Free ベータ",
+    savedPlanLabel: "無料ベータ",
     savedPlanUsage: "保存済み店舗 {count}/{limit} 件",
     savedPlanProPrice: "Pro ベータ想定: 月額 {price}円",
     savedPlanProHint:
@@ -2584,7 +2584,7 @@ const COPY = {
       },
     ],
     savedPlanLimitReached:
-      "Free ベータの保存上限に達しています。既存の保存済み店舗は引き続き開く・更新できます。",
+      "無料ベータの保存上限に達しています。既存の保存済み店舗は引き続き開く・更新できます。",
     savedPlanUpgradeHint:
       "保存履歴が定例レポート業務の一部になったら、Proで使う想定です。",
     savedPlanProRequest: "Proの相談を送る",
@@ -2792,7 +2792,7 @@ const COPY = {
     clientReportEvidenceBasisTitle: "根拠の前提",
     clientReportEvidenceBasisReviews: "レビュー本文",
     clientReportEvidenceBasisCompetitor: "競合比較",
-    clientReportEvidenceBasisGoogle: "Googleシグナル",
+    clientReportEvidenceBasisGoogle: "Google上の見える根拠",
     clientReportEvidenceBasisDepth: "根拠の厚み",
     clientReportEvidenceBasisReviewTrend: "レビュー傾向",
     clientReportEvidenceBasisReviewScale: "レビュー母数",
@@ -2813,7 +2813,7 @@ const COPY = {
       "方向性の説明には使えます。まだ収集中の材料は補足として伝えてください。",
     clientReportEvidenceVerdictCollectingTitle: "もう1つ根拠が必要",
     clientReportEvidenceVerdictCollectingBody:
-      "レビュー本文、競合比較、Google側シグナルが強くなるまでは初回基準として扱ってください。",
+      "レビュー本文、競合比較、Google上の見える根拠が強くなるまでは初回基準として扱ってください。",
     clientReportEvidenceVerdictMissingLabel: "不足",
     clientReportEvidenceReviewSample: "レビューサンプル: 直近で見えているレビュー {count} 件。",
     clientReportEvidenceReviewScaleCaution: "レビュー母数の注意: {message}",
@@ -2984,7 +2984,7 @@ const COPY = {
     saveListingInvalidEmail: "保存する前に有効なメールアドレスを入力してください。",
     saveListingMissingCompetitor: "週間レポートを作るには競合を選ぶ必要があります。",
     saveListingLimitReached:
-      "Free ベータで保存できる店舗は {limit} 件までです。既存の保存済み店舗を開くか、Pro提供時に追加保存してください。",
+      "無料ベータで保存できる店舗は {limit} 件までです。既存の保存済み店舗を開くか、Pro提供時に追加保存してください。",
     saveListingSaving: "保存しています...",
     saveListingSaved:
       "基準レポートとして保存しました。次回開くと、同じ競合に対して何が変わったかを確認できます。",
@@ -3056,7 +3056,7 @@ const COPY = {
     weeklyLabelYourGrowth: "自店舗の週間レビュー増加",
     weeklyLabelCompetitorGrowth: "競合の週間レビュー増加",
     weeklyLabelGrowthDifference: "週間増加差",
-    weeklyLabelInsight: "週間インサイト",
+    weeklyLabelInsight: "週間の読みどころ",
     weeklyLabelChanges: "週間変化",
     couldNotLoadSavedListings: "保存済み一覧を読み込めませんでした。",
     couldNotLoadSavedListing: "保存した店舗を読み込めませんでした。",
@@ -3095,7 +3095,7 @@ const COPY = {
     reviewMonitoringBasisCompetitorChecks: "競合チェック {count} 回",
     reviewMonitoringConfidenceLow: "信頼度: 低",
     reviewMonitoringConfidenceMedium: "信頼度: 中",
-    reviewMonitoringVisibleSampleOnly: "表示レビューサンプルベース",
+    reviewMonitoringVisibleSampleOnly: "表示されているレビューサンプルに基づく判定",
     reviewMonitoringPreviousCheck: "前回チェック",
     reviewMonitoringLatestCheck: "最新チェック",
     savedListingFallbackName: "保存した店舗",
@@ -5774,7 +5774,7 @@ function buildCustomerChoiceView(data) {
     ),
     note: langText(
       "Review-based clues will appear here when recent visible review text is available.",
-      "直近で見えているレビュー本文がある場合、ここに review-based clues が表示されます。"
+      "直近で見えているレビュー本文がある場合、ここにレビュー起点の手がかりが表示されます。"
     ),
   };
 }

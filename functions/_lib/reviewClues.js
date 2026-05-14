@@ -1165,6 +1165,7 @@ function buildVerificationGaps({ topStrengths, websiteMissing, missingPhotos }, 
 
 function buildCompetitorChoiceEdges({ competitor, details, photoAnalysis }, lang = "en") {
   if (!competitor) return [];
+  if (!isUsableCompetitorContext(competitor)) return [];
 
   const myPhotos = Number.isFinite(photoAnalysis?.myPhotos) ? Number(photoAnalysis.myPhotos) : 0;
   const competitorPhotos = Number.isFinite(competitor?.photoCount)
@@ -1211,6 +1212,41 @@ function buildCompetitorChoiceEdges({ competitor, details, photoAnalysis }, lang
   }
 
   return uniqueStrings(edges).slice(0, 2);
+}
+
+function isUsableCompetitorContext(competitor) {
+  if (!competitor) return false;
+
+  const comparableTypes = Array.isArray(competitor?.comparable_types)
+    ? competitor.comparable_types
+    : Array.isArray(competitor?.types)
+      ? competitor.types
+      : [];
+  const genericTypes = new Set([
+    "locality",
+    "political",
+    "colloquial_area",
+    "administrative_area_level_1",
+    "administrative_area_level_2",
+    "country",
+  ]);
+
+  if (comparableTypes.some((type) => genericTypes.has(String(type || "").toLowerCase()))) {
+    return false;
+  }
+
+  const typeMatchScore = Number.isFinite(competitor?.type_match_score)
+    ? Number(competitor.type_match_score)
+    : null;
+  const fitScore = Number.isFinite(competitor?.competitive_fit_score)
+    ? Number(competitor.competitive_fit_score)
+    : null;
+
+  if (typeMatchScore !== null && typeMatchScore <= 0 && fitScore !== null && fitScore < 4) {
+    return false;
+  }
+
+  return true;
 }
 
 function buildBlindSpots({
@@ -1277,10 +1313,28 @@ function buildPriorityAction({ topFrictions, topStrengths, websiteMissing, missi
       : "Reduce visible wait-time friction before trying to improve review volume.";
   }
 
+  if (topFrictions.some((item) => item.key === "dirty")) {
+    return isJapanese(lang)
+      ? "集客を強める前に、清潔感への不安を減らす写真・店内点検・返信対応を整えてください。"
+      : "Reduce cleanliness concerns before pushing acquisition: add clean-area proof, check the in-store experience, and prepare calm replies.";
+  }
+
   if (topFrictions.some((item) => item.key === "rude_service")) {
     return isJapanese(lang)
       ? "集客や比較施策を強める前に、接客品質のばらつきを整えてください。"
       : "Tighten service consistency before pushing harder on acquisition or comparison.";
+  }
+
+  if (topFrictions.some((item) => item.key === "overpriced")) {
+    return isJapanese(lang)
+      ? "値下げより先に、価格に含まれる内容・得られる結果・納得できる理由を見える場所に追加してください。"
+      : "Before changing price, make the value clearer: what is included, what outcome customers get, and why it is worth it.";
+  }
+
+  if (topFrictions.some((item) => item.key === "poor_quality")) {
+    return isJapanese(lang)
+      ? "新しい訴求を増やす前に、商品・サービス品質への不満が出ている箇所を確認し、改善内容を説明できる状態にしてください。"
+      : "Before adding more promotion, identify the quality complaint and make the improvement visible enough to explain.";
   }
 
   if (websiteMissing) {

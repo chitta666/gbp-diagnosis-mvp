@@ -1001,6 +1001,8 @@ function buildReviewComparisonAxes({
 }
 
 function buildGoogleComparisonSignals({ details, competitor, photoAnalysis }, lang = "en") {
+  if (!competitor) return [];
+
   const signals = [];
   const myPhotos = Number.isFinite(photoAnalysis?.myPhotos) ? Number(photoAnalysis.myPhotos) : 0;
   const competitorPhotos = Number.isFinite(competitor?.photoCount)
@@ -1479,6 +1481,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
   const missingPhotos = Number.isFinite(photoAnalysis?.missingPhotos)
     ? Number(photoAnalysis.missingPhotos)
     : 0;
+  const usableCompetitor = isUsableCompetitorContext(competitor) ? competitor : null;
   const underSignaledStrengths = buildUnderSignaledStrengths({
     topStrengths,
     websiteMissing,
@@ -1494,7 +1497,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
     missingPhotos,
   }, lang);
   const competitorChoiceEdges = buildCompetitorChoiceEdges({
-    competitor,
+    competitor: usableCompetitor,
     details,
     photoAnalysis,
   }, lang);
@@ -1512,7 +1515,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
   }, lang);
   const comparison = buildReviewComparisonAxes({
     details,
-    competitor,
+    competitor: usableCompetitor,
     sample,
     positiveCounts,
     lowerCounts,
@@ -1523,7 +1526,7 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
   });
   const googleSignals = buildGoogleComparisonSignals({
     details,
-    competitor,
+    competitor: usableCompetitor,
     photoAnalysis,
   }, lang);
   const reviewScaleCaution = buildReviewScaleCaution({ details, sample }, lang);

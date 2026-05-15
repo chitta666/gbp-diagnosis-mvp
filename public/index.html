@@ -34,12 +34,20 @@
         "@type": "Audience",
         "audienceType": "Local SEO consultants, Google Business Profile operators, GBP operators, and MEO consultants"
       },
-      "offers": {
-        "@type": "Offer",
-        "price": "2980",
-        "priceCurrency": "JPY",
-        "description": "Pro beta target for consultants managing recurring client reporting workflows."
-      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "18",
+          "priceCurrency": "USD",
+          "description": "Pro beta target for consultants managing recurring client reporting workflows."
+        },
+        {
+          "@type": "Offer",
+          "price": "2980",
+          "priceCurrency": "JPY",
+          "description": "Pro beta target for consultants managing recurring client reporting workflows in Japan."
+        }
+      ],
       "featureList": [
         "Google Business Profile competitor comparison",
         "Weekly change summaries",
@@ -242,7 +250,7 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
     </div>
     <div class="operator-workflow__price-row">
       <span id="operatorWorkflowPriceLabel" class="operator-workflow__price-label">Pro beta target</span>
-      <strong id="operatorWorkflowPrice" class="operator-workflow__price">¥2,980/mo</strong>
+      <strong id="operatorWorkflowPrice" class="operator-workflow__price">$18/mo</strong>
       <span id="operatorWorkflowPriceHint" class="operator-workflow__price-hint">
         For operators who need recurring reports across saved client locations.
       </span>
@@ -1076,6 +1084,7 @@ const DEFAULT_LANGUAGE = "en";
 const FREE_SAVED_LISTING_LIMIT = 3;
 const PRO_SAVED_LISTING_TARGET = 25;
 const PRO_MONTHLY_PRICE_JPY = 2980;
+const PRO_MONTHLY_PRICE_USD = 18;
 const SAMPLE_REPORT_PARAM_VALUE = "report";
 
 const COPY = {
@@ -1180,7 +1189,7 @@ const COPY = {
       },
     ],
     operatorWorkflowPriceLabel: "Pro beta target",
-    operatorWorkflowPrice: "¥{price}/mo",
+    operatorWorkflowPrice: "{price}/mo",
     operatorWorkflowPriceHint:
       "For operators who need recurring reports across saved client locations.",
     operatorWorkflowRevisitLabel: "Saved baseline -> next check",
@@ -1550,7 +1559,7 @@ const COPY = {
     savedListingsEmpty: "No saved listings yet",
     savedPlanLabel: "Free beta",
     savedPlanUsage: "{count}/{limit} saved listings used",
-    savedPlanProPrice: "Pro beta target: ¥{price}/mo",
+    savedPlanProPrice: "Pro beta target: {price}/mo",
     savedPlanProHint:
       "Pro is planned for consultants managing more client locations: up to {limit} saved listings, repeat action history, and client-ready weekly updates.",
     savedPlanValueTarget:
@@ -1578,7 +1587,7 @@ const COPY = {
       "Use Pro when saved history becomes part of your recurring client reporting workflow.",
     savedPlanProRequest: "Request Pro access",
     savedPlanProPrefill:
-      "I'm interested in Pro beta at ¥2,980/mo. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
+      "I'm interested in Pro beta at $18/mo. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
     savedListingDefaultName: "Saved Listing",
     savedListingAddressUnavailable: "Address not available",
     savedListingUpdated: "Updated",
@@ -3405,7 +3414,7 @@ function renderStaticCopy() {
   }
   if (operatorWorkflowPriceEl) {
     operatorWorkflowPriceEl.textContent = copyWithValues(t("operatorWorkflowPrice"), {
-      price: formatYenAmount(PRO_MONTHLY_PRICE_JPY),
+      price: formatProMonthlyPriceAmount(),
     });
   }
   if (operatorWorkflowPriceHintEl) {
@@ -4085,6 +4094,18 @@ function formatYenAmount(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "";
   return String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatUsdAmount(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+  return `$${Math.round(amount).toLocaleString("en-US")}`;
+}
+
+function formatProMonthlyPriceAmount() {
+  return currentLanguage === "ja"
+    ? formatYenAmount(PRO_MONTHLY_PRICE_JPY)
+    : formatUsdAmount(PRO_MONTHLY_PRICE_USD);
 }
 
 function formatCompactCount(value, fallback = "-") {
@@ -9935,7 +9956,7 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
     limit: PRO_SAVED_LISTING_TARGET,
   });
   const proPrice = copyWithValues(t("savedPlanProPrice"), {
-    price: formatYenAmount(PRO_MONTHLY_PRICE_JPY),
+    price: formatProMonthlyPriceAmount(),
   });
   const valueTarget = t("savedPlanValueTarget");
   const valueBullets = Array.isArray(t("savedPlanValueBullets"))

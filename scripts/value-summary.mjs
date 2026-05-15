@@ -185,7 +185,7 @@ function buildValueDecision({ benchmarkRecords, savedStats, totalFunnel, fieldCo
   }
 
   return {
-    target: "¥2,980/mo Pro beta value",
+    target: "$18/mo or ¥2,980/mo Pro beta value",
     status,
     targets,
     metrics: {
@@ -226,7 +226,7 @@ function buildRecommendationList({ benchmarkRecords, savedStats, totalFunnel, fi
 
   if (!benchmarkRecords) {
     recommendations.push(
-      "Collect at least 3 structured benchmark records before treating the ¥2,980/mo value hypothesis as validated."
+      "Collect at least 3 structured benchmark records before treating the $18/mo or ¥2,980/mo value hypothesis as validated."
     );
   } else if (numberOrZero(savedStats.count) < benchmarkRecords) {
     recommendations.push(

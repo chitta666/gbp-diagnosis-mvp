@@ -3107,6 +3107,7 @@ let currentResult = null;
 let currentLanguage = DEFAULT_LANGUAGE;
 let currentSavedListings = [];
 let currentClientReportCopyText = "";
+let languageRefreshToken = 0;
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let actionHistoryBusy = false;
@@ -3680,9 +3681,11 @@ function renderStaticCopy() {
 
 function applyLanguage(lang, options = {}) {
   const next = normalizeLanguage(lang);
+  const previousLanguage = currentLanguage;
   const {
     persist = true,
     syncUrl = false,
+    refreshDynamic = false,
   } = options;
 
   currentLanguage = next;
@@ -3716,6 +3719,47 @@ function applyLanguage(lang, options = {}) {
   }
 
   renderSavedListings(currentSavedListings);
+
+  if (refreshDynamic && previousLanguage !== currentLanguage) {
+    void refreshLanguageDependentData();
+  }
+}
+
+async function refreshLanguageDependentData() {
+  const token = ++languageRefreshToken;
+  const savedId =
+    currentResult?.savedListing?.id ||
+    new URL(window.location.href).searchParams.get("saved") ||
+    "";
+
+  try {
+    if (isLikelyEmail(getSubscriberEmail())) {
+      await refreshSavedListings({ quiet: true });
+    }
+
+    if (token !== languageRefreshToken || !savedId) return;
+
+    const data = await fetchSavedReport(savedId);
+    if (token !== languageRefreshToken || !data?.ok) return;
+
+    if (data?.savedListing?.q) {
+      input.value = data.savedListing.q;
+    } else if (data?.details?.name) {
+      input.value = data.details.name;
+    }
+
+    if (!isLikelyEmail(getSubscriberEmail()) && data?.savedListing) {
+      renderSavedListings([data.savedListing]);
+    }
+
+    const hydrated = await showResult(data);
+    if (token !== languageRefreshToken) return;
+
+    currentResult = hydrated;
+    setUrlSavedParam(savedId);
+  } catch (error) {
+    console.warn("Could not refresh language-dependent saved data", error);
+  }
 }
 
 async function detectInitialLanguage() {
@@ -12131,13 +12175,13 @@ document.addEventListener("keydown", (event) => {
 
 if (langToggleEn) {
   langToggleEn.addEventListener("click", () => {
-    applyLanguage("en", { persist: true, syncUrl: true });
+    applyLanguage("en", { persist: true, syncUrl: true, refreshDynamic: true });
   });
 }
 
 if (langToggleJa) {
   langToggleJa.addEventListener("click", () => {
-    applyLanguage("ja", { persist: true, syncUrl: true });
+    applyLanguage("ja", { persist: true, syncUrl: true, refreshDynamic: true });
   });
 }
 

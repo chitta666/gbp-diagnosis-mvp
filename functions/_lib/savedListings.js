@@ -118,6 +118,10 @@ const STORED_THEME_LABELS = {
     en: "product quality",
     ja: "商品・サービスの質",
   },
+  poor_quality: {
+    en: "quality issues",
+    ja: "商品・サービスへの不満",
+  },
   professionalism: {
     en: "professional service",
     ja: "プロらしい対応",
@@ -125,6 +129,10 @@ const STORED_THEME_LABELS = {
   cleanliness: {
     en: "a clean environment",
     ja: "清潔感",
+  },
+  dirty: {
+    en: "cleanliness concerns",
+    ja: "清潔感への不満",
   },
   slow_service: {
     en: "slow service",

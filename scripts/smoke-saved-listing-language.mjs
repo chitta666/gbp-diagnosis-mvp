@@ -34,14 +34,11 @@ const record = {
           en: ["value concerns"],
           ja: ["価格への不満"],
         },
-        verificationGaps: {
-          en: ["Reviews show trust proof, but the reason to choose this business is not clear enough."],
-          ja: ["レビューでは信頼感が見えていますが、選ばれる理由がまだ十分に見えていません。"],
-        },
-        priorityAction: {
-          en: "Before discounting, add the value, outcome, and reason to choose you where customers can see it.",
-          ja: "値下げより先に、価格に含まれる内容・得られる結果・納得できる理由を見える場所に追加してください。",
-        },
+        verificationGaps: [
+          "レビューでは信頼感が見えていますが、Webサイトがないため、その根拠を来店前に確認しづらい状態です。",
+        ],
+        priorityAction:
+          "値下げより先に、価格に含まれる内容・得られる結果・納得できる理由を見える場所に追加してください。",
       },
       {
         placeId: "my-place",
@@ -77,6 +74,10 @@ assert.equal(
 assert.equal(
   listing.reviewThemeMonitoring.beforeAfter.latest,
   "Newly visible friction: value concerns"
+);
+assert.equal(
+  listing.reviewThemeMonitoring.nextAction,
+  "Before changing price, make the value clearer: what is included, what outcome customers get, and why it is worth it."
 );
 assert.doesNotMatch(
   JSON.stringify({

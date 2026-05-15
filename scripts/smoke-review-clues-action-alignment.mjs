@@ -66,6 +66,8 @@ function assertWeakCompetitorContextSuppressed() {
   );
 
   assert.deepEqual(clues.competitorChoiceEdges, []);
+  assert.equal(clues.competitorContextName, null);
+  assert.equal(clues.competitorContextPlaceId, null);
   assert.equal(clues.comparisonSummary, null);
   assert.deepEqual(clues.comparisonAxes, []);
   assert.deepEqual(clues.googleSignals, []);

@@ -1542,8 +1542,8 @@ export function buildReviewClues({ reviews, details, photoAnalysis, competitor, 
       ? Number(details.user_ratings_total)
       : null,
     reviewScaleCaution,
-    competitorContextPlaceId: competitor?.place_id ?? competitor?.placeId ?? null,
-    competitorContextName: competitor?.name ?? null,
+    competitorContextPlaceId: usableCompetitor?.place_id ?? usableCompetitor?.placeId ?? null,
+    competitorContextName: usableCompetitor?.name ?? null,
     summary: buildSummary({
       topStrengths,
       topFrictions,

@@ -118,6 +118,10 @@ const STORED_THEME_LABELS = {
     en: "product quality",
     ja: "商品・サービスの質",
   },
+  poor_quality: {
+    en: "quality issues",
+    ja: "商品・サービスへの不満",
+  },
   professionalism: {
     en: "professional service",
     ja: "プロらしい対応",
@@ -125,6 +129,10 @@ const STORED_THEME_LABELS = {
   cleanliness: {
     en: "a clean environment",
     ja: "清潔感",
+  },
+  dirty: {
+    en: "cleanliness concerns",
+    ja: "清潔感への不満",
   },
   slow_service: {
     en: "slow service",
@@ -154,6 +162,39 @@ const STORED_THEME_LOOKUP = Object.values(STORED_THEME_LABELS).reduce((acc, item
   return acc;
 }, {});
 
+const STORED_TEXT_TRANSLATIONS = [
+  {
+    en: "Reviews suggest the business is credible, but the missing website still makes that proof slower to verify.",
+    ja: "レビューでは信頼感が見えていますが、Webサイトがないため、その根拠を来店前に確認しづらい状態です。",
+  },
+  {
+    en: "Reviews point to strengths that are not yet easy to verify visually in the listing.",
+    ja: "レビューで評価されている強みが、店舗情報上ではまだ視覚的に確認しづらい状態です。",
+  },
+  {
+    en: "Recent visible reviews suggest trust is present, but the listing still makes that proof too slow to verify.",
+    ja: "最近見えているレビューでは信頼感はありますが、その根拠を店舗情報上ですぐ確認しづらい状態です。",
+  },
+  {
+    en: "Before changing price, make the value clearer: what is included, what outcome customers get, and why it is worth it.",
+    ja: "値下げより先に、価格に含まれる内容・得られる結果・納得できる理由を見える場所に追加してください。",
+  },
+  {
+    en: "Before adding more promotion, identify the quality complaint and make the improvement visible enough to explain.",
+    ja: "新しい訴求を増やす前に、商品・サービス品質への不満が出ている箇所を確認し、改善内容を説明できる状態にしてください。",
+  },
+  {
+    en: "Reduce cleanliness concerns before pushing acquisition: add clean-area proof, check the in-store experience, and prepare calm replies.",
+    ja: "集客を強める前に、清潔感への不安を減らす写真・店内点検・返信対応を整えてください。",
+  },
+];
+
+const STORED_TEXT_LOOKUP = STORED_TEXT_TRANSLATIONS.reduce((acc, item) => {
+  acc[String(item.en || "").toLowerCase()] = item;
+  acc[String(item.ja || "").toLowerCase()] = item;
+  return acc;
+}, {});
+
 function isJapanese(lang = "en") {
   return String(lang || "").toLowerCase().startsWith("ja");
 }
@@ -172,7 +213,7 @@ function localizedString(value, lang = "en") {
   if (!value) return null;
   if (typeof value === "string") {
     const text = value.trim();
-    return text || null;
+    return translateStoredDynamicText(text, lang) || null;
   }
 
   if (typeof value === "object") {
@@ -183,6 +224,15 @@ function localizedString(value, lang = "en") {
   }
 
   return null;
+}
+
+function translateStoredDynamicText(value, lang = "en") {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  const hit = STORED_TEXT_LOOKUP[text.toLowerCase()];
+  if (!hit) return text;
+  return isJapanese(lang) ? hit.ja : hit.en;
 }
 
 function translateStoredThemeLabel(value, lang = "en") {
@@ -211,9 +261,10 @@ function localizedStringList(value, lang = "en", limit = 2, { translateThemes = 
   }
 
   const compacted = compactStringList(list, limit);
+  const translatedText = compacted.map((item) => translateStoredDynamicText(item, lang));
   return translateThemes
-    ? compactStringList(compacted.map((item) => translateStoredThemeLabel(item, lang)), limit)
-    : compacted;
+    ? compactStringList(translatedText.map((item) => translateStoredThemeLabel(item, lang)), limit)
+    : compactStringList(translatedText, limit);
 }
 
 function localizedPair(enValue, jaValue) {

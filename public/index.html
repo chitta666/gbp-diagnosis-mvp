@@ -34,12 +34,20 @@
         "@type": "Audience",
         "audienceType": "Local SEO consultants, Google Business Profile operators, GBP operators, and MEO consultants"
       },
-      "offers": {
-        "@type": "Offer",
-        "price": "2980",
-        "priceCurrency": "JPY",
-        "description": "Pro beta target for consultants managing recurring client reporting workflows."
-      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "18",
+          "priceCurrency": "USD",
+          "description": "Beta pricing for consultants managing recurring client reporting workflows."
+        },
+        {
+          "@type": "Offer",
+          "price": "2980",
+          "priceCurrency": "JPY",
+          "description": "Beta pricing for consultants managing recurring client reporting workflows in Japan."
+        }
+      ],
       "featureList": [
         "Google Business Profile competitor comparison",
         "Weekly change summaries",
@@ -241,10 +249,10 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
       </div>
     </div>
     <div class="operator-workflow__price-row">
-      <span id="operatorWorkflowPriceLabel" class="operator-workflow__price-label">Pro beta target</span>
-      <strong id="operatorWorkflowPrice" class="operator-workflow__price">¥2,980/mo</strong>
+      <span id="operatorWorkflowPriceLabel" class="operator-workflow__price-label">Beta pricing</span>
+      <strong id="operatorWorkflowPrice" class="operator-workflow__price">$18/mo</strong>
       <span id="operatorWorkflowPriceHint" class="operator-workflow__price-hint">
-        For operators who need recurring reports across saved client locations.
+        Includes up to 25 saved listings, weekly diff summaries, action history, and client-ready views.
       </span>
     </div>
   </div>
@@ -366,7 +374,7 @@ Turn a Google Maps and Google Business Profile competitor check into a weekly cl
       <button id="loadSavedBtn" class="btn" type="button">Load Saved Listings</button>
     </div>
     <div class="row">
-      <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save as Baseline</button>
+      <button id="saveListingBtn" class="btn btn--primary" type="button" disabled>Save client baseline</button>
     </div>
     <div id="savedMsg" class="muted" data-i18n-key="savedMsgDefault">
       Analyze a listing, then save it with the selected competitor as the baseline for next week.
@@ -1076,6 +1084,7 @@ const DEFAULT_LANGUAGE = "en";
 const FREE_SAVED_LISTING_LIMIT = 3;
 const PRO_SAVED_LISTING_TARGET = 25;
 const PRO_MONTHLY_PRICE_JPY = 2980;
+const PRO_MONTHLY_PRICE_USD = 18;
 const SAMPLE_REPORT_PARAM_VALUE = "report";
 
 const COPY = {
@@ -1179,10 +1188,10 @@ const COPY = {
         body: "Turn the analysis into a concrete client ask before the next check-in.",
       },
     ],
-    operatorWorkflowPriceLabel: "Pro beta target",
-    operatorWorkflowPrice: "¥{price}/mo",
+    operatorWorkflowPriceLabel: "Beta pricing",
+    operatorWorkflowPrice: "{price}/mo",
     operatorWorkflowPriceHint:
-      "For operators who need recurring reports across saved client locations.",
+      "Includes up to 25 saved listings, weekly diff summaries, action history, and client-ready views.",
     operatorWorkflowRevisitLabel: "Saved baseline -> next check",
     operatorWorkflowRevisitTitle: "Show what changes after the first saved report",
     operatorWorkflowRevisitBody:
@@ -1278,7 +1287,7 @@ const COPY = {
     savedListingsTitle: "Saved Listings",
     savedEmailPlaceholder: "Enter email to manage saved listings",
     loadSaved: "Load Saved Listings",
-    saveCurrent: "Save as Baseline",
+    saveCurrent: "Save client baseline",
     savedMsgDefault:
       "Analyze a listing, then save it with the selected competitor as the baseline for next week.",
     reportTitle: "Google Maps Analysis Report",
@@ -1532,7 +1541,7 @@ const COPY = {
     competitorSearchReviewMatch: "Review the match, then use it as the competitor.",
     competitorUpdated: "Competitor updated for this report.",
     competitorUpdatedSaved:
-      "Competitor updated. Save as Baseline to keep this competitor for the next weekly report.",
+      "Competitor updated. Save the client baseline to keep this competitor for the next weekly report.",
     loadingListing: "Analyzing listing...",
     loadingHeadline: "Summarizing what matters first...",
     loadingSummary: "Checking foundation, customer choice, and competitor context.",
@@ -1550,9 +1559,9 @@ const COPY = {
     savedListingsEmpty: "No saved listings yet",
     savedPlanLabel: "Free beta",
     savedPlanUsage: "{count}/{limit} saved listings used",
-    savedPlanProPrice: "Pro beta target: ¥{price}/mo",
+    savedPlanProPrice: "Beta pricing: {price}/mo",
     savedPlanProHint:
-      "Pro is planned for consultants managing more client locations: up to {limit} saved listings, repeat action history, and client-ready weekly updates.",
+      "Pro includes up to {limit} saved listings, repeat action history, weekly diff summaries, and client-ready views.",
     savedPlanValueTarget:
       "Built for recurring reporting, not one-off diagnosis.",
     savedPlanValueBullets: [
@@ -1578,7 +1587,7 @@ const COPY = {
       "Use Pro when saved history becomes part of your recurring client reporting workflow.",
     savedPlanProRequest: "Request Pro access",
     savedPlanProPrefill:
-      "I'm interested in Pro beta at ¥2,980/mo. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
+      "I'm interested in Pro beta at $18/mo. I manage about ___ locations/clients and want saved history, weekly change summaries, and client-ready reports.",
     savedListingDefaultName: "Saved Listing",
     savedListingAddressUnavailable: "Address not available",
     savedListingUpdated: "Updated",
@@ -2190,10 +2199,10 @@ const COPY = {
         body: "分析結果を、次回定例までにクライアントへ依頼する具体アクションへ落とします。",
       },
     ],
-    operatorWorkflowPriceLabel: "Pro ベータ想定",
+    operatorWorkflowPriceLabel: "Proベータ価格",
     operatorWorkflowPrice: "月額 {price}円",
     operatorWorkflowPriceHint:
-      "保存したクライアント店舗を継続的にレポートする運用者向けです。",
+      "保存済み店舗25件、週次差分サマリー、実行履歴、クライアント表示を含むベータ価格です。",
     operatorWorkflowRevisitLabel: "基準保存 -> 次回チェック",
     operatorWorkflowRevisitTitle: "初回保存のあと、翌週に何が変わるかを見せる",
     operatorWorkflowRevisitBody:
@@ -2289,7 +2298,7 @@ const COPY = {
     savedListingsTitle: "保存した店舗",
     savedEmailPlaceholder: "保存した店舗を管理するメールアドレス",
     loadSaved: "保存済みを読み込む",
-    saveCurrent: "基準レポートとして保存",
+    saveCurrent: "クライアント基準レポートを保存",
     savedMsgDefault:
       "店舗を分析し、選んだ競合と一緒に基準レポートとして保存してください。次回チェックで差分を出せます。",
     reportTitle: "Googleマップ分析レポート",
@@ -2561,9 +2570,9 @@ const COPY = {
     savedListingsEmpty: "保存した店舗はまだありません",
     savedPlanLabel: "無料ベータ",
     savedPlanUsage: "保存済み店舗 {count}/{limit} 件",
-    savedPlanProPrice: "Pro ベータ想定: 月額 {price}円",
+    savedPlanProPrice: "Proベータ価格: 月額 {price}円",
     savedPlanProHint:
-      "Proは複数クライアント店舗を運用する方向けに、保存済み店舗 {limit} 件、継続的な実行履歴、提出用の週次更新を想定しています。",
+      "Proでは保存済み店舗 {limit} 件、継続的な実行履歴、週次差分サマリー、クライアント表示を使えます。",
     savedPlanValueTarget:
       "単発診断ではなく、継続レポート業務で使う前提です。",
     savedPlanValueBullets: [
@@ -3107,6 +3116,7 @@ let currentResult = null;
 let currentLanguage = DEFAULT_LANGUAGE;
 let currentSavedListings = [];
 let currentClientReportCopyText = "";
+let languageRefreshToken = 0;
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let actionHistoryBusy = false;
@@ -3404,7 +3414,7 @@ function renderStaticCopy() {
   }
   if (operatorWorkflowPriceEl) {
     operatorWorkflowPriceEl.textContent = copyWithValues(t("operatorWorkflowPrice"), {
-      price: formatYenAmount(PRO_MONTHLY_PRICE_JPY),
+      price: formatProMonthlyPriceAmount(),
     });
   }
   if (operatorWorkflowPriceHintEl) {
@@ -3680,9 +3690,11 @@ function renderStaticCopy() {
 
 function applyLanguage(lang, options = {}) {
   const next = normalizeLanguage(lang);
+  const previousLanguage = currentLanguage;
   const {
     persist = true,
     syncUrl = false,
+    refreshDynamic = false,
   } = options;
 
   currentLanguage = next;
@@ -3716,6 +3728,47 @@ function applyLanguage(lang, options = {}) {
   }
 
   renderSavedListings(currentSavedListings);
+
+  if (refreshDynamic && previousLanguage !== currentLanguage) {
+    void refreshLanguageDependentData();
+  }
+}
+
+async function refreshLanguageDependentData() {
+  const token = ++languageRefreshToken;
+  const savedId =
+    currentResult?.savedListing?.id ||
+    new URL(window.location.href).searchParams.get("saved") ||
+    "";
+
+  try {
+    if (isLikelyEmail(getSubscriberEmail())) {
+      await refreshSavedListings({ quiet: true });
+    }
+
+    if (token !== languageRefreshToken || !savedId) return;
+
+    const data = await fetchSavedReport(savedId);
+    if (token !== languageRefreshToken || !data?.ok) return;
+
+    if (data?.savedListing?.q) {
+      input.value = data.savedListing.q;
+    } else if (data?.details?.name) {
+      input.value = data.details.name;
+    }
+
+    if (!isLikelyEmail(getSubscriberEmail()) && data?.savedListing) {
+      renderSavedListings([data.savedListing]);
+    }
+
+    const hydrated = await showResult(data);
+    if (token !== languageRefreshToken) return;
+
+    currentResult = hydrated;
+    setUrlSavedParam(savedId);
+  } catch (error) {
+    console.warn("Could not refresh language-dependent saved data", error);
+  }
 }
 
 async function detectInitialLanguage() {
@@ -4041,6 +4094,18 @@ function formatYenAmount(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "";
   return String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatUsdAmount(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+  return `$${Math.round(amount).toLocaleString("en-US")}`;
+}
+
+function formatProMonthlyPriceAmount() {
+  return currentLanguage === "ja"
+    ? formatYenAmount(PRO_MONTHLY_PRICE_JPY)
+    : formatUsdAmount(PRO_MONTHLY_PRICE_USD);
 }
 
 function formatCompactCount(value, fallback = "-") {
@@ -9891,7 +9956,7 @@ function renderSavedPlanNotice(listings = currentSavedListings) {
     limit: PRO_SAVED_LISTING_TARGET,
   });
   const proPrice = copyWithValues(t("savedPlanProPrice"), {
-    price: formatYenAmount(PRO_MONTHLY_PRICE_JPY),
+    price: formatProMonthlyPriceAmount(),
   });
   const valueTarget = t("savedPlanValueTarget");
   const valueBullets = Array.isArray(t("savedPlanValueBullets"))
@@ -12131,13 +12196,13 @@ document.addEventListener("keydown", (event) => {
 
 if (langToggleEn) {
   langToggleEn.addEventListener("click", () => {
-    applyLanguage("en", { persist: true, syncUrl: true });
+    applyLanguage("en", { persist: true, syncUrl: true, refreshDynamic: true });
   });
 }
 
 if (langToggleJa) {
   langToggleJa.addEventListener("click", () => {
-    applyLanguage("ja", { persist: true, syncUrl: true });
+    applyLanguage("ja", { persist: true, syncUrl: true, refreshDynamic: true });
   });
 }
 

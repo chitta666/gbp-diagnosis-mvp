@@ -175,6 +175,10 @@ If email notification is re-enabled later, that processing path should be treate
 
 ## API endpoints
 
+Machine-readable contract:
+- `/openapi.json`
+- [docs/AI_AGENT_API.md](./docs/AI_AGENT_API.md)
+
 Existing / important endpoints:
 - `/api/diagnose`
 - `/api/compare`
@@ -326,6 +330,16 @@ These thresholds are internal operating guidance, not public marketing claims.
 
 Local smoke test:
 - `npm run value:smoke`
+
+### API contract smoke test
+
+Run this after changing public API routes or the OpenAPI file:
+
+```bash
+npm run api-contract:smoke
+```
+
+This verifies that `/openapi.json` is parseable and still exposes the operation IDs agents depend on.
 
 ### Email alerts
 

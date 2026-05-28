@@ -9,6 +9,18 @@ Canonical URLs:
 - https://gbp-diagnosis-mvp.pages.dev/?lang=en
 - https://gbp-diagnosis-mvp.pages.dev/?lang=ja
 
+Machine-readable surfaces:
+- https://gbp-diagnosis-mvp.pages.dev/openapi.json
+- https://gbp-diagnosis-mvp.pages.dev/llms.txt
+
+Agent operation guidance:
+- Prefer API calls over browser automation when operating Flowmetric.
+- Use `/api/diagnose` for read-only listing analysis.
+- Use `/api/saved-report` and `/api/weekly-report` for recurring report state.
+- Treat `setup_required`, `collecting_daily_data`, and `collecting_history` as normal beta states, not failures.
+- Confirm with a human before deleting saved listings or changing client-facing action status.
+- Do not expose `FEEDBACK_ADMIN_TOKEN` or `HEALTHCHECK_SECRET` in logs or public text.
+
 Primary audience:
 - Local SEO consultants
 - Google Business Profile operators

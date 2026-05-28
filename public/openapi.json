@@ -1,0 +1,1461 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Flowmetric API",
+    "version": "0.1.0",
+    "description": "Machine-readable contract for Flowmetric's public beta APIs. Flowmetric analyzes Google Maps / Google Business Profile listings, compares competitors, stores lightweight saved listings, and summarizes recurring reporting signals for Local SEO operators."
+  },
+  "servers": [
+    {
+      "url": "https://gbp-diagnosis-mvp.pages.dev",
+      "description": "Production public beta"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Analysis",
+      "description": "Listing analysis and competitor report APIs."
+    },
+    {
+      "name": "Saved listings",
+      "description": "Lightweight saved-listing and action-history APIs."
+    },
+    {
+      "name": "Signals",
+      "description": "Feedback, analytics, and value-validation APIs."
+    },
+    {
+      "name": "Operations",
+      "description": "Health-check and operational monitoring APIs."
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/api/diagnose": {
+      "get": {
+        "operationId": "diagnoseListing",
+        "tags": ["Analysis"],
+        "summary": "Analyze a Google Maps / GBP listing by business query.",
+        "description": "Resolves a business name/address query to a Google place ID, builds a listing report, returns competitor context, photo analysis, review clues, and profile/commercial diagnosis.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Lang"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2
+            },
+            "description": "Business name plus address or location context."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listing analysis report.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/QuotaExceeded"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServiceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceError"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": false,
+          "retry": "Retry only for UPSTREAM_TEMPORARY, GOOGLE_FETCH_FAILED, or 5xx responses. Do not retry BAD_INPUT or PLACE_NOT_FOUND without changing q.",
+          "nextOperations": ["saveListing", "getWeeklyReport"]
+        }
+      }
+    },
+    "/api/saved-report": {
+      "get": {
+        "operationId": "getSavedReport",
+        "tags": ["Analysis", "Saved listings"],
+        "summary": "Open the latest report for a saved listing.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Lang"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 6
+            },
+            "description": "Saved listing ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fresh listing report with saved-listing metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ListingReport"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "generatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "savedListing": {
+                          "$ref": "#/components/schemas/SavedListing"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServiceError"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": "Refreshes saved-listing metrics and review-theme history when possible.",
+          "retry": "Safe to retry once on transient 5xx errors."
+        }
+      }
+    },
+    "/api/weekly-report": {
+      "get": {
+        "operationId": "getWeeklyReport",
+        "tags": ["Analysis"],
+        "summary": "Get weekly review-difference summary for a listing and competitor.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Lang"
+          },
+          {
+            "name": "my",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Primary Google place ID."
+          },
+          {
+            "name": "competitor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Optional competitor Google place ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Weekly report state and metrics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServiceError"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": false,
+          "statusHandling": "setup_required and collecting_history are normal beta states, not failures."
+        }
+      }
+    },
+    "/api/saved-listings": {
+      "get": {
+        "operationId": "listSavedListings",
+        "tags": ["Saved listings"],
+        "summary": "List saved listings by email.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Lang"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved listings for the email.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "listings", "plan"],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "listings": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SavedListing"
+                      }
+                    },
+                    "plan": {
+                      "$ref": "#/components/schemas/SavedListingPlan"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": "May refresh saved-listing metrics when Google Maps key is configured."
+        }
+      },
+      "post": {
+        "operationId": "saveListing",
+        "tags": ["Saved listings"],
+        "summary": "Save or update a listing and competitor pairing.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Lang"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveListingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved listing and plan state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "listing", "plan"],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "listing": {
+                      "$ref": "#/components/schemas/SavedListing"
+                    },
+                    "plan": {
+                      "$ref": "#/components/schemas/SavedListingPlan"
+                    },
+                    "snapshotStatus": {
+                      "type": ["object", "null"],
+                      "additionalProperties": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "402": {
+            "$ref": "#/components/responses/PlanLimit"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServiceError"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": false,
+          "mutatesState": true,
+          "confirmationRecommended": true,
+          "auditExpectation": "Caller should log email, placeId, competitorPlaceId, and returned saved listing id."
+        }
+      },
+      "delete": {
+        "operationId": "deleteSavedListing",
+        "tags": ["Saved listings"],
+        "summary": "Delete a saved listing by id and email.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Lang"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted saved listing id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "id"],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": false,
+          "mutatesState": true,
+          "confirmationRequired": true,
+          "undo": "No undo endpoint exists in the public beta."
+        }
+      }
+    },
+    "/api/saved-actions": {
+      "post": {
+        "operationId": "createSavedAction",
+        "tags": ["Saved listings"],
+        "summary": "Append an action-history item to a saved listing.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSavedActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved action and updated saved listing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedActionMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": false,
+          "mutatesState": true,
+          "confirmationRecommended": true
+        }
+      },
+      "patch": {
+        "operationId": "updateSavedActionStatus",
+        "tags": ["Saved listings"],
+        "summary": "Update a saved action status.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSavedActionStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated action and saved listing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedActionMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": false,
+          "mutatesState": true,
+          "allowedStatus": ["planned", "done", "skipped"]
+        }
+      }
+    },
+    "/api/events": {
+      "post": {
+        "operationId": "trackEvent",
+        "tags": ["Signals"],
+        "summary": "Track a lightweight product event.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventTrackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "stored"],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "stored": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted but not stored, usually because KV is unavailable locally.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "stored", "reason"],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "stored": {
+                      "const": false
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadInput"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": true,
+          "privacy": "Do not send raw query text, client secrets, or full URLs with user-entered search parameters."
+        }
+      }
+    },
+    "/api/feedback-summary": {
+      "get": {
+        "operationId": "getFeedbackSummary",
+        "tags": ["Signals"],
+        "summary": "Read protected beta feedback summary.",
+        "security": [
+          {
+            "FeedbackAdminToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "intent",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "filters", "counts", "benchmarkStats", "recent"],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": false,
+          "secretHandling": "Pass FEEDBACK_ADMIN_TOKEN in Authorization: Bearer. Never log or paste the token."
+        }
+      }
+    },
+    "/api/events-summary": {
+      "get": {
+        "operationId": "getEventsSummary",
+        "tags": ["Signals"],
+        "summary": "Read protected product-event summary.",
+        "security": [
+          {
+            "FeedbackAdminToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 7
+            }
+          },
+          {
+            "name": "event",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "intent",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Events summary and benchmark funnel.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "days", "counts", "benchmarkFunnel", "recent"],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": false
+        }
+      }
+    },
+    "/api/health-check": {
+      "post": {
+        "operationId": "runHealthCheck",
+        "tags": ["Operations"],
+        "summary": "Run protected core-flow health checks.",
+        "security": [
+          {
+            "HealthcheckToken": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealthCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Health check result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": "Stores latest health result and history in KV.",
+          "retry": "Retry only after inspecting failing check codes."
+        }
+      }
+    },
+    "/api/health-status": {
+      "get": {
+        "operationId": "getHealthStatus",
+        "tags": ["Operations"],
+        "summary": "Read latest protected health status.",
+        "security": [
+          {
+            "HealthcheckToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest health result and history keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok"],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "x-agent-notes": {
+          "safeToCall": true,
+          "mutatesState": false
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "FeedbackAdminToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use FEEDBACK_ADMIN_TOKEN. Do not expose in client-side code or public logs."
+      },
+      "HealthcheckToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use HEALTHCHECK_SECRET. Do not expose in client-side code or public logs."
+      }
+    },
+    "parameters": {
+      "Lang": {
+        "name": "lang",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": ["en", "ja"],
+          "default": "en"
+        },
+        "description": "Response language. If omitted, Flowmetric may infer from request language."
+      }
+    },
+    "responses": {
+      "BadInput": {
+        "description": "Invalid input.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "PlanLimit": {
+        "description": "Saved-listing plan limit reached.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "PayloadTooLarge": {
+        "description": "Request body is too large.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "QuotaExceeded": {
+        "description": "Upstream Google Maps quota exceeded.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ServiceError": {
+        "description": "Service or upstream error.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid bearer token.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["ok"],
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable error code when available."
+          },
+          "error": {
+            "type": "string",
+            "description": "Legacy or endpoint-specific machine-readable error code."
+          },
+          "message": {
+            "type": "string"
+          },
+          "hint": {
+            "type": ["string", "null"]
+          },
+          "upstreamStatus": {
+            "type": ["string", "null"]
+          },
+          "upstreamErrorMessage": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": true
+      },
+      "ListingReport": {
+        "type": "object",
+        "required": ["ok", "placeId", "diagnosis", "details", "competitors", "photoAnalysis", "photoAdvice", "reviewClues"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "placeId": {
+            "type": "string"
+          },
+          "diagnosis": {
+            "$ref": "#/components/schemas/Diagnosis"
+          },
+          "details": {
+            "$ref": "#/components/schemas/PlaceDetails"
+          },
+          "competitors": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "photoAnalysis": {
+            "$ref": "#/components/schemas/PhotoAnalysis"
+          },
+          "photoAdvice": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "reviewClues": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "defaultCompetitorPlaceId": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": true
+      },
+      "Diagnosis": {
+        "type": "object",
+        "required": ["version", "score", "profileCompletenessScore", "missing", "breakdown", "commercialHealth"],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "profileCompletenessScore": {
+            "type": "number"
+          },
+          "todos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["phone", "website", "photos"]
+            }
+          },
+          "breakdown": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "weight", "missing"],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "missing": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "commercialHealth": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "PlaceDetails": {
+        "type": "object",
+        "required": ["ok", "placeId", "name"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "place_id": {
+            "type": ["string", "null"]
+          },
+          "placeId": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": ["string", "null"]
+          },
+          "formatted_address": {
+            "type": ["string", "null"]
+          },
+          "address": {
+            "type": ["string", "null"]
+          },
+          "international_phone_number": {
+            "type": ["string", "null"]
+          },
+          "website": {
+            "type": ["string", "null"]
+          },
+          "rating": {
+            "type": ["number", "null"]
+          },
+          "user_ratings_total": {
+            "type": ["number", "null"]
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "reviews": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "PhotoAnalysis": {
+        "type": "object",
+        "required": ["myPhotos", "competitorPhotoAvg", "missingPhotos"],
+        "properties": {
+          "myPhotos": {
+            "type": "number"
+          },
+          "competitorPhotoAvg": {
+            "type": ["number", "null"]
+          },
+          "missingPhotos": {
+            "type": ["number", "null"]
+          }
+        }
+      },
+      "WeeklyReport": {
+        "type": "object",
+        "required": ["ok", "status", "today", "weekAgo", "my", "competitor", "insight"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "setup_required", "collecting_daily_data", "collecting_history"]
+          },
+          "message": {
+            "type": ["string", "null"]
+          },
+          "today": {
+            "type": "string"
+          },
+          "weekAgo": {
+            "type": "string"
+          },
+          "my": {
+            "$ref": "#/components/schemas/WeeklyReportSide"
+          },
+          "competitor": {
+            "$ref": "#/components/schemas/WeeklyReportSide"
+          },
+          "totalDiff": {
+            "type": ["number", "null"]
+          },
+          "weeklyGainDiff": {
+            "type": ["number", "null"]
+          },
+          "insight": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "WeeklyReportSide": {
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": ["string", "null"]
+          },
+          "todayTotal": {
+            "type": ["number", "null"]
+          },
+          "weekAgoTotal": {
+            "type": ["number", "null"]
+          },
+          "weeklyGain": {
+            "type": ["number", "null"]
+          }
+        },
+        "additionalProperties": true
+      },
+      "SavedListing": {
+        "type": "object",
+        "required": ["id", "placeId"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "placeId": {
+            "type": "string"
+          },
+          "competitorPlaceId": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": ["string", "null"]
+          },
+          "address": {
+            "type": ["string", "null"]
+          },
+          "deepLink": {
+            "type": ["string", "null"],
+            "format": "uri"
+          },
+          "changeSummary": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+          },
+          "statusSummary": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+          },
+          "reviewThemeMonitoring": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+          },
+          "weeklyDiffSummary": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+          },
+          "actionHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavedAction"
+            }
+          },
+          "latestAction": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SavedAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+      "SavedListingPlan": {
+        "type": "object",
+        "required": ["plan", "savedListingsUsed", "freeSavedListingLimit", "proSavedListingTarget"],
+        "properties": {
+          "plan": {
+            "type": "string"
+          },
+          "savedListingsUsed": {
+            "type": "integer"
+          },
+          "freeSavedListingLimit": {
+            "type": "integer"
+          },
+          "proSavedListingTarget": {
+            "type": "integer"
+          }
+        }
+      },
+      "SaveListingRequest": {
+        "type": "object",
+        "required": ["email", "placeId", "competitorPlaceId"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "placeId": {
+            "type": "string"
+          },
+          "competitorPlaceId": {
+            "type": "string"
+          },
+          "q": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "competitorName": {
+            "type": "string"
+          },
+          "competitorAddress": {
+            "type": "string"
+          },
+          "preferredLanguage": {
+            "type": "string",
+            "enum": ["en", "ja"]
+          }
+        },
+        "additionalProperties": true
+      },
+      "SavedAction": {
+        "type": "object",
+        "required": ["id", "createdAt", "updatedAt", "label", "body", "status"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "label": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "done", "skipped"]
+          },
+          "note": {
+            "type": ["string", "null"]
+          },
+          "completedAt": {
+            "type": ["string", "null"]
+          },
+          "source": {
+            "type": "string",
+            "enum": ["weekly_task", "manual"]
+          },
+          "snapshotContext": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "CreateSavedActionRequest": {
+        "type": "object",
+        "required": ["id", "action"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Saved listing id."
+          },
+          "action": {
+            "type": "object",
+            "required": ["label"],
+            "properties": {
+              "label": {
+                "type": "string",
+                "maxLength": 90
+              },
+              "body": {
+                "type": "string",
+                "maxLength": 560
+              },
+              "status": {
+                "type": "string",
+                "enum": ["planned", "done", "skipped"],
+                "default": "planned"
+              },
+              "source": {
+                "type": "string",
+                "enum": ["weekly_task", "manual"]
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "snapshotContext": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "UpdateSavedActionStatusRequest": {
+        "type": "object",
+        "required": ["id", "actionId", "status"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "done", "skipped"]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "SavedActionMutationResponse": {
+        "type": "object",
+        "required": ["ok", "action", "savedListing"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "action": {
+            "$ref": "#/components/schemas/SavedAction"
+          },
+          "savedListing": {
+            "$ref": "#/components/schemas/SavedListing"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "EventTrackRequest": {
+        "type": "object",
+        "required": ["event"],
+        "properties": {
+          "event": {
+            "type": "string",
+            "enum": [
+              "diagnosis_completed",
+              "recommended_competitor_shown",
+              "competitor_picker_opened",
+              "competitor_picker_closed",
+              "manual_competitor_selected",
+              "recommended_competitor_reset",
+              "searched_competitor_selected",
+              "competitor_report_updated",
+              "pro_interest_cta_clicked",
+              "pro_interest_feedback_submitted",
+              "beta_benchmark_feedback_clicked",
+              "report_benchmark_feedback_clicked",
+              "beta_benchmark_feedback_submitted",
+              "report_benchmark_feedback_submitted",
+              "client_report_copied",
+              "saved_report_link_copied",
+              "customer_choice_feedback_clicked",
+              "customer_choice_feedback_submitted"
+            ]
+          },
+          "flowId": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{6,80}$"
+          },
+          "page": {
+            "type": "string",
+            "enum": ["home", "report", "saved_report", "unknown"]
+          },
+          "lang": {
+            "type": "string",
+            "enum": ["en", "ja"]
+          },
+          "source": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "intent": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "HealthCheckRequest": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["health", "smoke"],
+            "default": "health"
+          },
+          "notify": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string"
+          },
+          "snapshotPlaceId": {
+            "type": "string"
+          },
+          "alertEmail": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HealthCheckResult": {
+        "type": "object",
+        "required": ["ok", "mode", "checks"],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "ok"],
+              "additionalProperties": true
+            }
+          },
+          "alertableChecks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "x-agent-guidance": {
+    "defaultPolicy": "Prefer read-only operations. Confirm with a human before deleting saved listings or changing client-facing action history.",
+    "primaryWorkflow": [
+      "diagnoseListing",
+      "saveListing",
+      "getSavedReport",
+      "getWeeklyReport",
+      "createSavedAction",
+      "updateSavedActionStatus"
+    ],
+    "publicReadOperations": ["diagnoseListing", "getSavedReport", "getWeeklyReport", "listSavedListings"],
+    "protectedOperations": ["getFeedbackSummary", "getEventsSummary", "runHealthCheck", "getHealthStatus"]
+  }
+}

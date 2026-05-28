@@ -13,6 +13,7 @@
     "feedback:summary": "node scripts/feedback-summary.mjs",
     "feedback:smoke": "node scripts/smoke-feedback-summary.mjs",
     "review-clues:smoke": "node scripts/smoke-review-clues-action-alignment.mjs",
+    "api-contract:smoke": "node scripts/smoke-api-contract.mjs",
     "health:prod": "node scripts/health-check.mjs --mode health --origin https://gbp-diagnosis-mvp.pages.dev",
     "health:smoke": "node scripts/health-check.mjs --mode smoke"
   },

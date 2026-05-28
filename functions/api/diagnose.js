@@ -10,6 +10,7 @@ export async function onRequest({ request, env }) {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": "*",
   };
+  const { lang } = resolveRequestLanguage({ request, fallback: "en" });
 
   const json = (obj, status = 200) =>
     new Response(JSON.stringify(obj, null, 2), { status, headers });
@@ -27,7 +28,6 @@ export async function onRequest({ request, env }) {
 
   try {
     const key = env?.GOOGLE_MAPS_API_KEY;
-    const { lang } = resolveRequestLanguage({ request, fallback: "en" });
     if (!key) {
       return publicError(
         "SERVICE_UNAVAILABLE",

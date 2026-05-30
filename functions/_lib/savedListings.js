@@ -1207,6 +1207,22 @@ export function buildReviewDropSignal(record, { lang = "en" } = {}) {
     customerImpact: isJapanese(lang)
       ? "見た目の信頼感が、前回の保存チェック時より弱くなっている可能性があります。"
       : "Visible trust may be weaker than it was at the last saved check.",
+    evidenceChecklist: isJapanese(lang)
+      ? [
+          "前回見えていたレビュー件数と現在の件数",
+          "消えた可能性があるレビューのスクリーンショットまたは本文",
+          "レビュー依頼の経路・実施日・対象顧客",
+          "異議申し立て ID、送信日、現在のステータス",
+        ]
+      : [
+          "Previous and current displayed review count",
+          "Screenshots or text for reviews that may have disappeared",
+          "Review request source, request date, and customer segment",
+          "Appeal ID, submission date, and current status",
+        ],
+    evidenceNextAction: isJapanese(lang)
+      ? "件数だけで判断せず、消えたレビュー・依頼経路・異議申し立て状況を1つの証拠ログにまとめてください。"
+      : "Do not treat the count drop alone as the report. Build one evidence log with missing reviews, request source, and appeal status.",
     nextCheck: isJapanese(lang)
       ? "次回も減少が続くか、競合との差がどう変わったかを確認してください。"
       : "Confirm whether the drop persists and whether the competitor gap changed.",

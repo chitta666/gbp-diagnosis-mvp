@@ -1626,6 +1626,7 @@ const COPY = {
     savedWorkQueueThemeWarning: "Review-theme movement needs attention",
     savedWorkQueueThemePositive: "Review-theme movement improved",
     savedWorkQueueReviewDrop: "Review count changed",
+    savedWorkQueueReviewEvidence: "Build the review evidence log",
     savedWorkQueueStatusWarning: "Profile needs attention",
     savedWorkQueueCollecting: "Still collecting history",
     savedWorkQueueReadinessGap: "Report readiness {score}",
@@ -2072,6 +2073,15 @@ const COPY = {
     revisitReasonLabel: "Revisit reason",
     reviewCountDownSinceLastCheck: "Review count is down since the last saved check",
     visibleTrustWeaker: "Visible trust may be weaker than it was before.",
+    reviewDropEvidenceLabel: "Evidence log to prepare",
+    reviewDropEvidenceFallback: [
+      "Previous and current displayed review count",
+      "Screenshots or text for reviews that may have disappeared",
+      "Review request source, request date, and customer segment",
+      "Appeal ID, submission date, and current status",
+    ],
+    reviewDropEvidenceNextAction:
+      "Build one evidence log with missing reviews, request source, and appeal status before changing the client story.",
     nextCheckConfirmDrop: "Next check: confirm whether the drop persists.",
     notAvailableYet: "Not available yet",
     reviewMonitoringLabel: "Review monitoring",
@@ -2637,6 +2647,7 @@ const COPY = {
     savedWorkQueueThemeWarning: "レビュー傾向が要確認",
     savedWorkQueueThemePositive: "レビュー傾向が改善",
     savedWorkQueueReviewDrop: "レビュー数に変化",
+    savedWorkQueueReviewEvidence: "レビュー証拠ログを作成",
     savedWorkQueueStatusWarning: "プロフィール要確認",
     savedWorkQueueCollecting: "履歴収集中",
     savedWorkQueueReadinessGap: "提出準備 {score}",
@@ -3083,6 +3094,15 @@ const COPY = {
     revisitReasonLabel: "再確認する理由",
     reviewCountDownSinceLastCheck: "前回の保存確認以降、レビュー数が減っています",
     visibleTrustWeaker: "見た目の信頼感が以前より弱くなっている可能性があります。",
+    reviewDropEvidenceLabel: "準備する証拠ログ",
+    reviewDropEvidenceFallback: [
+      "前回見えていたレビュー件数と現在の件数",
+      "消えた可能性があるレビューのスクリーンショットまたは本文",
+      "レビュー依頼の経路・実施日・対象顧客",
+      "異議申し立て ID、送信日、現在のステータス",
+    ],
+    reviewDropEvidenceNextAction:
+      "クライアント説明を変える前に、消えたレビュー・依頼経路・異議申し立て状況を1つの証拠ログにまとめてください。",
     nextCheckConfirmDrop: "次回確認: 減少が続いているかを見てください。",
     notAvailableYet: "まだ利用できません",
     reviewMonitoringLabel: "レビュー監視",
@@ -10088,6 +10108,28 @@ function buildSavedListingRevisitBlock(signal) {
   revisitBlock.appendChild(label);
   revisitBlock.appendChild(main);
   revisitBlock.appendChild(support);
+
+  const evidenceItems = (
+    Array.isArray(signal?.evidenceChecklist) && signal.evidenceChecklist.length
+      ? signal.evidenceChecklist
+      : t("reviewDropEvidenceFallback")
+  )
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
+  if (evidenceItems.length) {
+    const evidence = document.createElement("div");
+    evidence.className = "saved__revisit-evidence";
+    evidence.innerHTML = `
+      <div class="saved__revisit-evidence-label">${escapeHtml(t("reviewDropEvidenceLabel"))}</div>
+      <ul>
+        ${evidenceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+      </ul>
+    `;
+    revisitBlock.appendChild(evidence);
+  }
+
   revisitBlock.appendChild(nextCheck);
 
   return revisitBlock;
@@ -11067,6 +11109,9 @@ function buildSavedWorkQueueItem(item) {
   }
 
   const nextAction =
+    (item?.reviewDropSignal?.visible === true
+      ? item.reviewDropSignal.evidenceNextAction || t("reviewDropEvidenceNextAction")
+      : "") ||
     outcome?.nextAction ||
     reviewThemeSignal?.nextAction ||
     (!readiness.complete ? readiness.nextStep : "") ||

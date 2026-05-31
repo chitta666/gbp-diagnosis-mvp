@@ -1243,7 +1243,7 @@
           },
           "source": {
             "type": "string",
-            "enum": ["weekly_task", "manual"]
+            "enum": ["weekly_task", "manual", "review_evidence"]
           },
           "snapshotContext": {
             "type": ["object", "null"],
@@ -1279,7 +1279,7 @@
               },
               "source": {
                 "type": "string",
-                "enum": ["weekly_task", "manual"]
+                "enum": ["weekly_task", "manual", "review_evidence"]
               },
               "note": {
                 "type": "string",

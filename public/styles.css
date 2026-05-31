@@ -461,6 +461,15 @@ body.client-share-view .print-cover__meta-value {
   color: #fff;
 }
 
+.btn--small {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 850;
+}
+
 .btn.secondary {
   background: var(--surface);
 }
@@ -3866,6 +3875,28 @@ body.client-share-view .print-cover__meta-value {
 
 .saved__revisit-evidence li + li {
   margin-top: 3px;
+}
+
+.saved__revisit-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.saved__revisit-action-saved {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  background: rgba(236, 253, 245, 0.78);
+  color: #047857;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 850;
 }
 
 .saved__revisit-note {

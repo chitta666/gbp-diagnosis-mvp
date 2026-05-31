@@ -8,7 +8,7 @@ const REVIEW_THEME_HISTORY_LIMIT = 12;
 const ACTION_HISTORY_LIMIT = 12;
 const ACTION_HISTORY_PUBLIC_LIMIT = 5;
 const ACTION_STATUSES = new Set(["planned", "done", "skipped"]);
-const ACTION_SOURCES = new Set(["weekly_task", "manual"]);
+const ACTION_SOURCES = new Set(["weekly_task", "manual", "review_evidence"]);
 
 function safeJson(text, fallback = null) {
   try {
@@ -63,6 +63,11 @@ function normalizeActionSnapshotContext(value) {
     executionWhy: compactText(value.executionWhy, 320),
     doneCriteria: compactText(value.doneCriteria, 320),
     nextCheck: compactText(value.nextCheck, 320),
+    reviewDropHeadline: compactText(value.reviewDropHeadline, 260),
+    reviewDropPreviousCount: compactText(value.reviewDropPreviousCount, 80),
+    reviewDropCurrentCount: compactText(value.reviewDropCurrentCount, 80),
+    reviewDropEvidenceChecklist: compactStringList(value.reviewDropEvidenceChecklist, 6),
+    reviewDropNextAction: compactText(value.reviewDropNextAction, 360),
   };
 }
 

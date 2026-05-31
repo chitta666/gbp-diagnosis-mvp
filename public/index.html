@@ -2082,6 +2082,16 @@ const COPY = {
     ],
     reviewDropEvidenceNextAction:
       "Build one evidence log with missing reviews, request source, and appeal status before changing the client story.",
+    reviewDropEvidenceActionLabel: "Prepare review evidence log",
+    reviewDropEvidenceActionBody:
+      "Create one client-ready evidence log with the previous/current review count, disappeared-review examples, request source, and appeal status.",
+    reviewDropEvidenceDoneCriteria:
+      "Evidence log has the before/after counts, screenshots or review text, request source/date, customer segment, and appeal status.",
+    reviewDropEvidenceSaveTask: "Save evidence task",
+    reviewDropEvidenceSaving: "Saving evidence task...",
+    reviewDropEvidenceSaved: "Evidence task saved.",
+    reviewDropEvidenceSaveFailed: "Could not save the evidence task.",
+    reviewDropEvidenceAlreadySaved: "Evidence task already saved.",
     nextCheckConfirmDrop: "Next check: confirm whether the drop persists.",
     notAvailableYet: "Not available yet",
     reviewMonitoringLabel: "Review monitoring",
@@ -3103,6 +3113,16 @@ const COPY = {
     ],
     reviewDropEvidenceNextAction:
       "クライアント説明を変える前に、消えたレビュー・依頼経路・異議申し立て状況を1つの証拠ログにまとめてください。",
+    reviewDropEvidenceActionLabel: "レビュー証拠ログを準備",
+    reviewDropEvidenceActionBody:
+      "前回/現在のレビュー件数、消えた可能性があるレビュー例、依頼経路、異議申し立て状況を1つのクライアント共有用ログにまとめる。",
+    reviewDropEvidenceDoneCriteria:
+      "前後の件数、スクリーンショットまたはレビュー本文、依頼経路・日付・顧客区分、異議申し立て状況がそろっている状態。",
+    reviewDropEvidenceSaveTask: "証拠ログタスクを保存",
+    reviewDropEvidenceSaving: "証拠ログタスクを保存中...",
+    reviewDropEvidenceSaved: "証拠ログタスクを保存しました。",
+    reviewDropEvidenceSaveFailed: "証拠ログタスクを保存できませんでした。",
+    reviewDropEvidenceAlreadySaved: "証拠ログタスクは保存済みです。",
     nextCheckConfirmDrop: "次回確認: 減少が続いているかを見てください。",
     notAvailableYet: "まだ利用できません",
     reviewMonitoringLabel: "レビュー監視",
@@ -3140,6 +3160,7 @@ let languageRefreshToken = 0;
 let competitorChooserOpen = false;
 let competitorUpdateInFlight = false;
 let actionHistoryBusy = false;
+let savedEvidenceActionBusyId = "";
 let sampleReportRunBusy = false;
 let feedbackIntent = "";
 let competitorSearchInFlight = false;
@@ -8343,8 +8364,97 @@ function actionHistoryLanguageMeta(action) {
   });
 }
 
+function reviewDropEvidenceChecklist(signal) {
+  return (
+    Array.isArray(signal?.evidenceChecklist) && signal.evidenceChecklist.length
+      ? signal.evidenceChecklist
+      : t("reviewDropEvidenceFallback")
+  )
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function buildReviewDropEvidenceAction(item) {
+  const signal = item?.reviewDropSignal || null;
+  if (!signal?.visible) return null;
+
+  const checklist = reviewDropEvidenceChecklist(signal);
+  const previousCount = Number.isFinite(signal.previousReviewCount)
+    ? `${signal.previousReviewCount}`
+    : "";
+  const currentCount = Number.isFinite(signal.currentReviewCount)
+    ? `${signal.currentReviewCount}`
+    : "";
+
+  return {
+    label: t("reviewDropEvidenceActionLabel"),
+    body: signal.evidenceNextAction || t("reviewDropEvidenceActionBody"),
+    language: currentLanguage,
+    source: "review_evidence",
+    status: "planned",
+    snapshotContext: {
+      generatedAt: new Date().toISOString(),
+      placeName: item?.name || item?.q || "",
+      competitorName: item?.competitorName || "",
+      reviewDropHeadline: signal.reason || t("reviewCountDownSinceLastCheck"),
+      reviewDropPreviousCount: previousCount,
+      reviewDropCurrentCount: currentCount,
+      reviewDropEvidenceChecklist: checklist,
+      reviewDropNextAction: signal.evidenceNextAction || t("reviewDropEvidenceNextAction"),
+      executionWhy:
+        signal.customerImpact ||
+        langText(
+          "Visible trust may be weaker than the previous saved check.",
+          "前回の保存チェック時より見た目の信頼感が弱くなっている可能性があります。"
+        ),
+      doneCriteria: t("reviewDropEvidenceDoneCriteria"),
+      nextCheck: signal.nextCheck || t("nextCheckConfirmDrop"),
+    },
+  };
+}
+
+function hasPlannedReviewEvidenceAction(item) {
+  const history = Array.isArray(item?.actionHistory) ? item.actionHistory : [];
+  return history.some((action) => {
+    const source = String(action?.source || "");
+    const status = String(action?.status || "planned");
+    const label = String(action?.label || "");
+    return (
+      status === "planned" &&
+      (source === "review_evidence" || label === t("reviewDropEvidenceActionLabel"))
+    );
+  });
+}
+
 function actionSnapshotReviewContext(action) {
   const snapshot = action?.snapshotContext || {};
+  const reviewDropHeadline = sentence(snapshot.reviewDropHeadline || "");
+  if (reviewDropHeadline) {
+    const previous = snapshot.reviewDropPreviousCount
+      ? langText(
+          `Previous reviews: ${snapshot.reviewDropPreviousCount}`,
+          `前回レビュー数: ${snapshot.reviewDropPreviousCount}`
+        )
+      : "";
+    const latest = snapshot.reviewDropCurrentCount
+      ? langText(
+          `Current reviews: ${snapshot.reviewDropCurrentCount}`,
+          `現在レビュー数: ${snapshot.reviewDropCurrentCount}`
+        )
+      : "";
+    const checklist = Array.isArray(snapshot.reviewDropEvidenceChecklist)
+      ? snapshot.reviewDropEvidenceChecklist.filter(Boolean).join(" / ")
+      : "";
+
+    return {
+      headline: reviewDropHeadline,
+      previous,
+      latest,
+      basis: checklist || sentence(snapshot.reviewDropNextAction || ""),
+    };
+  }
+
   const headline = sentence(snapshot.reviewThemeHeadline || "");
   const previous = sentence(snapshot.reviewThemePrevious || "");
   const latest = sentence(snapshot.reviewThemeLatest || "");
@@ -8361,6 +8471,17 @@ function actionSnapshotReviewContext(action) {
 }
 
 function buildCurrentActionTask(result, firstView = null) {
+  const reviewEvidenceAction = buildReviewDropEvidenceAction(result?.savedListing || null);
+  if (reviewEvidenceAction) {
+    return {
+      ...reviewEvidenceAction,
+      snapshotContext: {
+        ...reviewEvidenceAction.snapshotContext,
+        generatedAt: result?.generatedAt || reviewEvidenceAction.snapshotContext?.generatedAt,
+      },
+    };
+  }
+
   const view = firstView || buildDiagnosisFirstView(result);
   const actions = Array.isArray(view?.actions) ? uniqueStrings(view.actions) : [];
   const rawTask = actions[0] || "";
@@ -8456,6 +8577,7 @@ function actionBriefDoneCriteria(task) {
   if (/phone|電話/.test(text)) return t("actionBriefPhoneDone");
   if (/website|webサイト|サイト|url/.test(text)) return t("actionBriefWebsiteDone");
   if (/photo|写真/.test(text)) return t("actionBriefPhotoDone");
+  if (/evidence|appeal|missing|消えた|証拠|異議/.test(text)) return t("reviewDropEvidenceDoneCriteria");
   if (/review|レビュー|返信|依頼/.test(text)) return t("actionBriefReviewDone");
   return t("actionBriefDoneFallback");
 }
@@ -10076,7 +10198,7 @@ function buildSavedListingMilestoneBlock(progress) {
   return milestoneBlock;
 }
 
-function buildSavedListingRevisitBlock(signal) {
+function buildSavedListingRevisitBlock(signal, item = null) {
   if (!signal?.visible) return null;
 
   const revisitBlock = document.createElement("div");
@@ -10109,14 +10231,7 @@ function buildSavedListingRevisitBlock(signal) {
   revisitBlock.appendChild(main);
   revisitBlock.appendChild(support);
 
-  const evidenceItems = (
-    Array.isArray(signal?.evidenceChecklist) && signal.evidenceChecklist.length
-      ? signal.evidenceChecklist
-      : t("reviewDropEvidenceFallback")
-  )
-    .map((item) => String(item || "").trim())
-    .filter(Boolean)
-    .slice(0, 4);
+  const evidenceItems = reviewDropEvidenceChecklist(signal);
 
   if (evidenceItems.length) {
     const evidence = document.createElement("div");
@@ -10128,6 +10243,27 @@ function buildSavedListingRevisitBlock(signal) {
       </ul>
     `;
     revisitBlock.appendChild(evidence);
+  }
+
+  if (item?.id) {
+    const action = buildReviewDropEvidenceAction(item);
+    const alreadySaved = hasPlannedReviewEvidenceAction(item);
+    const actions = document.createElement("div");
+    actions.className = "saved__revisit-actions";
+    actions.innerHTML = alreadySaved
+      ? `<span class="saved__revisit-action-saved">${escapeHtml(
+          t("reviewDropEvidenceAlreadySaved")
+        )}</span>`
+      : `<button class="btn btn--small" type="button" data-saved-id="${escapeAttr(
+          item.id
+        )}" data-action="save-evidence-task" ${
+          savedEvidenceActionBusyId === item.id || !action ? "disabled" : ""
+        }>${escapeHtml(
+          savedEvidenceActionBusyId === item.id
+            ? t("reviewDropEvidenceSaving")
+            : t("reviewDropEvidenceSaveTask")
+        )}</button>`;
+    revisitBlock.appendChild(actions);
   }
 
   revisitBlock.appendChild(nextCheck);
@@ -11341,7 +11477,7 @@ function renderSavedListings(listings) {
     if (actionHistoryBlock) content.appendChild(actionHistoryBlock);
     if (readinessBlock) content.appendChild(readinessBlock);
     if (statusBlock) content.appendChild(statusBlock);
-    const revisitBlock = buildSavedListingRevisitBlock(item?.reviewDropSignal);
+    const revisitBlock = buildSavedListingRevisitBlock(item?.reviewDropSignal, item);
     if (revisitBlock) content.appendChild(revisitBlock);
     const milestoneBlock = buildSavedListingMilestoneBlock(item?.ratingMilestoneProgress);
     if (milestoneBlock) content.appendChild(milestoneBlock);
@@ -12101,6 +12237,34 @@ if (savedListingsEl) {
 
     if (action === "copy-link") {
       await copySavedReportLink(button, id, "saved_listing_card");
+      return;
+    }
+
+    if (action === "save-evidence-task") {
+      const item = currentSavedListings.find((listing) => listing?.id === id);
+      const task = buildReviewDropEvidenceAction(item);
+
+      if (!task) {
+        setSavedMessage(t("reviewDropEvidenceSaveFailed"), true);
+        return;
+      }
+
+      savedEvidenceActionBusyId = id;
+      renderSavedListings(currentSavedListings);
+      try {
+        setSavedMessageKey("reviewDropEvidenceSaving");
+        const response = await createSavedAction(id, task);
+        if (!response?.ok) {
+          throw new Error(getApiMessage(response, t("reviewDropEvidenceSaveFailed")));
+        }
+        setSavedMessageKey("reviewDropEvidenceSaved");
+        applyUpdatedSavedListing(response.savedListing);
+      } catch (error) {
+        setSavedMessage(error?.message || String(error), true);
+      } finally {
+        savedEvidenceActionBusyId = "";
+        renderSavedListings(currentSavedListings);
+      }
       return;
     }
 

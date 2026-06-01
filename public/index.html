@@ -1823,6 +1823,8 @@ const COPY = {
     clientReportEvidenceThemeBeforeAfter: "Theme focus: {previous} -> {latest}",
     clientReportEvidenceThemeBasis: "Monitoring basis: {basis}",
     clientReportEvidenceSavedContext: "Saved action context: {context}",
+    clientReportEvidenceSavedReviewCounts: "Saved review-count evidence: {previous} -> {latest}",
+    clientReportEvidenceSavedChecklist: "Evidence log checklist: {basis}",
     clientReportEvidenceGoogle: "Google-side proof: {signal}",
     clientReportEvidenceReviewTotals:
       "Trust depth: total reviews this listing {my}, competitor {competitor}; gap {gap}.",
@@ -2854,6 +2856,8 @@ const COPY = {
     clientReportEvidenceThemeBeforeAfter: "レビュー焦点: {previous} -> {latest}",
     clientReportEvidenceThemeBasis: "モニタリング根拠: {basis}",
     clientReportEvidenceSavedContext: "保存時のアクション根拠: {context}",
+    clientReportEvidenceSavedReviewCounts: "保存時のレビュー数根拠: {previous} -> {latest}",
+    clientReportEvidenceSavedChecklist: "証拠ログの準備項目: {basis}",
     clientReportEvidenceGoogle: "Google側の見える根拠: {signal}",
     clientReportEvidenceReviewTotals:
       "信頼の厚み: 総レビュー数は自店舗 {my}、競合 {competitor}、差分 {gap}。",
@@ -6982,6 +6986,23 @@ function buildClientReportEvidencePack(result) {
     items.push(
       copyWithValues(t("clientReportEvidenceSavedContext"), {
         context: savedReviewContext.headline,
+      })
+    );
+  }
+
+  if (savedReviewContext?.previous || savedReviewContext?.latest) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceSavedReviewCounts"), {
+        previous: savedReviewContext.previous || "-",
+        latest: savedReviewContext.latest || "-",
+      })
+    );
+  }
+
+  if (savedReviewContext?.basis) {
+    items.push(
+      copyWithValues(t("clientReportEvidenceSavedChecklist"), {
+        basis: savedReviewContext.basis,
       })
     );
   }

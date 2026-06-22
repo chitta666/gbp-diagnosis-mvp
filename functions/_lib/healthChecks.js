@@ -109,8 +109,8 @@ async function runSiteCheck({ origin, fetchImpl }) {
   const result = await fetchTarget(fetchImpl, url);
   const expectedMarkers = [
     "Flowmetric",
-    "Client-ready GBP weekly reports",
-    "saved client locations",
+    "Client-ready Google Business Profile weekly reports",
+    "saved listings",
   ];
   const matchedMarkers = expectedMarkers.filter((marker) =>
     result.text.includes(marker)
